@@ -41,11 +41,12 @@ std::string parse_data(char* data){
 }
 
 void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
-    std::cout << "-------------" << std::endl;
-    std::cout << "Handle Read Data:" << std::endl;
-    std::cout << data_ << std::endl;
     if (!error) {
         //log
+        std::cout << "-------------" << std::endl;
+        std::cout << "Handle Read Data:" << std::endl;
+        std::cout << data_ << std::endl;
+        std::cout << "-------------" << std::endl;
         std::cout << "Sending Response..." << std::endl;
         //generate response
         std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
@@ -60,12 +61,20 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
             boost::bind(&session::handle_write, 
                 this,
                 boost::asio::placeholders::error));
+        std::cout << "-------------" << std::endl;
     }
-    else {
-        std::cout << "Error in Handle Read" << std::endl;
+    else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //discocnnect
         delete this;
     }
-    std::cout << "-------------" << std::endl;
+    else {
+        //log
+        std::cout << "-------------" << std::endl;
+        std::cout << "Handle Read Data:" << std::endl;
+        std::cout << data_ << std::endl;
+        std::cout << "Error in Handle Read" << std::endl;
+        std::cout << "-------------" << std::endl;
+        delete this;
+    }
 }
 
 
