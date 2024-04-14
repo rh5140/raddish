@@ -17,14 +17,17 @@ RUN ctest --output-on_failure
 FROM ubuntu:jammy as deploy
 
 # Copy server output binary to "."
-COPY --from=builder /usr/src/project/build/bin/server .
+COPY --from=builder /usr/src/project/build/bin/webserver .
+
+# Copy config file
+COPY --from=builder /usr/src/project/server_config .
 
 # Expose ports
 EXPOSE 80
 
 # Use ENTRYPOINT to specify the binary name
-ENTRYPOINT ["./server"]
+ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
-# Setting 80 as default port number
-CMD ["80"]
+# Default config file
+CMD ["server_config"]
