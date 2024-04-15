@@ -35,6 +35,23 @@ TEST_F(ParseTest, LargeConfig){
   EXPECT_TRUE(success);
 }
 
+TEST_F(ParseTest, OpenEnd){
+  bool success = parser.Parse("configs/open_end_config", &out_config);
+  EXPECT_FALSE(success);
+}
+
+
+TEST_F(ParseTest, OpenBeginning){
+  bool success = parser.Parse("configs/open_config", &out_config);
+  EXPECT_FALSE(success);
+}
+
+
+
+
+
+
+//get server settings test
 TEST_F(ParseTest, ServerPortGood){
   bool success = parser.Parse("configs/basic_server_config", &out_config);
   EXPECT_TRUE(success);
@@ -73,4 +90,11 @@ TEST_F(ParseTest, BiggerConfig){
   EXPECT_EQ(port_num, 8080);
 }
 
+//to string testing
 
+TEST_F(ParseTest, ConfigToString){
+  bool success = parser.Parse("configs/hello_config", &out_config);
+  EXPECT_TRUE(success);
+  EXPECT_EQ(out_config.ToString(), "hello \"world\";\n");
+  EXPECT_EQ((*out_config.statements_[0]).ToString(0), "hello \"world\";\n");
+}

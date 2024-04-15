@@ -4,6 +4,9 @@ server {
   bar      800;
 }
 
+#this is a comment
+
+
 server2 {
   listen   8085;
 }

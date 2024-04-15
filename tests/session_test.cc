@@ -37,3 +37,5 @@ TEST_F(SessionTest, ParseNoBody){
     parse_result = test_session->parse_data(test_body);
     EXPECT_EQ(parse_result, "");
 }
+
+//TODO: test handle_read
