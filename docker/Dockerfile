@@ -19,8 +19,8 @@ FROM ubuntu:jammy as deploy
 # Copy server output binary to "."
 COPY --from=builder /usr/src/project/build/bin/webserver .
 
-# Copy config file
-COPY --from=builder /usr/src/project/server_config .
+# Copy config file (for gcloud deployment)
+COPY --from=builder /usr/src/project/gcloud_server_config .
 
 # Expose ports
 EXPOSE 80
@@ -30,4 +30,4 @@ ENTRYPOINT ["./webserver"]
 
 # Use CMD to specify arguments to ENTRYPOINT
 # Default config file
-CMD ["server_config"]
+CMD ["gcloud_server_config"]
