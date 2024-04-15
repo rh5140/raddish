@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 class NginxConfig;
 // The parsed representation of a single config statement.
 class NginxConfigStatement {
@@ -26,6 +27,7 @@ class NginxConfigParser {
   // iff the input config file is valid.
   bool Parse(std::istream* config_file, NginxConfig* config);
   bool Parse(const char* file_name, NginxConfig* config);
+  bool GetServerSettings(NginxConfig* config, int* port_num);
  private:
   enum TokenType {
     TOKEN_TYPE_START = 0,

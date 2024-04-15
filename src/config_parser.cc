@@ -14,6 +14,9 @@
 #include <string>
 #include <vector>
 #include "config_parser.h"
+
+using namespace std; //for cout
+
 std::string NginxConfig::ToString(int depth) {
   std::string serialized_config;
   for (const auto& statement : statements_) {
@@ -230,4 +233,46 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
       Parse(dynamic_cast<std::istream*>(&config_file), config);
   config_file.close();
   return return_value;
+}
+
+
+
+
+bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
+    //config
+    //behold my n^3 function and weep
+    //I'm not sure if this should be made a real function - easier to test but this will eventually return a ton of things.
+    //outermost config
+
+    //init
+    (*port_num) = -1;
+
+    for(int i = 0; i < (*config).statements_.size(); i++){ 
+      //parse outermost config to find the server config
+      for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
+        //locate server config so we can find the server args
+        if((*(*config).statements_[i]).tokens_[j] == "server"){
+          cout << "server config found" << endl;
+          NginxConfig server_config = (*(*(*config).statements_[i]).child_block_);
+          //iterate through server config to find each arguement for server starting
+          for(int k = 0; k < (*server_config.statements_[0]).tokens_.size(); k++){
+            //handles port
+            if((*server_config.statements_[0]).tokens_[k] == "listen" && k <= (*server_config.statements_[0]).tokens_.size()){
+              (*port_num) = stoi((*server_config.statements_[0]).tokens_[k + 1]);
+              cout << "port num found: " << (*port_num) << endl;
+            }
+            //can add more args as needed here, following the pattern for ports
+          }
+        }
+      }
+    }
+
+    //check if config worked
+
+    
+    if((*port_num) < 0 || (*port_num) > 65353){ //65353 is the default max range for port
+      return false;
+    }
+
+    return true;
 }

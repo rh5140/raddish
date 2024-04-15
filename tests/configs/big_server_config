@@ -1,0 +1,13 @@
+server {
+  listen   8080;
+  foo      bar;
+  bar      800;
+}
+
+server2 {
+  listen   8085;
+}
+
+server3 {
+  listen   8081;
+}

@@ -35,30 +35,13 @@ int main(int argc, char* argv[]) {
     }
 
 
-    //config
-    //behold my n^3 function and weep
-    //I'm not sure if this should be made a real function - easier to test but this will eventually return a ton of things.
-    int port_num;
-    //outermost config
-    for(int i = 0; i < out_config.statements_.size(); i++){ 
-      //parse outermost config to find the server config
-      for(int j = 0; j < (*out_config.statements_[i]).tokens_.size(); j++){
-        //locate server config so we can find the server args
-        if((*out_config.statements_[i]).tokens_[j] == "server"){
-          cout << "server config found" << endl;
-          NginxConfig server_config = (*(*out_config.statements_[i]).child_block_);
-          //iterate through server config to find each arguement for server starting
-          for(int k = 0; k < (*server_config.statements_[0]).tokens_.size(); k++){
-            //handles port
-            if((*server_config.statements_[0]).tokens_[k] == "listen" && k <= (*server_config.statements_[0]).tokens_.size()){
-              port_num = stoi((*server_config.statements_[0]).tokens_[k + 1]);
-              cout << "port num found: " << port_num << endl;
-            }
-            //can add more args as needed here, following the pattern for ports
-          }
-        }
-      }
+    int port_num = -1;
+    if(!parser.GetServerSettings(&out_config, &port_num)){
+      std::cerr << "Failed to parse config" << std::endl;
+      return 1;
     }
+    
+
 
   
 
