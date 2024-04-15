@@ -9,7 +9,7 @@ public:
     session(boost::asio::io_service& io_service);
     tcp::socket& socket();
     void start();
-
+    std::string parse_data(const char* data);
 private:
     tcp::socket socket_;
     enum { max_length = 1024 };

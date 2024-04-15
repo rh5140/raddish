@@ -20,10 +20,9 @@ void session::start() {
             boost::asio::placeholders::bytes_transferred));
 }
 
-std::string parse_data(char* data){
+std::string session::parse_data(const char* data){
     //TODO: this currently assumes we recieved a valid line
     //TODO: will implement in next commit
-
     //credit: https://stackoverflow.com/questions/13172158/c-split-string-by-line
     std::stringstream ss(data);
     std::string to;
@@ -33,7 +32,7 @@ std::string parse_data(char* data){
         if(foundBody){
             ret = ret + to + "\n";
         }
-        if(!foundBody && to.size() == 1){ //not sure how to find body exactly
+        if(!foundBody && (to.size() == 1 || to.size() == 0)){ //not sure how to find body exactly
             foundBody = true;
         }
     }
@@ -51,7 +50,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         //generate response
         std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
         std::string content_length = "Content-Length: ";
-        std::string response_body = parse_data(data_);
+        std::string response_body = session::parse_data(data_);
         content_length = content_length + std::to_string(response_body.size()) + "\n\n";
         http_response = http_response + content_length + response_body;
         std::cout << http_response << std::endl;
