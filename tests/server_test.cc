@@ -1,41 +1,45 @@
 
-/*
-#include "gtest/gtest.h"
-#include "server.h"
 #include <iostream>
 #include <boost/asio.hpp>
+#include <gmock/gmock.h>
+#include "gtest/gtest.h"
 #include "server.h"
 
-using boost::asio::ip::tcp;
 
+
+
+using boost::asio::ip::tcp;
+using namespace std;
+
+
+//Leaving this commented out for now, as we don't need it but it could prove useful in the future as a template for mocks.
+/*
+class MockServer : public server{
+  public:
+    MockServer(boost::asio::io_service& io_service, short port) : server(io_service, port){}
+    MOCK_METHOD(void, handle_accept, (session* new_session, const boost::system::error_code& error));
+    
+};
 
 //fixture
 class ServerTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
+  void SetUp() override {}
   // void TearDown() override {}
-    boost::asio::io_service io_service;
-    server s(io_service, 8080);
+  boost::asio::io_service io_s;
+  int port_num = 8080;
+  MockServer* test_server = new MockServer(io_s, port_num);
+
 };
 
-
-
-//new unit tests
-TEST_F(ParseTest, BadConfigPath) {
-  bool success = parser.Parse("thisdoesnotexist_config", &out_config);
-  EXPECT_FALSE(success);
-}
-TEST_F(ParseTest, EmptyFile){
-  bool success = parser.Parse("empty_config", &out_config);
-  EXPECT_TRUE(success);
-}
-TEST_F(ParseTest, NoEnd){
-  bool success = parser.Parse("no_end_config", &out_config);
-  EXPECT_FALSE(success);
-}
-TEST_F(ParseTest, LargeConfig){
-  bool success = parser.Parse("larger_config", &out_config);
-  EXPECT_TRUE(success);
+TEST_F(ServerTest, ServerStart) {
 }
 */
+
+TEST(BasicServerSetupTest, ServerStart) {
+  boost::asio::io_service io_s;
+  int port_num = 8080;
+  server* test_server = new server(io_s, port_num);
+  EXPECT_NE(test_server, nullptr);
+}
+
