@@ -45,8 +45,8 @@ std::string session::parse_data(const char* data){
         }
         else if(found_body){
             //check to see if buffer overflows content_length
-            if(ret.length() + to.length() <= content_length){
-                ret += to; //normal add
+            if(ret.length() + to.length() + 1 <= content_length){
+                ret += to + "\n"; //normal add
             }
             else{
                 //if content-length = 10, ret.length = 8 and to.length = 3, then we get the substr of (0, (10-8)) or (0, 2)
@@ -71,8 +71,8 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
         std::string content_length = "Content-Length: ";
         std::string response_body = session::parse_data(data_);
-        content_length = content_length + std::to_string(response_body.size() + 1) + "\n\n"; //+1 is for the extra \n at the end
-        http_response = http_response + content_length + response_body + '\n';
+        content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
+        http_response = http_response + content_length + response_body;
         std::cout << http_response << std::endl;
         //send response
         boost::asio::async_write(socket_,
