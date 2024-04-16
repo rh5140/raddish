@@ -70,17 +70,8 @@ gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/t
 
 include(cmake/CodeCoverageReportConfig.cmake)
 
-#generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
+#coverage
 generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
-
-
-
-# TODO(!): Update test executable name, srcs, and deps
-# add_executable(example_lib_test tests/example_lib_test.cc)
-# target_link_libraries(example_lib_test example_lib gtest_main)
-
-# TODO(!): Update with test binary
-# gtest_discover_tests(example_lib_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 
 
