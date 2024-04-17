@@ -27,12 +27,16 @@ std::string session::parse_data(const char* data){
     //credit: https://stackoverflow.com/questions/13172158/c-split-string-by-line
     std::stringstream ss(data);
     std::string to;
+    std::string headerRet = "";
     std::string ret = "";
     bool found_body = false; //looking for \n\n
     int content_length = -1; //just an init value
     string content_flag = "Content-Length:"; 
     //iterate through data to find content length, line-by-line
     while(std::getline(ss, to,'\n')){
+        if(!found_body){
+            headerRet += to + "\n";
+        }
         if(content_length == -1 && to.find(content_flag) != -1){ //if we find content length in the line
             //finds content-length by getting the substring from after the flag to the end
             //basically, Content-Length: 100 -> 100
@@ -43,6 +47,9 @@ std::string session::parse_data(const char* data){
         else if(!found_body && to.length() == 0 || to.length() == 1 && to.find("\r") != -1){
             found_body = true;
         }
+        else if(found_body && content_length == -1){ //no body
+            return headerRet;
+        }
         else if(found_body){
             //check to see if buffer overflows content_length
             if(ret.length() + to.length() + 1 <= content_length){
@@ -52,11 +59,11 @@ std::string session::parse_data(const char* data){
                 //if content-length = 10, ret.length = 8 and to.length = 3, then we get the substr of (0, (10-8)) or (0, 2)
                 //i.e. start from 0 and get substr of length 2
                 ret += to.substr(0, content_length - ret.length()); 
-                return ret; //we've reached content_length so return
+                return headerRet + ret; //we've reached content_length so return
             }
         }
     }
-    return ret;
+    return headerRet + ret;
 }
 
 void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
