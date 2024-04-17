@@ -68,10 +68,11 @@ gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-include(cmake/CodeCoverageReportConfig.cmake)
+# Coverage reports COMMENTED OUT FOR NOW
+# include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
+# generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
 
 
 
