@@ -15,6 +15,15 @@ steps:
     '.'
   ]
 - name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-f', 'docker/coverage.Dockerfile',
+    '-t', 'raddish:coverage',
+    '-t', 'gcr.io/$PROJECT_ID/raddish:coverage',
+    '--cache-from', 'gcr.io/$PROJECT_ID/raddish:coverage',
+    '.'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/raddish:base']
 - name: 'gcr.io/cloud-builders/docker'
   args: [
