@@ -1,5 +1,10 @@
 #include "gtest/gtest.h"
+#include <sstream>
+#include <string>
 #include "config_parser.h"
+
+using namespace std; //for str
+
 TEST(NginxConfigParserTest, SimpleConfig) {
   NginxConfigParser parser;
   NginxConfig out_config;
@@ -48,7 +53,17 @@ TEST_F(ParseTest, OpenBeginning){
 
 
 
-
+//TokenAsString testing
+TEST_F(ParseTest, TokenToString){
+  EXPECT_EQ(string(parser.NumberToTokenString(0)), "TOKEN_TYPE_START");
+  EXPECT_EQ(string(parser.NumberToTokenString(1)), "TOKEN_TYPE_NORMAL");
+  EXPECT_EQ(string(parser.NumberToTokenString(2)), "TOKEN_TYPE_START_BLOCK");
+  EXPECT_EQ(string(parser.NumberToTokenString(3)), "TOKEN_TYPE_END_BLOCK");
+  EXPECT_EQ(string(parser.NumberToTokenString(4)), "TOKEN_TYPE_COMMENT");
+  EXPECT_EQ(string(parser.NumberToTokenString(5)), "TOKEN_TYPE_STATEMENT_END");
+  EXPECT_EQ(string(parser.NumberToTokenString(6)), "TOKEN_TYPE_EOF");
+  EXPECT_EQ(string(parser.NumberToTokenString(7)), "TOKEN_TYPE_ERROR");
+}
 
 
 //get server settings test

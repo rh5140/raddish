@@ -28,6 +28,7 @@ class NginxConfigParser {
   bool Parse(std::istream* config_file, NginxConfig* config);
   bool Parse(const char* file_name, NginxConfig* config);
   bool GetServerSettings(NginxConfig* config, int* port_num);
+  const char* NumberToTokenString(int n); //used for testing without exposing private methods
  private:
   enum TokenType {
     TOKEN_TYPE_START = 0,

@@ -61,6 +61,30 @@ const char* NginxConfigParser::TokenTypeAsString(TokenType type) {
     default:                       return "Unknown token type";
   }
 }
+
+//used for testing the above function publicly
+const char* NginxConfigParser::NumberToTokenString(int n){
+  switch(n){
+    case 0:
+      return TokenTypeAsString(TOKEN_TYPE_START);
+    case 1:
+      return TokenTypeAsString(TOKEN_TYPE_NORMAL);
+    case 2:
+      return TokenTypeAsString(TOKEN_TYPE_START_BLOCK);
+    case 3:
+      return TokenTypeAsString(TOKEN_TYPE_END_BLOCK);
+    case 4:
+      return TokenTypeAsString(TOKEN_TYPE_COMMENT);
+    case 5:
+      return TokenTypeAsString(TOKEN_TYPE_STATEMENT_END);
+    case 6:
+      return TokenTypeAsString(TOKEN_TYPE_EOF);
+    default:
+      return TokenTypeAsString(TOKEN_TYPE_ERROR);
+  }
+}
+
+
 NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
                                                            std::string* value) {
   TokenParserState state = TOKEN_STATE_INITIAL_WHITESPACE;
