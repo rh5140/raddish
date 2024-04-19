@@ -10,6 +10,7 @@ public:
     tcp::socket& socket();
     void start();
     std::string parse_data(const char* data);
+    std::string create_response(size_t bytes_transferred);
 private:
     tcp::socket socket_;
     enum { max_length = 1024 };

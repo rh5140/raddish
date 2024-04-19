@@ -26,12 +26,17 @@ TEST_F(SessionTest, SessionStart) {
 
 
 
-//TODO: these need to be re-written in assignment 3 since ParseBody works differently now
-//TEST_F(SessionTest, ParseBody){
-//    const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n\nHello World!";
-//    parse_result = test_session->parse_data(test_body);
-//    EXPECT_EQ(parse_result, "Hello World!\n");
-//}
+TEST_F(SessionTest, ParseBody){
+    //const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n\nHello World!";
+    const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nhello world";
+    parse_result = test_session->parse_data(test_body);
+    EXPECT_EQ(parse_result, string(test_body) + "\n");
+}
+
+TEST_F(SessionTest, ResponseGeneration){
+  std::string response = test_session->create_response(0);
+  EXPECT_EQ(response,"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 0\n\n");
+}
 
 //TEST_F(SessionTest, ParseNoBody){
 //    const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded";

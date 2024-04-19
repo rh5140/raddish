@@ -22,10 +22,14 @@ void session::start() {
             boost::asio::placeholders::bytes_transferred));
 }
 
+//public
 std::string session::parse_data(const char* data){
     //TODO: this currently assumes we recieved a valid line, which is fine for assignment 2
     //credit: https://stackoverflow.com/questions/13172158/c-split-string-by-line
     std::stringstream ss(data);
+
+    //check for data
+
     std::string to;
     std::string headerRet = "";
     std::string ret = "";
@@ -66,21 +70,30 @@ std::string session::parse_data(const char* data){
     return headerRet + ret;
 }
 
+//public
+std::string session::create_response(size_t bytes_transferred){
+    //log
+    std::cout << "-------------" << std::endl;
+    std::cout << "Handle Read Data:" << std::endl;
+    std::cout << data_ << std::endl;
+    std::cout << "-------------" << std::endl;
+    std::cout << "Sending Response..." << std::endl;
+    //generate response
+    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
+    std::string content_length = "Content-Length: ";
+    std::string response_body;
+    response_body = session::parse_data(data_);
+    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
+    http_response = http_response + content_length + response_body;
+    std::cout << http_response << std::endl;
+    return http_response;
+}
+
+//private
 void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
     if (!error) {
-        //log
-        std::cout << "-------------" << std::endl;
-        std::cout << "Handle Read Data:" << std::endl;
-        std::cout << data_ << std::endl;
-        std::cout << "-------------" << std::endl;
-        std::cout << "Sending Response..." << std::endl;
-        //generate response
-        std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
-        std::string content_length = "Content-Length: ";
-        std::string response_body = session::parse_data(data_);
-        content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-        http_response = http_response + content_length + response_body;
-        std::cout << http_response << std::endl;
+        //create response
+        std::string http_response = create_response(bytes_transferred);
         //send response
         boost::asio::async_write(socket_,
             boost::asio::buffer(http_response, http_response.size()), 
@@ -103,7 +116,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
     }
 }
 
-
+//private
 void session::handle_write(const boost::system::error_code& error) {
     if (!error) {
       socket_.async_read_some(boost::asio::buffer(data_, max_length),
