@@ -57,6 +57,10 @@ target_link_libraries(session_test session_lib gtest_main)
 add_executable(server_test tests/server_test.cc)
 target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main)
 
+#add and link integration test executable
+add_executable(integration_test tests/integration_test.cc)
+target_link_libraries(integration_test gtest_main)
+
 
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
@@ -67,12 +71,13 @@ target_link_libraries(webserver server_lib session_lib config_parser_lib Boost::
 gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(integration_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
+generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test integration_test) 
 
 
 

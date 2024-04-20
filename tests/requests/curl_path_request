@@ -1,0 +1,1 @@
+curl -s -H Host: -X GET 
