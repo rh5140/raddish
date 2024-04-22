@@ -23,24 +23,39 @@ void session::start() {
 }
 
 //public
-std::string session::parse_data(const char* data){
+std::string session::parse_data(const char* data, size_t* max_bytes){
     //TODO: this currently assumes we recieved a valid line, which is fine for assignment 2
     //credit: https://stackoverflow.com/questions/13172158/c-split-string-by-line
+    //convert string to stringstream
     std::stringstream ss(data);
-
-    //check for data
-
     std::string to;
-    std::string headerRet = "";
+    //HTTP response initialization
     std::string ret = "";
-    bool found_body = false; //looking for \n\n
-    int content_length = -1; //just an init value
-    string content_flag = "Content-Length:"; 
+    while(std::getline(ss, to,'\n')){
+            //safeguard in case of buffer overflow
+            if(ret.length() + to.length() + 1 <= (*max_bytes)){
+                ret += to + "\n"; 
+            }
+            else{
+                //only add up to bytes read
+                ret += to.substr(0, (*max_bytes) - ret.length()); 
+                return ret; 
+            }
+    }
+    return ret;
+
+    /*
+    //I'm keeping this around for now in case we need to parse the body in later iterations of the webserver
     //iterate through data to find content length, line-by-line
+    std::string headerRet = "";
+    int content_length = -1; //just an init value       
+    string content_flag = "Content-Length:"; 
+    bool found_body = false; //looking for \n\n
     while(std::getline(ss, to,'\n')){
         if(!found_body){
             headerRet += to + "\n";
         }
+        //bytes_read += to.length();
         if(content_length == -1 && to.find(content_flag) != -1){ //if we find content length in the line
             //finds content-length by getting the substring from after the flag to the end
             //basically, Content-Length: 100 -> 100
@@ -67,7 +82,8 @@ std::string session::parse_data(const char* data){
             }
         }
     }
-    return headerRet + ret;
+    //return headerRet + ret;
+    */
 }
 
 //public
@@ -76,13 +92,15 @@ std::string session::create_response(size_t bytes_transferred){
     std::cout << "-------------" << std::endl;
     std::cout << "Handle Read Data:" << std::endl;
     std::cout << data_ << std::endl;
+    std::cout << "Bytes transferred:" << std::endl;
+    std::cout << bytes_transferred << std::endl;
     std::cout << "-------------" << std::endl;
     std::cout << "Sending Response..." << std::endl;
     //generate response
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
     std::string content_length = "Content-Length: ";
     std::string response_body;
-    response_body = session::parse_data(data_);
+    response_body = session::parse_data(data_, &bytes_transferred);
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
     std::cout << http_response << std::endl;

@@ -9,7 +9,7 @@ public:
     session(boost::asio::io_service& io_service);
     tcp::socket& socket();
     void start();
-    std::string parse_data(const char* data);
+    std::string parse_data(const char* data, size_t* max_bytes);
     std::string create_response(size_t bytes_transferred);
 private:
     tcp::socket socket_;
