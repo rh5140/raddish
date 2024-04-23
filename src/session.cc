@@ -78,6 +78,8 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         else{
             //create response
             std::string http_response = create_response();
+            //clear buffer for next
+            buf.clear();
             //send response
             boost::asio::async_write(socket_,
                 boost::asio::buffer(http_response, http_response.size()), 
