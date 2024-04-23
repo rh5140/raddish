@@ -12,15 +12,16 @@ fi
 # checks if command returns empty string or not
 while [ -n "$2" ];
 do
+    # create temp file to customize command based on inputs
     tmpfile=$(mktemp /tmp/tmpfile.XXXXXXX)
     cat $2 > $tmpfile
     if [ "$location" == "local" ];
     then
         if [[ $2 == *"nc"* ]];
         then
-            echo -n "127.0.0.1 8080" >> $tmpfile
+            echo -n "localhost 8080" >> $tmpfile
         else
-            echo -n "127.0.0.1:8080" >> $tmpfile
+            echo -n "localhost:8080" >> $tmpfile
         fi
     else
         if [[ $2 == *"nc"* ]];
@@ -35,19 +36,16 @@ do
         echo -n "/echo" >> $tmpfile
     fi
 
-    # ignore comments below, for testing purposes - will remove after
-    # cat $tmpfile
-    # cat $4
-    # bash $tmpfile > $3
-    # bash $tmpfile | diff $3 -
-
+    # putting contents of file into local variable
+    # for grep purposes
     reg=$(<$3)
 
-    if [ ! $( bash $tmpfile | grep -P reg ) ];
+    # P for PCRE (multiline), c for count, z for treating the matched text as a sequence of lines 
+    if [ "$( bash $tmpfile | grep -Pcz "$reg" - )" != 0 ];
     then
-        echo SUCCESS
+        echo -n SUCCESS
     else
-        echo FAILURE
+        echo -n FAILURE
         if [ "$location" == "local" ];
         then
             kill %1
