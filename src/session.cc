@@ -44,6 +44,84 @@ std::string session::parse_data(const char* data, size_t* max_bytes){
     }
     return ret;
 
+}
+
+//public
+std::string session::create_response(){
+    //log
+    std::cout << "-------------" << std::endl;
+    std::cout << "Handle Read Data:" << std::endl;
+    std::cout << string(buf.data()) << std::endl;
+    std::cout << "-------------" << std::endl;
+    std::cout << "Sending Response..." << std::endl;
+    //generate response
+    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
+    std::string content_length = "Content-Length: ";
+    std::string response_body;
+    //response_body = session::parse_data(data_, &bytes_transferred);
+    size_t total_data = buf.size();
+    response_body = session::parse_data(buf.data(), &total_data);
+    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
+    http_response = http_response + content_length + response_body;
+    std::cout << http_response << std::endl;
+    return http_response;
+}
+
+//private
+void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
+    if (!error) {
+        buf.insert(buf.end(), data_, data_ + bytes_transferred);
+        if(bytes_transferred >= max_length){ //should never be greater but just in case...
+            cout << "partial data read, continuing..." << endl;
+            session::handle_write(error);
+        }
+        else{
+            //create response
+            std::string http_response = create_response();
+            //send response
+            boost::asio::async_write(socket_,
+                boost::asio::buffer(http_response, http_response.size()), 
+                boost::bind(&session::handle_write, 
+                    this,
+                    boost::asio::placeholders::error));
+        }
+        std::cout << "-------------" << std::endl;
+    }
+    else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
+        delete this;
+    }
+    else {
+        //log
+        std::cout << "-------------" << std::endl;
+        std::cout << "Handle Read Data:" << std::endl;
+        std::cout << data_ << std::endl;
+        std::cout << "Error in Handle Read" << std::endl;
+        std::cout << "-------------" << std::endl;
+        delete this;
+    }
+}
+
+//private
+void session::handle_write(const boost::system::error_code& error) {
+    if (!error) {
+      socket_.async_read_some(boost::asio::buffer(data_, max_length),
+        boost::bind(&session::handle_read, 
+            this,
+            boost::asio::placeholders::error,
+            boost::asio::placeholders::bytes_transferred));
+    }
+    else {
+        delete this;
+    }
+}
+
+
+
+
+
+
+
+
     /*
     //I'm keeping this around for now in case we need to parse the body in later iterations of the webserver
     //iterate through data to find content length, line-by-line
@@ -84,66 +162,3 @@ std::string session::parse_data(const char* data, size_t* max_bytes){
     }
     //return headerRet + ret;
     */
-}
-
-//public
-std::string session::create_response(size_t bytes_transferred){
-    //log
-    std::cout << "-------------" << std::endl;
-    std::cout << "Handle Read Data:" << std::endl;
-    std::cout << data_ << std::endl;
-    std::cout << "Bytes transferred:" << std::endl;
-    std::cout << bytes_transferred << std::endl;
-    std::cout << "-------------" << std::endl;
-    std::cout << "Sending Response..." << std::endl;
-    //generate response
-    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
-    std::string content_length = "Content-Length: ";
-    std::string response_body;
-    response_body = session::parse_data(data_, &bytes_transferred);
-    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-    http_response = http_response + content_length + response_body;
-    std::cout << http_response << std::endl;
-    return http_response;
-}
-
-//private
-void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
-    if (!error) {
-        //create response
-        std::string http_response = create_response(bytes_transferred);
-        //send response
-        boost::asio::async_write(socket_,
-            boost::asio::buffer(http_response, http_response.size()), 
-            boost::bind(&session::handle_write, 
-                this,
-                boost::asio::placeholders::error));
-        std::cout << "-------------" << std::endl;
-    }
-    else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
-        delete this;
-    }
-    else {
-        //log
-        std::cout << "-------------" << std::endl;
-        std::cout << "Handle Read Data:" << std::endl;
-        std::cout << data_ << std::endl;
-        std::cout << "Error in Handle Read" << std::endl;
-        std::cout << "-------------" << std::endl;
-        delete this;
-    }
-}
-
-//private
-void session::handle_write(const boost::system::error_code& error) {
-    if (!error) {
-      socket_.async_read_some(boost::asio::buffer(data_, max_length),
-        boost::bind(&session::handle_read, 
-            this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
-    }
-    else {
-        delete this;
-    }
-}

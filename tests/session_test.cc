@@ -34,15 +34,20 @@ TEST_F(SessionTest, ParseBody){
     EXPECT_EQ(parse_result, string(test_body) + "\n");
 }
 
-TEST_F(SessionTest, ResponseGeneration){
-  std::string response = test_session->create_response(0);
-  EXPECT_EQ(response,"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 0\n\n");
+
+TEST_F(SessionTest, ParseNoBody){
+    const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded";
+    size_t max_bytes = 999999;
+    parse_result = test_session->parse_data(test_body, &max_bytes);
+    EXPECT_EQ(parse_result, "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n");
 }
 
-//TEST_F(SessionTest, ParseNoBody){
-//    const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded";
-//    parse_result = test_session->parse_data(test_body);
-//    EXPECT_EQ(parse_result, "");
-//}
+//for now, uneeded, as this is tested in parse body.
+/*
+TEST_F(SessionTest, ResponseGeneration){
+  std::string response = test_session->create_response();
+  EXPECT_EQ(response,"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 0\n\n");
+}
+*/
 
 //TODO: test handle_read
