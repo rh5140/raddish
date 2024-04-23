@@ -77,7 +77,7 @@ gtest_discover_tests(integration_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_D
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test) 
+generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib TESTS config_parser_test session_test server_test integration_test) 
 
 
 
