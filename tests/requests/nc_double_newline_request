@@ -1,1 +1,1 @@
-cat strings/nc_double_newline_string | nc -w 1 
+cat strings/nc_double_newline_string | nc -q 0 
