@@ -22,6 +22,13 @@ void session::start() {
             boost::asio::placeholders::bytes_transferred));
 }
 
+// Setter for buf_ (made for testing)
+void session::set_buf(std::string buf) {
+    for (char c : buf) {
+        buf_.push_back(c);
+    }
+}
+
 //public
 std::string session::parse_data(const char* data, size_t* max_bytes){
     //TODO: this currently assumes we recieved a valid line, which is fine for assignment 2
@@ -51,7 +58,7 @@ std::string session::create_response(){
     //log
     std::cout << "-------------" << std::endl;
     std::cout << "Handle Read Data:" << std::endl;
-    std::cout << string(buf.data()) << std::endl;
+    std::cout << string(buf_.data()) << std::endl;
     std::cout << "-------------" << std::endl;
     std::cout << "Sending Response..." << std::endl;
     //generate response
@@ -59,8 +66,8 @@ std::string session::create_response(){
     std::string content_length = "Content-Length: ";
     std::string response_body;
     //response_body = session::parse_data(data_, &bytes_transferred);
-    size_t total_data = buf.size();
-    response_body = session::parse_data(buf.data(), &total_data);
+    size_t total_data = buf_.size();
+    response_body = session::parse_data(buf_.data(), &total_data);
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
     std::cout << http_response << std::endl;
@@ -70,7 +77,7 @@ std::string session::create_response(){
 //private
 void session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
     if (!error) {
-        buf.insert(buf.end(), data_, data_ + bytes_transferred);
+        buf_.insert(buf_.end(), data_, data_ + bytes_transferred);
         if(bytes_transferred >= max_length){ //should never be greater but just in case...
             cout << "partial data read, continuing..." << endl;
             session::handle_write(error);
@@ -79,7 +86,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
             //create response
             std::string http_response = create_response();
             //clear buffer for next
-            buf.clear();
+            buf_.clear();
             //send response
             boost::asio::async_write(socket_,
                 boost::asio::buffer(http_response, http_response.size()), 

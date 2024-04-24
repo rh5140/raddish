@@ -12,19 +12,25 @@ using namespace std;
 //fixture
 class SessionTest : public testing::Test {
  protected:
-  void SetUp() override {
-  }
-  // void TearDown() override {}
     boost::asio::io_service io_service;
-    session* test_session = new session(io_service);
     string parse_result;
+    int reasonable_length = 10;
+    int max_length = 1024;
+    int greater_than_max_length = 1025;
+    bool error_exists = false;
+    session* test_session;
+
+    void SetUp() override {
+      test_session = new session(io_service);
+    }
+    void TearDown() override {
+      delete test_session;
+    }
 };
 //new unit tests
 TEST_F(SessionTest, SessionStart) {
   EXPECT_NO_THROW(test_session->start());
 }
-
-
 
 TEST_F(SessionTest, ParseBody){
     //const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n\nHello World!";
@@ -42,12 +48,21 @@ TEST_F(SessionTest, ParseNoBody){
     EXPECT_EQ(parse_result, "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n");
 }
 
-//for now, uneeded, as this is tested in parse body.
-/*
-TEST_F(SessionTest, ResponseGeneration){
-  std::string response = test_session->create_response();
-  EXPECT_EQ(response,"HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 0\n\n");
+TEST_F(SessionTest, CreateResponse) {
+    const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nhello world";
+    test_session->set_buf("hello world");
+    EXPECT_EQ(test_session->create_response(), test_body);
 }
-*/
 
-//TODO: test handle_read
+TEST_F(SessionTest, HandleReadPartialDataRead) { 
+    // Marked "should never happen"
+    EXPECT_NO_THROW(test_session->handle_read(boost::system::error_code(), greater_than_max_length));
+}
+
+TEST_F(SessionTest, HandleRead) {
+    EXPECT_NO_THROW(test_session->handle_read(boost::system::error_code(), reasonable_length));
+}
+
+TEST_F(SessionTest, HandleWrite) {
+    EXPECT_NO_THROW(test_session->handle_write(boost::system::error_code()));
+}

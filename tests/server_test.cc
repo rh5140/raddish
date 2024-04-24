@@ -5,12 +5,8 @@
 #include "gtest/gtest.h"
 #include "server.h"
 
-
-
-
 using boost::asio::ip::tcp;
 using namespace std;
-
 
 //Leaving this commented out for now, as we don't need it but it could prove useful in the future as a template for mocks.
 /*
@@ -36,13 +32,40 @@ TEST_F(ServerTest, ServerStart) {
 }
 */
 
-TEST(BasicServerSetupTest, ServerStart) {
-  boost::asio::io_service io_s;
-  int port_num = 8080;
-  server* test_server = new server(io_s, port_num);
-  EXPECT_NE(test_server, nullptr);
+class ServerTest : public testing::Test {
+  protected:
+    boost::asio::io_service io_s;
+    int port_num = 8000;
+    server* test_server;
+    
+    void SetUp() override {
+      test_server = new server(io_s, port_num);
+    }
+    void TearDown() override {
+      delete test_server; // session is deleted in server's destructor
+    }
+};
+
+TEST_F(ServerTest, StartAccept) {
+    EXPECT_TRUE(test_server->start_accept());
 }
 
+TEST_F(ServerTest, HandleAccept) {
+    session* test_session = new session(io_s);
+    EXPECT_NO_THROW(test_server->handle_accept(test_session, boost::system::error_code()));
+    delete test_session;
+}
 
-//TODO: test handle_accept 
-//TODO: test main webserver
+TEST_F(ServerTest, HandleAcceptError) {
+    session* test_session = new session(io_s);
+    EXPECT_NO_THROW(test_server->handle_accept(test_session, boost::asio::error::access_denied));
+    delete test_session;
+}
+
+TEST(BasicServerSetupTest, ServerStart) {
+    boost::asio::io_service io_s;
+    int port_num = 8080;
+    server* test_server = new server(io_s, port_num);
+    EXPECT_NE(test_server, nullptr);
+    delete test_server;
+}

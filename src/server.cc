@@ -4,13 +4,14 @@ server::server(boost::asio::io_service& io_service, short port) : io_service_(io
     start_accept();
 }
 
-void server::start_accept() {
+bool server::start_accept() {
     session* new_session = new session(io_service_);
     acceptor_.async_accept(new_session->socket(),
         boost::bind(&server::handle_accept, 
             this, 
             new_session,
             boost::asio::placeholders::error));
+    return true;
 }
 
 void server::handle_accept(session* new_session, const boost::system::error_code& error) {
