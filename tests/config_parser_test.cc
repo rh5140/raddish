@@ -5,12 +5,6 @@
 
 using namespace std; //for str
 
-TEST(NginxConfigParserTest, SimpleConfig) {
-  NginxConfigParser parser;
-  NginxConfig out_config;
-  bool success = parser.Parse("configs/example_config", &out_config);
-  EXPECT_TRUE(success);
-}
 //fixture
 class ParseTest : public testing::Test {
  protected:
@@ -22,7 +16,12 @@ class ParseTest : public testing::Test {
   int port_num;
 
 };
-//new unit tests
+
+TEST_F(ParseTest, SimpleConfig) {
+  bool success = parser.Parse("configs/example_config", &out_config);
+  EXPECT_TRUE(success);
+}
+
 TEST_F(ParseTest, BadConfigPath) {
   bool success = parser.Parse("configs/thisdoesnotexist_config", &out_config);
   EXPECT_FALSE(success);
@@ -112,4 +111,11 @@ TEST_F(ParseTest, ConfigToString){
   EXPECT_TRUE(success);
   EXPECT_EQ(out_config.ToString(), "hello \"world\";\n");
   EXPECT_EQ((*out_config.statements_[0]).ToString(0), "hello \"world\";\n");
+}
+
+
+TEST_F(ParseTest, ConfigToStringLong){
+  bool success = parser.Parse("configs/larger_config", &out_config);
+  EXPECT_TRUE(success);
+  EXPECT_EQ(out_config.ToString(), "user www www;\nworker_processes 5;\nerror_log logs/error.log;\npid logs/nginx.pid;\nworker_rlimit_nofile 8192;\nevents {\n  worker_connections 4096;\n}\nhttp {\n  include conf/mime.types;\n  include /etc/nginx/proxy.conf;\n  include /etc/nginx/fastcgi.conf;\n  index index.html index.htm index.php;\n  default_type application/octet-stream;\n  log_format main '$remote_addr - $remote_user [$time_local]  $status ' '\"$request\" $body_bytes_sent \"$http_referer\" ' '\"$http_user_agent\" \"$http_x_forwarded_for\"';\n  access_log logs/access.log main;\n  sendfile on;\n  tcp_nopush on;\n  server_names_hash_bucket_size 128;\n}\n");
 }

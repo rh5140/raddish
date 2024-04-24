@@ -57,8 +57,7 @@ const char* NginxConfigParser::TokenTypeAsString(TokenType type) {
     case TOKEN_TYPE_COMMENT:       return "TOKEN_TYPE_COMMENT";
     case TOKEN_TYPE_STATEMENT_END: return "TOKEN_TYPE_STATEMENT_END";
     case TOKEN_TYPE_EOF:           return "TOKEN_TYPE_EOF";
-    case TOKEN_TYPE_ERROR:         return "TOKEN_TYPE_ERROR";
-    default:                       return "Unknown token type";
+    default:                       return "TOKEN_TYPE_ERROR";
   }
 }
 
