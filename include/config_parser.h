@@ -5,6 +5,11 @@
 #include <vector>
 #include <map>
 
+struct ConfigInfo {
+    int port_num;
+    std::map<std::string, std::string> locations;
+};
+
 class NginxConfig;
 // The parsed representation of a single config statement.
 class NginxConfigStatement {
@@ -28,11 +33,14 @@ class NginxConfigParser {
   // iff the input config file is valid.
   bool Parse(std::istream* config_file, NginxConfig* config);
   bool Parse(const char* file_name, NginxConfig* config);
-  bool GetServerSettings(NginxConfig* config, int* port_num);
+  bool GetServerSettings(NginxConfig* config);
   const char* NumberToTokenString(int n); //used for testing without exposing private methods
   std::map<std::string, std::string> GetLocations();
+  int GetPortNum();
+  ConfigInfo GetConfigInfo();
  private:
-  std::map<std::string, std::string> locations;
+  // std::map<std::string, std::string> locations;
+  ConfigInfo config_info;
   enum TokenType {
     TOKEN_TYPE_START = 0,
     TOKEN_TYPE_NORMAL = 1,

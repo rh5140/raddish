@@ -12,7 +12,6 @@
 #include <boost/asio.hpp>
 #include <map>
 #include "server.h"
-#include "config_parser.h"
 
 using boost::asio::ip::tcp;
 
@@ -35,19 +34,17 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
-
-    int port_num = -1;
-    if(!parser.GetServerSettings(&out_config, &port_num)){
+    if(!parser.GetServerSettings(&out_config)){
       std::cerr << "Failed to parse config" << std::endl;
       return 1;
     }
+
+    // Pass entire struct...
+    ConfigInfo config_info = parser.GetConfigInfo();
     
-
-
-  
-    // std::map<std::string, std::string> locations = parser.GetLocations();
     // TODO - send into server + session so that it can use it
-    server s(io_service, port_num);
+    // server s(io_service, port_num);
+    server s(io_service, config_info);
     cout << "Server Running!" << endl;
 
     io_service.run();

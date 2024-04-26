@@ -1,3 +1,12 @@
 server {
   listen   8080;
+
+  root /default;
+
+  location / {
+  }
+
+  location /images/ {
+    root /forimages/blah;
+  }
 }

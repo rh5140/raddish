@@ -2,6 +2,15 @@ server {
   listen   8080;
   foo      bar;
   bar      800;
+
+  root /default;
+
+  location / {
+  }
+
+  location /images/ {
+    root /forimages/blah;
+  }
 }
 
 #this is a comment

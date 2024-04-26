@@ -258,21 +258,18 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
   return return_value;
 }
 
-
-
-
-bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
+bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     //config
     //behold my n^3 function and weep
     //I'm not sure if this should be made a real function - easier to test but this will eventually return a ton of things.
     //outermost config
 
     //init
-    (*port_num) = -1;
+    int port_num = -1;
     std::string root = "";
     // for temporarily storing locations without root overwriting 
     vector<std::string> default_root_locs;
-    locations = std::map<std::string,std::string>();
+    std::map<std::string, std::string> locations = std::map<std::string,std::string>();
 
 
     for(int i = 0; i < (*config).statements_.size(); i++){ 
@@ -287,8 +284,8 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
             for(int k = 0; k < (*server_config.statements_[z]).tokens_.size(); k++){
               //handles port
               if((*server_config.statements_[z]).tokens_[k] == "listen" && k <= (*server_config.statements_[z]).tokens_.size()){
-                (*port_num) = stoi((*server_config.statements_[z]).tokens_[k + 1]);
-                cout << "port num found: " << (*port_num) << endl;
+                (port_num) = stoi((*server_config.statements_[z]).tokens_[k + 1]);
+                cout << "port num found: " << (port_num) << endl;
               }
 
               // handles root
@@ -328,16 +325,30 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
       locations[key] = root;
     }
 
-    //check if config worked
-
-    
-    if((*port_num) < 0 || (*port_num) > 65353){ //65353 is the default max range for port
+    // check if config worked
+    if (locations.empty()) {
       return false;
     }
+    
+    if((port_num) < 0 || (port_num) > 65353){ //65353 is the default max range for port
+      return false;
+    }
+
+    // Add port number and locations to struct
+    config_info.locations = locations;
+    config_info.port_num = port_num;
 
     return true;
 }
 
 std::map<std::string, std::string> NginxConfigParser::GetLocations() {
-  return locations;
+  return config_info.locations;
+}
+
+int NginxConfigParser::GetPortNum() {
+  return config_info.port_num;
+}
+
+ConfigInfo NginxConfigParser::GetConfigInfo() {
+  return config_info;
 }

@@ -12,8 +12,7 @@ class ParseTest : public testing::Test {
   }
   // void TearDown() override {}
   NginxConfigParser parser;
-  NginxConfig out_config;  
-  int port_num;
+  NginxConfig out_config;
 
 };
 
@@ -69,15 +68,16 @@ TEST_F(ParseTest, TokenToString){
 TEST_F(ParseTest, ServerPortGood){
   bool success = parser.Parse("configs/basic_server_config", &out_config);
   EXPECT_TRUE(success);
-  success = parser.GetServerSettings(&out_config, &port_num);
+  success = parser.GetServerSettings(&out_config);
   EXPECT_TRUE(success);
+  int port_num = parser.GetPortNum();
   EXPECT_EQ(port_num, 8080);
 }
 
 TEST_F(ParseTest, ServerPortBad){
   bool success = parser.Parse("configs/bad_server_config", &out_config);
   EXPECT_TRUE(success);
-    success = parser.GetServerSettings(&out_config, &port_num);
+  success = parser.GetServerSettings(&out_config);
   EXPECT_FALSE(success);
 }
 
@@ -85,22 +85,23 @@ TEST_F(ParseTest, ServerPortBad){
 TEST_F(ParseTest, ServerPortTooBig){
   bool success = parser.Parse("configs/port_too_big_config", &out_config);
   EXPECT_TRUE(success);
-    success = parser.GetServerSettings(&out_config, &port_num);
+  success = parser.GetServerSettings(&out_config);
   EXPECT_FALSE(success);
 }
 
 TEST_F(ParseTest, ServerPortTooSmall){
   bool success = parser.Parse("configs/port_too_small_config", &out_config);
   EXPECT_TRUE(success);
-    success = parser.GetServerSettings(&out_config, &port_num);
+  success = parser.GetServerSettings(&out_config);
   EXPECT_FALSE(success);
 }
 
 TEST_F(ParseTest, BiggerConfig){
   bool success = parser.Parse("configs/big_server_config", &out_config);
   EXPECT_TRUE(success);
-    success = parser.GetServerSettings(&out_config, &port_num);
+  success = parser.GetServerSettings(&out_config);
   EXPECT_TRUE(success);
+  int port_num = parser.GetPortNum();
   EXPECT_EQ(port_num, 8080);
 }
 

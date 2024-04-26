@@ -3,7 +3,6 @@
 #include <boost/asio.hpp>
 #include "gtest/gtest.h"
 #include "session.h"
-#include "config_parser.h"
 
 using boost::asio::ip::tcp;
 using namespace std;
@@ -19,9 +18,10 @@ class SessionTest : public testing::Test {
     int greater_than_max_length = 1025;
     bool error_exists = false;
     session* test_session;
+    ConfigInfo config_info;
 
     void SetUp() override {
-      test_session = new session(io_service);
+      test_session = new session(io_service, config_info);
     }
     void TearDown() override {
       delete test_session;

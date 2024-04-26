@@ -1,22 +1,24 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <gtest/gtest_prod.h>
+#include "config_parser.h" // Trying to avoid redefinitions
 
 using boost::asio::ip::tcp;
 
 class session {
 public:
-    session(boost::asio::io_service& io_service);
+    session(boost::asio::io_service& io_service, ConfigInfo& config_info);
     tcp::socket& socket();
     void start();
     std::string create_response();
-    
     void set_buf(std::string buf);
 private:
     tcp::socket socket_;
     enum { max_length = 1024 }; //for testing
     char data_[max_length];
     std::vector<char> buf_;
+    ConfigInfo config_info_;
+
     void handle_read(const boost::system::error_code& error, size_t bytes_transferred); 
     void handle_write(const boost::system::error_code& error);
 

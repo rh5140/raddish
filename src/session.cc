@@ -9,7 +9,8 @@
 
 using namespace std;
 
-session::session(boost::asio::io_service& io_service) : socket_(io_service) {
+session::session(boost::asio::io_service& io_service, ConfigInfo& config_info) : socket_(io_service) {
+    config_info_ = config_info;
 }
 
 tcp::socket& session::socket() {
