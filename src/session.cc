@@ -2,7 +2,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <regex>
 #include "session.h"
+#include "request_handler.h"
 
 
 using namespace std;
@@ -30,48 +32,29 @@ void session::set_buf(std::string buf) {
 }
 
 //public
-std::string session::parse_data(const char* data, size_t* max_bytes){
-    //TODO: this currently assumes we recieved a valid line, which is fine for assignment 2
-    //credit: https://stackoverflow.com/questions/13172158/c-split-string-by-line
-    //convert string to stringstream
-    std::stringstream ss(data);
-    std::string to;
-    //HTTP response initialization
-    std::string ret = "";
-    while(std::getline(ss, to,'\n')){
-            //safeguard in case of buffer overflow
-            if(ret.length() + to.length() + 1 <= (*max_bytes)){
-                ret += to + "\n"; 
-            }
-            else{
-                //only add up to bytes read
-                ret += to.substr(0, (*max_bytes) - ret.length()); 
-                return ret; 
-            }
-    }
-    return ret;
-
-}
-
-//public
 std::string session::create_response(){
-    //log
-    std::cout << "-------------" << std::endl;
-    std::cout << "Handle Read Data:" << std::endl;
-    std::cout << string(buf_.data()) << std::endl;
-    std::cout << "-------------" << std::endl;
-    std::cout << "Sending Response..." << std::endl;
-    //generate response
-    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
-    std::string content_length = "Content-Length: ";
-    std::string response_body;
-    //response_body = session::parse_data(data_, &bytes_transferred);
+    std::string response = "";
+
+    std::stringstream ss(buf_.data());
+    std::string first_line;
+    std::getline(ss, first_line,'\n'); // get the first line
+
+    // regex representations of possible paths
+    // matches slash, static/echo, then either nothing or another slash and more chars
+    std::regex echo(".* \/echo(|\/.*) .*");
+    std::regex file(".* \/static(|\/.*) .*");
     size_t total_data = buf_.size();
-    response_body = session::parse_data(buf_.data(), &total_data);
-    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-    http_response = http_response + content_length + response_body;
-    std::cout << http_response << std::endl;
-    return http_response;
+
+    if (std::regex_search(first_line, file)) {
+        file_request_handler* handler = new file_request_handler();
+        response = handler->handle_request(buf_.data(), &total_data);
+    }
+    else { // assuming even non-echo paths will echo
+        echo_request_handler* handler = new echo_request_handler();
+        response = handler->handle_request(buf_.data(), &total_data);
+    }
+
+    return response;
 }
 
 //private

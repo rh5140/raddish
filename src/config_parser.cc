@@ -13,6 +13,7 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <map>
 #include "config_parser.h"
 
 using namespace std; //for cout
@@ -213,7 +214,9 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
           new_config);
       config_stack.push(new_config);
     } else if (token_type == TOKEN_TYPE_END_BLOCK) {
-      if (last_token_type != TOKEN_TYPE_STATEMENT_END) {
+      if (last_token_type != TOKEN_TYPE_STATEMENT_END && 
+      last_token_type != TOKEN_TYPE_START_BLOCK &&
+      last_token_type != TOKEN_TYPE_END_BLOCK) {
         // Error.
         break;
       }
@@ -266,6 +269,11 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
 
     //init
     (*port_num) = -1;
+    std::string root = "";
+    // for temporarily storing locations without root overwriting 
+    vector<std::string> default_root_locs;
+    locations = std::map<std::string,std::string>();
+
 
     for(int i = 0; i < (*config).statements_.size(); i++){ 
       //parse outermost config to find the server config
@@ -274,17 +282,50 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
         if((*(*config).statements_[i]).tokens_[j] == "server"){
           cout << "server config found" << endl;
           NginxConfig server_config = (*(*(*config).statements_[i]).child_block_);
-          //iterate through server config to find each arguement for server starting
-          for(int k = 0; k < (*server_config.statements_[0]).tokens_.size(); k++){
-            //handles port
-            if((*server_config.statements_[0]).tokens_[k] == "listen" && k <= (*server_config.statements_[0]).tokens_.size()){
-              (*port_num) = stoi((*server_config.statements_[0]).tokens_[k + 1]);
-              cout << "port num found: " << (*port_num) << endl;
+          for (int z = 0; z<server_config.statements_.size(); z++) {
+          //iterate through server config to find each argument for server starting
+            for(int k = 0; k < (*server_config.statements_[z]).tokens_.size(); k++){
+              //handles port
+              if((*server_config.statements_[z]).tokens_[k] == "listen" && k <= (*server_config.statements_[z]).tokens_.size()){
+                (*port_num) = stoi((*server_config.statements_[z]).tokens_[k + 1]);
+                cout << "port num found: " << (*port_num) << endl;
+              }
+
+              // handles root
+              if((*server_config.statements_[z]).tokens_[k] == "root" && k <= (*server_config.statements_[z]).tokens_.size()){
+                root = (*server_config.statements_[z]).tokens_[k + 1];
+                cout << "root: " << root << endl;
+              }
+
+              // handles location
+              if((*server_config.statements_[z]).tokens_[k] == "location" && k <= (*server_config.statements_[z]).tokens_.size()){
+                std::string key = (*server_config.statements_[z]).tokens_[k + 1];
+                cout << "location: " << key << ", ";
+                NginxConfig location_block = (*(*server_config.statements_[z]).child_block_);
+                
+                for (int l = 0; l<location_block.statements_.size(); l++){
+                  for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
+                    if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
+                      locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
+                      cout << "root: " << locations[key] << endl;
+                    }
+                  }
+                }
+                if (locations.find(key) == locations.end()) {
+                  cout << "default root" << endl;
+                  default_root_locs.push_back(key);
+                }
+              }
+              //can add more args as needed here, following the pattern for ports
             }
-            //can add more args as needed here, following the pattern for ports
           }
         }
       }
+    }
+
+    // add the locations without explicit root to the map
+    for (const std::string& key : default_root_locs){
+      locations[key] = root;
     }
 
     //check if config worked
@@ -295,4 +336,8 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config, int* port_num){
     }
 
     return true;
+}
+
+std::map<std::string, std::string> NginxConfigParser::GetLocations() {
+  return locations;
 }

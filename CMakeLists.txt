@@ -38,6 +38,10 @@ include_directories(include)
 add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)
 
+# add handler libs
+add_library(echo_handler_lib src/echo_request_handler.cc)
+add_library(file_handler_lib src/file_request_handler.cc)
+
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
 
@@ -51,11 +55,11 @@ target_link_libraries(config_parser_test config_parser_lib gtest_main)
 
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib gtest_main)
+target_link_libraries(session_test session_lib gtest_main echo_handler_lib file_handler_lib)
 
 #add and link server test executable
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main)
+target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main echo_handler_lib file_handler_lib)
 
 # add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
@@ -64,10 +68,11 @@ if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
     target_link_libraries(integration_test gtest_main)
 endif()
 
+# (TODO!) add and link handler tests
 
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib session_lib config_parser_lib Boost::system)
+target_link_libraries(webserver server_lib session_lib config_parser_lib echo_handler_lib file_handler_lib Boost::system)
 
 
 #gtest

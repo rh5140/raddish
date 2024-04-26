@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 class NginxConfig;
 // The parsed representation of a single config statement.
@@ -29,7 +30,9 @@ class NginxConfigParser {
   bool Parse(const char* file_name, NginxConfig* config);
   bool GetServerSettings(NginxConfig* config, int* port_num);
   const char* NumberToTokenString(int n); //used for testing without exposing private methods
+  std::map<std::string, std::string> GetLocations();
  private:
+  std::map<std::string, std::string> locations;
   enum TokenType {
     TOKEN_TYPE_START = 0,
     TOKEN_TYPE_NORMAL = 1,

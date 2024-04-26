@@ -32,21 +32,21 @@ TEST_F(SessionTest, SessionStart) {
   EXPECT_NO_THROW(test_session->start());
 }
 
-TEST_F(SessionTest, ParseBody){
-    //const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n\nHello World!";
-    const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nhello world";
-    size_t max_bytes = 999999;
-    parse_result = test_session->parse_data(test_body, &max_bytes);
-    EXPECT_EQ(parse_result, string(test_body) + "\n");
-}
+// TEST_F(SessionTest, ParseBody){
+//     //const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n\nHello World!";
+//     const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nhello world";
+//     size_t max_bytes = 999999;
+//     parse_result = test_session->parse_data(test_body, &max_bytes);
+//     EXPECT_EQ(parse_result, string(test_body) + "\n");
+// }
 
 
-TEST_F(SessionTest, ParseNoBody){
-    const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded";
-    size_t max_bytes = 999999;
-    parse_result = test_session->parse_data(test_body, &max_bytes);
-    EXPECT_EQ(parse_result, "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n");
-}
+// TEST_F(SessionTest, ParseNoBody){
+//     const char * test_body = "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded";
+//     size_t max_bytes = 999999;
+//     parse_result = test_session->parse_data(test_body, &max_bytes);
+//     EXPECT_EQ(parse_result, "POST / HTTP/1.1\nHost: localhost:8080\nUser-Agent: curl/7.81.0\nAccept: */*\nContent-Length: 17\nContent-Type: application/x-www-form-urlencoded\n");
+// }
 
 TEST_F(SessionTest, CreateResponse) {
     const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nhello world";

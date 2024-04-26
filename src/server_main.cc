@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <boost/asio.hpp>
+#include <map>
 #include "server.h"
 #include "config_parser.h"
 
@@ -44,7 +45,8 @@ int main(int argc, char* argv[]) {
 
 
   
-
+    // std::map<std::string, std::string> locations = parser.GetLocations();
+    // TODO - send into server + session so that it can use it
     server s(io_service, port_num);
     cout << "Server Running!" << endl;
 
