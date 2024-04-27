@@ -25,6 +25,7 @@ private:
     // Friend tests: https://github.com/google/googletest/blob/main/docs/advanced.md#testing-private-code
     // There's a way to make the entire fixture a friend of the class, but I didn't find good documentation/examples yet, so I'm making individual tests friends for now
     FRIEND_TEST(SessionTest, SetData);
+    FRIEND_TEST(SessionTest, HandleReadMaxLength);
     FRIEND_TEST(SessionTest, HandleReadPartialDataRead);
     FRIEND_TEST(SessionTest, HandleReadEOF);
     FRIEND_TEST(SessionTest, HandleReadConnectionReset);
