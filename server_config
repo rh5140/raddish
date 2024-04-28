@@ -3,10 +3,10 @@ server {
 
   root /default;
 
-  location / {
+  location / echo {
   }
 
-  location /images/ {
+  location /images/ static {
     root /forimages/blah;
   }
 

@@ -42,8 +42,6 @@ int main(int argc, char* argv[]) {
     // Pass entire struct...
     ConfigInfo config_info = parser.GetConfigInfo();
     
-    // TODO - send into server + session so that it can use it
-    // server s(io_service, port_num);
     server s(io_service, config_info);
     cout << "Server Running!" << endl;
 

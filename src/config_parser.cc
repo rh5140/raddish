@@ -269,7 +269,8 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     std::string root = "";
     // for temporarily storing locations without root overwriting 
     vector<std::string> default_root_locs;
-    std::map<std::string, std::string> locations = std::map<std::string,std::string>();
+    std::map<std::string, std::string> static_file_locations = std::map<std::string,std::string>();
+    std::vector<std::string> echo_locations = std::vector<std::string>();
 
 
     for(int i = 0; i < (*config).statements_.size(); i++){ 
@@ -297,20 +298,27 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
               // handles location
               if((*server_config.statements_[z]).tokens_[k] == "location" && k <= (*server_config.statements_[z]).tokens_.size()){
                 std::string key = (*server_config.statements_[z]).tokens_[k + 1];
+                std::string type = (*server_config.statements_[z]).tokens_[k + 2];
                 cout << "location: " << key << ", ";
                 NginxConfig location_block = (*(*server_config.statements_[z]).child_block_);
                 
-                for (int l = 0; l<location_block.statements_.size(); l++){
-                  for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
-                    if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
-                      locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
-                      cout << "root: " << locations[key] << endl;
+                if (type == "static") {
+                  for (int l = 0; l<location_block.statements_.size(); l++){
+                    for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
+                      if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
+                        static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
+                        cout << "root: " << static_file_locations[key] << endl;
+                      }
                     }
                   }
+                  if (static_file_locations.find(key) == static_file_locations.end()) {
+                    cout << "default root" << endl;
+                    default_root_locs.push_back(key);
+                  }
                 }
-                if (locations.find(key) == locations.end()) {
-                  cout << "default root" << endl;
-                  default_root_locs.push_back(key);
+                else if (type == "echo") {
+                  echo_locations.push_back(key);
+                  cout << "for echoing" << endl;
                 }
               }
               //can add more args as needed here, following the pattern for ports
@@ -322,12 +330,7 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
 
     // add the locations without explicit root to the map
     for (const std::string& key : default_root_locs){
-      locations[key] = root;
-    }
-
-    // check if config worked
-    if (locations.empty()) {
-      return false;
+      static_file_locations[key] = root;
     }
     
     if((port_num) < 0 || (port_num) > 65353){ //65353 is the default max range for port
@@ -335,15 +338,20 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     }
 
     // Add port number and locations to struct
-    config_info.locations = locations;
+    config_info.static_file_locations = static_file_locations;
+    config_info.echo_locations = echo_locations;
     config_info.port_num = port_num;
 
     return true;
 }
 
-std::map<std::string, std::string> NginxConfigParser::GetLocations() {
-  return config_info.locations;
+std::map<std::string, std::string> NginxConfigParser::GetStaticFileLocations() {
+  return config_info.static_file_locations;
 }
+
+// std::vector<std::string> NginxConfigParser::getEchoLocations() {
+//   return config_info.echo_locations;
+// }
 
 int NginxConfigParser::GetPortNum() {
   return config_info.port_num;

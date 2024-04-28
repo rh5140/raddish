@@ -7,7 +7,8 @@
 
 struct ConfigInfo {
     int port_num;
-    std::map<std::string, std::string> locations;
+    std::map<std::string, std::string> static_file_locations;
+    std::vector<std::string> echo_locations;
 };
 
 class NginxConfig;
@@ -35,7 +36,8 @@ class NginxConfigParser {
   bool Parse(const char* file_name, NginxConfig* config);
   bool GetServerSettings(NginxConfig* config);
   const char* NumberToTokenString(int n); //used for testing without exposing private methods
-  std::map<std::string, std::string> GetLocations();
+  std::map<std::string, std::string> GetStaticFileLocations();
+  // std::vector<std::string> GetEchoLocations();
   int GetPortNum();
   ConfigInfo GetConfigInfo();
  private:
