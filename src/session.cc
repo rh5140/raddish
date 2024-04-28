@@ -40,13 +40,35 @@ std::string session::create_response(){
     std::string first_line;
     std::getline(ss, first_line,'\n'); // get the first line
 
-    // regex representations of possible paths
-    // matches slash, static/echo, then either nothing or another slash and more chars
-    std::regex echo(".* \/echo(|\/.*) .*");
-    std::regex file(".* \/static(|\/.*) .*");
+    bool foundSpace = false;
+    std::string file_path = "";
+
+    // extract path
+    for (int i = 0; i<first_line.length(); i++) {
+        if (first_line[i] == ' ') 
+            if (!foundSpace)
+            {
+                foundSpace = true;
+                i++;
+            }
+            else 
+                break;
+        if (foundSpace) {
+            file_path += first_line[i];
+        }
+    }
+
+    // compare with list of locations parsed from config
+    bool isStaticFilePath = false;
+    for (auto const& x : config_info_.locations){
+        if (x.first == file_path) {
+            isStaticFilePath = true;
+            break;
+        }
+    }
     size_t total_data = buf_.size();
 
-    if (std::regex_search(first_line, file)) {
+    if (isStaticFilePath) {
         file_request_handler* handler = new file_request_handler();
         response = handler->handle_request(buf_.data(), &total_data);
     }
