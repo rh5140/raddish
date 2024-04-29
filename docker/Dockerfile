@@ -22,6 +22,9 @@ COPY --from=builder /usr/src/project/build/bin/webserver .
 # Copy config file (for gcloud deployment)
 COPY --from=builder /usr/src/project/gcloud_server_config .
 
+# Copy static files
+COPY --from=builder /usr/src/project/static_files /static_files/
+
 # Expose ports
 EXPOSE 80
 

@@ -7,7 +7,15 @@ server {
   }
 
   location /images/ static {
-    root /forimages/blah;
+    root /static_files;
+  }
+
+  location /text/ static {
+    root /static_files;
+  }
+
+  location /applications/ static {
+    root /static_files;
   }
 
 }
