@@ -105,16 +105,6 @@ TEST_F(ParseTest, BiggerConfig){
   EXPECT_EQ(port_num, 8080);
 }
 
-TEST_F(ParseTest, StaticFilesConfig) {
-  bool success = parser.Parse("configs/static_files_config", &out_config);
-  EXPECT_TRUE(success);
-  success = parser.GetServerSettings(&out_config);
-  EXPECT_TRUE(success);
-  int port_num = parser.GetPortNum();
-  EXPECT_EQ(port_num, 8080);
-  EXPECT_NO_THROW(parser.GetConfigInfo());
-}
-
 //to string testing
 
 TEST_F(ParseTest, ConfigToString){

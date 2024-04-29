@@ -6,33 +6,51 @@
 #include <boost/log/trivial.hpp>
 #include "request_handler.h"
 
-file_request_handler::file_request_handler(std::string file_path, std::string root) {
+file_request_handler::file_request_handler(std::string file_path) {
     file_path_ = file_path;
-    root_ = root;
 }
 
-// Note: neither parameter is used
 std::string file_request_handler::handle_request(const char* request, size_t* max_bytes) {
     std::string content_type = get_content_type(file_path_);
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
     std::string content_length = "Content-Length: ";
     std::string response_body;
     
-    // TODO: Don't hardcode? Actually maybe ok just for the 404 error since it's not being pulled from config.
     std::string error_file_path = "/static_files/404.html"; // DOCKER VERSION
-    error_file_path = "/usr/src/projects/raddish/static_files/404.html"; // LOCAL VERSION, COMMENT OUT BEFORE DEPLOY
+    // error_file_path = "/usr/src/projects/raddish/static_files/404.html"; // LOCAL VERSION, COMMENT OUT BEFORE DEPLOY
 
     // Docker version 
-    std::string prepend_path = root_; // DOCKER VERSION
-    prepend_path = "/usr/src/projects/raddish" + root_; // LOCAL VERSION, COMMENT OUT BEFORE DEPLOY
+    std::string prepend_path = "/static_files"; // DOCKER VERSION
+    // prepend_path = "/usr/src/projects/raddish/static_files"; // LOCAL VERSION, COMMENT OUT BEFORE DEPLOY
     std::string full_path = prepend_path + file_path_;
-    std::ifstream file_to_read(full_path, std::ios::in | std::ios::binary); // already reading in as binary
+    std::cout << "before erad path" << std::endl;
+    std::ifstream file_to_read(full_path, std::ios::in | std::ios::binary);
+    std::cout << "after read path" << std::endl;
     std::string file_content;
 
     if (file_to_read.is_open()) {
         // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
-        file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
-                            (std::istreambuf_iterator<char>()));
+        if (content_type.substr(0,5) == "text/") {
+                file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
+                                    (std::istreambuf_iterator<char>()));
+        }
+        else { // CURRENTLY BUGGY WITH FILES THAT ARE TOO LARGE
+            // References: https://cplusplus.com/forum/beginner/25307/
+            // https://stackoverflow.com/questions/16762018/c-sending-image-via-http
+            const char* full_path_char = full_path.c_str();
+            FILE* file_stream = fopen(full_path_char, "rb");
+            fseek(file_stream, 0, SEEK_END);
+            long file_length = ftell(file_stream);
+            rewind(file_stream);
+
+            std::ostringstream oss;
+            int len;
+            char buf[file_length];
+            while ((len = file_to_read.readsome(buf, file_length)) > 0) {
+                oss.write(buf, len);
+            } 
+            file_content = oss.str();
+        }
         file_to_read.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
     }
     else {

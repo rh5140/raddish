@@ -75,11 +75,9 @@ std::string session::create_response(){
     // compare with list of locations parsed from config
     bool isStaticFilePath = false;
     bool isEchoPath = false;
-    std::string root = "";
     for (auto const& x : config_info_.static_file_locations){
         cout << "x: " << x.first << endl;
         if (x.first == file_path_start) {
-            root = config_info_.static_file_locations[x.first];
             isStaticFilePath = true;
             break;
         }
@@ -93,7 +91,7 @@ std::string session::create_response(){
     size_t total_data = buf_.size();
 
     if (isStaticFilePath) {
-        file_request_handler* handler = new file_request_handler(file_path, root);
+        file_request_handler* handler = new file_request_handler(file_path);
         response = handler->handle_request(buf_.data(), &total_data);
     }
     // TODO - will need to change if only specified paths will echo
