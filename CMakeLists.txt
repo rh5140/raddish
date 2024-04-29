@@ -61,6 +61,10 @@ target_link_libraries(config_parser_test config_parser_lib gtest_main Boost::log
 add_executable(echo_test tests/echo_handler_test.cc)
 target_link_libraries(echo_test echo_handler_lib gtest_main Boost::log)
 
+#add and link file handler test executable
+add_executable(file_handler_test tests/file_handler_test.cc)
+target_link_libraries(file_handler_test file_handler_lib gtest_main)
+
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)
 target_link_libraries(session_test session_lib gtest_main echo_handler_lib file_handler_lib Boost::log)
@@ -90,6 +94,7 @@ gtest_discover_tests(config_parser_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE
 gtest_discover_tests(session_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(echo_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(file_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # ignore integration tests if running for coverage
 if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
@@ -99,7 +104,7 @@ endif()
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib echo_handler_lib TESTS config_parser_test session_test server_test echo_test) 
+generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib echo_handler_lib file_handler_lib TESTS config_parser_test session_test server_test echo_test file_handler_test) 
 
 
 

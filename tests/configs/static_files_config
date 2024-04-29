@@ -1,5 +1,5 @@
 server {
-  listen   80;
+  listen   8080;
 
   root /default;
 
@@ -17,4 +17,5 @@ server {
   location /applications/ static {
     root /static_files;
   }
+
 }

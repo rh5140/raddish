@@ -348,9 +348,9 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     return true;
 }
 
-std::map<std::string, std::string> NginxConfigParser::GetStaticFileLocations() {
-  return config_info.static_file_locations;
-}
+// std::map<std::string, std::string> NginxConfigParser::GetStaticFileLocations() {
+//   return config_info.static_file_locations;
+// }
 
 // std::vector<std::string> NginxConfigParser::getEchoLocations() {
 //   return config_info.echo_locations;
