@@ -1,6 +1,7 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <boost/log/trivial.hpp>
 #include "request_handler.h"
 
 std::string echo_request_handler::handle_request(const char* request, size_t* max_bytes) {
@@ -28,7 +29,7 @@ std::string echo_request_handler::handle_request(const char* request, size_t* ma
     http_response = http_response + content_length + response_body;
 
     // TODO - probably remove and rely on logging later
-    std::cout << http_response << std::endl;
+    BOOST_LOG_TRIVIAL(info) << http_response;
     return http_response;
 }
 

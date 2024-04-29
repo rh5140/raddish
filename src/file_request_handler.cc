@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <boost/log/trivial.hpp>
 #include "request_handler.h"
 
 file_request_handler::file_request_handler(std::string file_path) {
@@ -68,7 +69,7 @@ std::string file_request_handler::handle_request(const char* request, size_t* ma
     http_response = http_response + content_length + response_body;
 
     // TODO - probably remove and rely on logging later
-    std::cout << http_response << std::endl;
+    BOOST_LOG_TRIVIAL(info) << http_response;
     return http_response;
 }
 

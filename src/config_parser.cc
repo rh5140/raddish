@@ -14,9 +14,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <boost/log/trivial.hpp>
 #include "config_parser.h"
 
-using namespace std; //for cout
+using namespace std; // NOT JUST FOR COUT 
 
 std::string NginxConfig::ToString(int depth) {
   std::string serialized_config;
@@ -240,16 +241,14 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
     }
     last_token_type = token_type;
   }
-  printf ("Bad transition from %s to %s\n",
-          TokenTypeAsString(last_token_type),
-          TokenTypeAsString(token_type));
+  BOOST_LOG_TRIVIAL(warning) << "Bad transition from " << TokenTypeAsString(last_token_type) << " to " << TokenTypeAsString(token_type);
   return false;
 }
 bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
   std::ifstream config_file;
   config_file.open(file_name);
   if (!config_file.good()) {
-    printf ("Failed to open config file: %s\n", file_name);
+    BOOST_LOG_TRIVIAL(error) << "Failed to open config file: " << file_name;
     return false;
   }
   const bool return_value =
@@ -278,7 +277,7 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
         //locate server config so we can find the server args
         if((*(*config).statements_[i]).tokens_[j] == "server"){
-          cout << "server config found" << endl;
+          BOOST_LOG_TRIVIAL(info) << "Server Config Found";
           NginxConfig server_config = (*(*(*config).statements_[i]).child_block_);
           for (int z = 0; z<server_config.statements_.size(); z++) {
           //iterate through server config to find each argument for server starting
@@ -286,20 +285,22 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
               //handles port
               if((*server_config.statements_[z]).tokens_[k] == "listen" && k <= (*server_config.statements_[z]).tokens_.size()){
                 (port_num) = stoi((*server_config.statements_[z]).tokens_[k + 1]);
-                cout << "port num found: " << (port_num) << endl;
+                BOOST_LOG_TRIVIAL(info) << "Port Number found : " << (port_num);
               }
 
               // handles root
               if((*server_config.statements_[z]).tokens_[k] == "root" && k <= (*server_config.statements_[z]).tokens_.size()){
                 root = (*server_config.statements_[z]).tokens_[k + 1];
-                cout << "root: " << root << endl;
+                BOOST_LOG_TRIVIAL(info) << "Root: " << root;
               }
 
               // handles location
               if((*server_config.statements_[z]).tokens_[k] == "location" && k <= (*server_config.statements_[z]).tokens_.size()){
+                std::string log_output = "";
+                
                 std::string key = (*server_config.statements_[z]).tokens_[k + 1];
                 std::string type = (*server_config.statements_[z]).tokens_[k + 2];
-                cout << "location: " << key << ", ";
+                log_output = log_output + "Location: " + key + ", ";
                 NginxConfig location_block = (*(*server_config.statements_[z]).child_block_);
                 
                 if (type == "static") {
@@ -307,19 +308,21 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
                     for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
                       if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
                         static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
-                        cout << "root: " << static_file_locations[key] << endl;
+                        log_output = log_output + "root: " + static_file_locations[key];
                       }
                     }
                   }
                   if (static_file_locations.find(key) == static_file_locations.end()) {
-                    cout << "default root" << endl;
+                    log_output = log_output + "default root";
                     default_root_locs.push_back(key);
                   }
                 }
                 else if (type == "echo") {
                   echo_locations.push_back(key);
-                  cout << "for echoing" << endl;
+                  log_output = log_output + "for echoing";
                 }
+
+                BOOST_LOG_TRIVIAL(info) << log_output;
               }
               //can add more args as needed here, following the pattern for ports
             }

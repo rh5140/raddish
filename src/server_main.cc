@@ -10,10 +10,19 @@
 
 #include <iostream>
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 #include <map>
+#include <csignal>
 #include "server.h"
+#include "logger.h"
 
 using boost::asio::ip::tcp;
+
+// Catching exception function 
+void signalHandler(int signal) {
+  BOOST_LOG_TRIVIAL(info) << "Raddish Down (Terminated)";
+  std::exit(EXIT_SUCCESS);
+}
 
 int main(int argc, char* argv[]) {
   try {
@@ -29,13 +38,17 @@ int main(int argc, char* argv[]) {
     NginxConfigParser parser;
     NginxConfig out_config;  
 
+    logger logs = logger(false);
+
+    signal(SIGINT, signalHandler); // CNTRL + C handler
+
     bool success = parser.Parse(argv[1], &out_config);
     if(!success){
       return 1;
     }
 
     if(!parser.GetServerSettings(&out_config)){
-      std::cerr << "Failed to parse config" << std::endl;
+      BOOST_LOG_TRIVIAL(error) << "Failed to parse config file";
       return 1;
     }
 
@@ -43,13 +56,14 @@ int main(int argc, char* argv[]) {
     ConfigInfo config_info = parser.GetConfigInfo();
     
     server s(io_service, config_info);
-    cout << "Server Running!" << endl;
+    BOOST_LOG_TRIVIAL(info) << "Raddish Online!";
 
     io_service.run();
   }
   catch (std::exception& e) {
-    std::cerr << "Exception: " << e.what() << "\n";
+    BOOST_LOG_TRIVIAL(fatal) << "Raddish Down (Exception) : " << e.what();
   }
 
   return 0;
 }
+

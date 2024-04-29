@@ -29,7 +29,7 @@ add_subdirectory(/usr/src/googletest googletest)
 # Enable Boost
 # Use static libraries so binaries can be deployed without a full boost install
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost 1.50 REQUIRED COMPONENTS system)
+find_package(Boost 1.50 REQUIRED COMPONENTS system log_setup log)
 message(STATUS "Boost version: ${Boost_VERSION}")
 
 include_directories(include)
@@ -45,25 +45,33 @@ add_library(file_handler_lib src/file_request_handler.cc)
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
 
+#add logger lib
+add_library(logger_lib src/logger.cc)
+
+
 #add and link config parser executable
 add_executable(config_parser src/config_parser_main.cc)
-target_link_libraries(config_parser config_parser_lib)
+target_link_libraries(config_parser config_parser_lib Boost::log)
 
 #add and link config parser test executable
 add_executable(config_parser_test tests/config_parser_test.cc)
-target_link_libraries(config_parser_test config_parser_lib gtest_main)
+target_link_libraries(config_parser_test config_parser_lib gtest_main Boost::log)
 
 #add and link echo test executable
 add_executable(echo_test tests/echo_handler_test.cc)
-target_link_libraries(echo_test echo_handler_lib gtest_main)
+target_link_libraries(echo_test echo_handler_lib gtest_main Boost::log)
 
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib gtest_main echo_handler_lib file_handler_lib)
+target_link_libraries(session_test session_lib gtest_main echo_handler_lib file_handler_lib Boost::log)
 
 #add and link server test executable
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main echo_handler_lib file_handler_lib)
+target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main echo_handler_lib file_handler_lib Boost::log)
+
+#add and link logger test executable
+#add_executable(logger_test tests/logger_test.cc)
+#target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::log)
 
 # add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
@@ -74,7 +82,7 @@ endif()
 
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib session_lib config_parser_lib echo_handler_lib file_handler_lib Boost::system)
+target_link_libraries(webserver server_lib session_lib config_parser_lib echo_handler_lib file_handler_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
 
 #gtest

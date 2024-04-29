@@ -123,7 +123,6 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
                     this,
                     boost::asio::placeholders::error));
         }
-        std::cout << "-------------" << std::endl;
     }
     else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
         delete this;
