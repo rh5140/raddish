@@ -14,7 +14,7 @@ logger::logger(bool isTest) {
     logging::add_common_attributes();
 
     // names the file - logs/2024-04-27_#####.log
-    std::string file_name = "logs/%Y-%m-%d_%S.log"; // uses seconds bc larger number is harder to clash and thus rewrite
+    std::string file_name = "logs/%Y-%m-%d_%f.log"; // uses milisec bc larger number is harder to clash and thus rewrite
     if(isTest) { // so when remove from tests it does not accidentally rewrite actual logs
         file_name = "t_logs/%Y-%m-%d_%3N.log";
     }
