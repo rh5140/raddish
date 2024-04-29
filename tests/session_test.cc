@@ -39,6 +39,22 @@ TEST_F(SessionTest, CreateResponse) {
     delete test_session;
 }
 
+TEST_F(SessionTest, CreateResponseStaticFile) {
+    test_session->config_info_.static_file_locations["/text/"] = "/static_files";
+    test_session->set_buf("GET /text/DOESNOTEXIST.txt HTTP/1.1");
+    std::string response = test_session->create_response();
+    EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");
+    delete test_session;
+}
+
+TEST_F(SessionTest, CreateResponseEcho) {
+    std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
+    test_session->config_info_.echo_locations.push_back("/");
+    test_session->set_buf(contents);
+    EXPECT_EQ(test_session->create_response(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+contents);
+    delete test_session;
+}
+
 TEST_F(SessionTest, HandleReadMaxLength) {
     EXPECT_NO_THROW(test_session->handle_read(boost::system::error_code(), max_length));
     delete test_session;

@@ -7,17 +7,15 @@ server {
   }
 
   location /images/ static {
-    root /usr/src/projects/raddish/static_files;
+    root /static_files;
   }
 
   location /text/ static {
-    root /usr/src/projects/raddish/static_files;
+    root /static_files;
   }
 
   location /applications/ static {
-    root /usr/src/projects/raddish/static_files;
+    root /static_files;
   }
 
 }
-
-

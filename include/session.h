@@ -33,4 +33,6 @@ private:
     FRIEND_TEST(SessionTest, HandleRead);
     FRIEND_TEST(SessionTest, HandleWriteError);
     FRIEND_TEST(SessionTest, HandleWrite);
+    FRIEND_TEST(SessionTest, CreateResponseStaticFile);
+    FRIEND_TEST(SessionTest, CreateResponseEcho);
 };

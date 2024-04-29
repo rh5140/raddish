@@ -13,4 +13,8 @@ server {
   location /text/ static {
     root /static_files;
   }
+
+  location /applications/ static {
+    root /static_files;
+  }
 }
