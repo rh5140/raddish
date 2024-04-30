@@ -44,7 +44,7 @@ std::string file_request_handler::handle_request() {
 
 std::string file_request_handler::get_content_type(std::string file_path) {
     // unintelligent parsing i think but whatever
-    int dot_idx;
+    int dot_idx = -1;
     for (int i = file_path.size() - 1; i--; i > 0) {
         if (file_path[i] == '.') {
             dot_idx = i;
