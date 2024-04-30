@@ -1,10 +1,22 @@
-#include <boost/log/trivial.hpp>
+#include <gtest/gtest_prod.h>
+#include <ctime>
 #include <string.h>
 
-namespace logging = boost::log;
 class logger {
 public:
     logger(bool isTest);
-    // void log_msg (lvl, string msg);
+private:
+    void init_logs();   
+    time_t force_log_rotation(); // for test purposes
+    bool isTest;
+
+    friend class LoggerTest;
+    FRIEND_TEST(LoggerTest, CheckFileExists);
+    FRIEND_TEST(LoggerTest, CheckFormat);
+    FRIEND_TEST(LoggerTest, CheckConsole);
+    FRIEND_TEST(LoggerTest, RotateWhenFull);
+    //FRIEND_TEST(LoggerTest, RotateWhenNight);
 };
+
+
 
