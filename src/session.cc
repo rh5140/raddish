@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <regex>
+#include <boost/log/trivial.hpp>
 #include "session.h"
 #include "request_handler.h"
 
@@ -68,16 +69,12 @@ std::string session::create_response(){
         }
     }
     std::string file_path_start = file_path.substr(0, idx_end + 1);
-
-    cout << "file path: " << file_path << endl;
-    cout << "file path start: " << file_path_start << endl;
     
     // compare with list of locations parsed from config
     bool isStaticFilePath = false;
     bool isEchoPath = false;
     std::string root = "";
     for (auto const& x : config_info_.static_file_locations){
-        cout << "x: " << x.first << endl;
         if (x.first == file_path_start) {
             root = config_info_.static_file_locations[x.first];
             isStaticFilePath = true;
@@ -110,7 +107,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
     if (!error) {
         buf_.insert(buf_.end(), data_, data_ + bytes_transferred);
         if(bytes_transferred >= max_length){ //should never be greater but just in case...
-            cout << "partial data read, continuing..." << endl;
+            BOOST_LOG_TRIVIAL(error) << "Bytes transferred greater than max length";
             session::handle_write(error);
         }
         else{
@@ -127,15 +124,13 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         }
     }
     else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
+        BOOST_LOG_TRIVIAL(error) << "Disconnect due to end of file reached or connection reset";
         delete this;
     }
     else {
         //log
-        std::cout << "-------------" << std::endl;
-        std::cout << "Handle Read Data:" << std::endl;
-        std::cout << data_ << std::endl;
-        std::cout << "Error in Handle Read" << std::endl;
-        std::cout << "-------------" << std::endl;
+        BOOST_LOG_TRIVIAL(trace) << data_;
+        BOOST_LOG_TRIVIAL(error) << "Error in handle read";
         delete this;
     }
 }
@@ -150,6 +145,7 @@ void session::handle_write(const boost::system::error_code& error) {
             boost::asio::placeholders::bytes_transferred));
     }
     else {
+        BOOST_LOG_TRIVIAL(error) << "Error in handle write";
         delete this;
     }
 }

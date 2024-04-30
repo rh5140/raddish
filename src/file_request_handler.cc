@@ -28,7 +28,7 @@ std::string file_request_handler::handle_request(const char* request, size_t* ma
     }
     else {
         // 404 error
-        // TODO: Write log for error
+        BOOST_LOG_TRIVIAL(error) << "404 error";
         http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
         file_content = "404 not found";
         //error_404_file.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
@@ -39,7 +39,6 @@ std::string file_request_handler::handle_request(const char* request, size_t* ma
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
 
-    // TODO - probably remove and rely on logging later
     BOOST_LOG_TRIVIAL(info) << http_response;
     return http_response;
 }
@@ -53,11 +52,6 @@ std::string file_request_handler::get_content_type(std::string file_path) {
             break;
         }
     }
-
-    std::string file_extension = file_path.substr(dot_idx+1);
-    std::cout << "file extension: " << file_extension << std::endl;
-    std::string content_type = file_extension_to_content_type(file_extension);
-    std::cout << "content type: " << content_type << std::endl;
     return content_type;
 }
 
