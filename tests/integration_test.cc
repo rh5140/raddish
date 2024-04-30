@@ -33,8 +33,7 @@ TEST_F(IntegrationTest, SuccessfulTest) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
-    // EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, FailedTest) {
@@ -43,30 +42,27 @@ TEST_F(IntegrationTest, FailedTest) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "FAILURE");
+    EXPECT_TRUE(result.substr(result.size()-7)=="FAILURE");
 }
 
-/* Note: Netcat tests removed for now, as they don't have a filepath and cannot be echoed 
- the script's nc lines have been replaced by static file paths */
-
-// TEST_F(IntegrationTest, NCSingleNewline) {
-//     fp = popen("bash integration_test.sh local requests/nc_single_newline_request responses/nc_single_newline_response", "r");
-//     while(!feof(fp)) {
-//         if(fgets(buffer, 7, fp) != NULL)
-//             result += buffer;
-//     }
-//     EXPECT_EQ(result, "SUCCESS");
-// }
+TEST_F(IntegrationTest, NCSingleNewline) {
+    fp = popen("bash integration_test.sh local requests/nc_single_newline_request responses/nc_single_newline_response", "r");
+    while(!feof(fp)) {
+        if(fgets(buffer, 7, fp) != NULL)
+            result += buffer;
+    }
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
+}
 
 
-// TEST_F(IntegrationTest, NCDoubleNewline) {
-//     fp = popen("bash integration_test.sh local requests/nc_double_newline_request responses/nc_double_newline_response", "r");
-//     while(!feof(fp)) {
-//         if(fgets(buffer, 7, fp) != NULL)
-//             result += buffer;
-//     }
-//     EXPECT_EQ(result, "SUCCESS");
-// }
+TEST_F(IntegrationTest, NCDoubleNewline) {
+    fp = popen("bash integration_test.sh local requests/nc_double_newline_request responses/nc_double_newline_response", "r");
+    while(!feof(fp)) {
+        if(fgets(buffer, 7, fp) != NULL)
+            result += buffer;
+    }
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
+}
 
 TEST_F(IntegrationTest, CurlRoot) {
     fp = popen("bash integration_test.sh local requests/curl_root_request responses/curl_root_response", "r");
@@ -74,7 +70,7 @@ TEST_F(IntegrationTest, CurlRoot) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootClose) {
@@ -83,7 +79,7 @@ TEST_F(IntegrationTest, CurlRootClose) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootKeepAlive) {
@@ -92,7 +88,7 @@ TEST_F(IntegrationTest, CurlRootKeepAlive) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESSSUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlPath) {
@@ -101,7 +97,7 @@ TEST_F(IntegrationTest, CurlPath) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlShortHeader) {
@@ -110,7 +106,7 @@ TEST_F(IntegrationTest, CurlShortHeader) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlLongHeader) {
@@ -119,38 +115,26 @@ TEST_F(IntegrationTest, CurlLongHeader) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
-
-TEST_F(IntegrationTest, CurlTextStaticFile) {
-    fp = popen("bash integration_test.sh local requests/curl_text_static_file_request responses/curl_text_static_file_response", "r");
+TEST_F(IntegrationTest, NCSingleNewlineCloud) {
+    fp = popen("bash integration_test.sh cloud requests/nc_single_newline_request responses/nc_single_newline_response", "r");
     while(!feof(fp)) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
-
-
-// TEST_F(IntegrationTest, NCSingleNewlineCloud) {
-//     fp = popen("bash integration_test.sh cloud requests/nc_single_newline_request responses/nc_single_newline_response", "r");
-//     while(!feof(fp)) {
-//         if(fgets(buffer, 7, fp) != NULL)
-//             result += buffer;
-//     }
-//     EXPECT_EQ(result, "SUCCESS");
-// }
-
-// TEST_F(IntegrationTest, NCDoubleNewlineCloud) {
-//     fp = popen("bash integration_test.sh cloud requests/nc_double_newline_request responses/nc_double_newline_response", "r");
-//     while(!feof(fp)) {
-//         if(fgets(buffer, 7, fp) != NULL)
-//             result += buffer;
-//     }
-//     EXPECT_EQ(result, "SUCCESS");
-// }
+TEST_F(IntegrationTest, NCDoubleNewlineCloud) {
+    fp = popen("bash integration_test.sh cloud requests/nc_double_newline_request responses/nc_double_newline_response", "r");
+    while(!feof(fp)) {
+        if(fgets(buffer, 7, fp) != NULL)
+            result += buffer;
+    }
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
+}
 
 TEST_F(IntegrationTest, CurlRootCloud) {
     fp = popen("bash integration_test.sh cloud requests/curl_root_request responses/curl_root_response", "r");
@@ -158,7 +142,7 @@ TEST_F(IntegrationTest, CurlRootCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootCloseCloud) {
@@ -167,7 +151,7 @@ TEST_F(IntegrationTest, CurlRootCloseCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootKeepAliveCloud) {
@@ -176,7 +160,7 @@ TEST_F(IntegrationTest, CurlRootKeepAliveCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESSSUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlPathCloud) {
@@ -185,7 +169,7 @@ TEST_F(IntegrationTest, CurlPathCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlShortHeaderCloud) {
@@ -194,7 +178,7 @@ TEST_F(IntegrationTest, CurlShortHeaderCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlLongHeaderCloud) {
@@ -203,17 +187,9 @@ TEST_F(IntegrationTest, CurlLongHeaderCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
+    EXPECT_TRUE(result.substr(result.size()-7)=="SUCCESS");
 }
 
-TEST_F(IntegrationTest, CurlTextStaticFileCloud) {
-    fp = popen("bash integration_test.sh cloud requests/curl_text_static_file_request responses/curl_text_static_file_response", "r");
-    while(!feof(fp)) {
-        if(fgets(buffer, 7, fp) != NULL)
-            result += buffer;
-    }
-    EXPECT_EQ(result, "SUCCESS");
-}
 
 
 

@@ -34,11 +34,7 @@ void session::set_buf(std::string buf) {
 
 //public
 std::string session::create_response(){
-
-    BOOST_LOG_TRIVIAL(info) << "Request received: \n" << buf_.data();
-
-    // default response, if path is not echo nor static file
-    std::string response = "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n";
+    std::string response = "";
     
     std::stringstream ss(buf_.data());
     std::string first_line;
@@ -93,14 +89,12 @@ std::string session::create_response(){
 
     if (isStaticFilePath) {
         file_request_handler* handler = new file_request_handler(root + file_path);
-        response = handler->handle_request();
+        response = handler->handle_request(buf_.data(), &total_data);
     }
-    else if (isEchoPath) { 
-        echo_request_handler* handler = new echo_request_handler(buf_.data(), &total_data);
-        response = handler->handle_request();
-    }
-    else {
-        BOOST_LOG_TRIVIAL(warning) << "Cannot find valid path in " << buf_.data();
+    // TODO - will need to change if only specified paths will echo
+    else { // assuming even non-echo paths will echo
+        echo_request_handler* handler = new echo_request_handler();
+        response = handler->handle_request(buf_.data(), &total_data);
     }
 
     return response;
@@ -117,10 +111,8 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         else{
             //create response
             std::string http_response = create_response();
-
             //clear buffer for next
             buf_.clear();
-
             //send response
             boost::asio::async_write(socket_,
                 boost::asio::buffer(http_response, http_response.size()), 
@@ -130,7 +122,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         }
     }
     else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
-        BOOST_LOG_TRIVIAL(info) << "Disconnect due to end of file reached or connection reset";
+        BOOST_LOG_TRIVIAL(error) << "Disconnect due to end of file reached or connection reset";
         delete this;
     }
     else {

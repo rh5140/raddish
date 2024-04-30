@@ -1,12 +1,9 @@
 server {
   listen   8080;
 
-  root /;
+  root /default;
 
   location / echo {
-  }
-
-  location /echo echo {
   }
 
   location /images/ static {

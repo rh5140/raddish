@@ -39,6 +39,9 @@ class EchoTest : public testing::Test {
     size_t max_bytes;
     std::string response;
     
+    void SetUp() override {
+      handler = new echo_request_handler();
+    }
     void TearDown() override {
       delete handler; 
     }
@@ -48,7 +51,6 @@ TEST_F(EchoTest, BasicEcho) {
     std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
     request = contents.c_str();
     max_bytes = 51;
-    handler = new echo_request_handler(request, &max_bytes);
-    response = handler->handle_request();
+    response = handler->handle_request(request, &max_bytes);
     EXPECT_EQ(response, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+contents);
 }
