@@ -17,16 +17,16 @@ do
     cat $2 > $tmpfile
     if [ "$location" == "local" ];
     then
-        if [[ $2 == *"nc"* ]];
+        if [[ $2 == *"static_file"* ]];
         then
-            echo -n "localhost 8080" >> $tmpfile
+            echo -n "localhost:8080/text/lobster.txt" >> $tmpfile
         else
             echo -n "localhost:8080" >> $tmpfile
         fi
     else
-        if [[ $2 == *"nc"* ]];
+        if [[ $2 == *"static_file"* ]];
         then
-            echo -n "35.230.62.193 80" >> $tmpfile
+            echo -n "35.230.62.193:80/text/lobster.txt" >> $tmpfile
         else
             echo -n "35.230.62.193:80" >> $tmpfile
         fi

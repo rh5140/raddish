@@ -10,8 +10,7 @@ file_request_handler::file_request_handler(std::string file_path) {
     file_path_ = file_path;
 }
 
-// Note: neither parameter is used
-std::string file_request_handler::handle_request(const char* request, size_t* max_bytes) {
+std::string file_request_handler::handle_request() {
     std::string content_type = get_content_type(file_path_);
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
     std::string content_length = "Content-Length: ";
@@ -39,8 +38,7 @@ std::string file_request_handler::handle_request(const char* request, size_t* ma
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
 
-    // TODO - probably remove and rely on logging later
-    BOOST_LOG_TRIVIAL(info) << http_response;
+    BOOST_LOG_TRIVIAL(info) << "Static file response:\n" << http_response;
     return http_response;
 }
 

@@ -272,6 +272,7 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     std::vector<std::string> echo_locations = std::vector<std::string>();
 
 
+
     for(int i = 0; i < (*config).statements_.size(); i++){ 
       //parse outermost config to find the server config
       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
@@ -291,7 +292,7 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
               // handles root
               if((*server_config.statements_[z]).tokens_[k] == "root" && k <= (*server_config.statements_[z]).tokens_.size()){
                 root = (*server_config.statements_[z]).tokens_[k + 1];
-                BOOST_LOG_TRIVIAL(info) << "Root: " << root;
+                BOOST_LOG_TRIVIAL(info) << "Default root found: " << root;
               }
 
               // handles location
@@ -308,12 +309,12 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
                     for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
                       if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
                         static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
-                        log_output = log_output + "root: " + static_file_locations[key];
+                        log_output = log_output + "root: " + static_file_locations[key] + " for serving static files";
                       }
                     }
                   }
                   if (static_file_locations.find(key) == static_file_locations.end()) {
-                    log_output = log_output + "default root";
+                    log_output = log_output + "default root for serving static files";
                     default_root_locs.push_back(key);
                   }
                 }
