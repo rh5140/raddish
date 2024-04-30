@@ -33,7 +33,7 @@ TEST_F(SessionTest, SessionStart) {
 }
 
 TEST_F(SessionTest, CreateResponse) {
-    const char * test_body = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 11\n\nhello world";
+    const char * test_body = "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n";
     test_session->set_buf("hello world");
     EXPECT_EQ(test_session->create_response(), test_body);
     delete test_session;
