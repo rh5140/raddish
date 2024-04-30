@@ -28,7 +28,6 @@ std::string echo_request_handler::handle_request(const char* request, size_t* ma
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
 
-    // TODO - probably remove and rely on logging later
     BOOST_LOG_TRIVIAL(info) << http_response;
     return http_response;
 }
