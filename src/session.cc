@@ -111,8 +111,8 @@ std::string session::create_response(){
     std::string request = "Request: \"" + first_line + "\"";
 
     try {
-        tcp::endpoint host = socket().remote_endpoint();
-        tcp::endpoint client = socket().local_endpoint();
+        tcp::endpoint client = socket().remote_endpoint();
+        tcp::endpoint host = socket().local_endpoint();
         client_addr += client.address().to_string() + ":" + to_string(client.port()) + "   ";
         host_addr += host.address().to_string() + ":" + to_string(host.port()) + "   ";
     } 
