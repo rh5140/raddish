@@ -3,13 +3,13 @@
 
 class request_handler {
     public:
-        virtual std::string handle_request() = 0;
+        virtual std::string handle_request(std::string& return_msg) = 0;
 };
 
 class echo_request_handler : request_handler {
     public:
         echo_request_handler(const char* request, size_t* max_bytes);
-        std::string handle_request();
+        std::string handle_request(std::string& return_msg);
     private:
         const char* request_;
         size_t* max_bytes_;
@@ -18,7 +18,7 @@ class echo_request_handler : request_handler {
 class file_request_handler : request_handler {
     public:
         file_request_handler(std::string file_path);
-        std::string handle_request();
+        std::string handle_request(std::string& return_msg);
     private:
         std::string file_path_;
 

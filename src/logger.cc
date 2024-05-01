@@ -39,11 +39,6 @@ void logger::init_logs() {
         std::cout, 
         keywords::format = "[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%"
     );
-
-    // filters out both trace/debug messages (if we do use), so less clutter on log
-    logging::core::get()->set_filter(
-        logging::trivial::severity >= logging::trivial::info
-    );
 }
 
 time_t logger::force_log_rotation() {

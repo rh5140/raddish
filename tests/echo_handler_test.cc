@@ -33,15 +33,16 @@ TEST_F(ServerTest, ServerStart) {
 */
 
 class EchoTest : public testing::Test {
-  protected:
-    echo_request_handler* handler;
-    const char* request;
-    size_t max_bytes;
-    std::string response;
-    
-    void TearDown() override {
-      delete handler; 
-    }
+    protected:
+        echo_request_handler* handler;
+        const char* request;
+        size_t max_bytes;
+        std::string response;
+        std::string log_msg;
+
+        void TearDown() override {
+            delete handler; 
+        }
 };
 
 TEST_F(EchoTest, BasicEcho) {
@@ -49,6 +50,7 @@ TEST_F(EchoTest, BasicEcho) {
     request = contents.c_str();
     max_bytes = 51;
     handler = new echo_request_handler(request, &max_bytes);
-    response = handler->handle_request();
+    response = handler->handle_request(log_msg);
     EXPECT_EQ(response, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+contents);
+    EXPECT_EQ(log_msg, "200 - Raddish echoed what Charlie said - ");
 }

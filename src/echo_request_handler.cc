@@ -7,7 +7,7 @@
 echo_request_handler::echo_request_handler(const char* request, size_t* max_bytes) : request_(request), max_bytes_(max_bytes) {
 }
 
-std::string echo_request_handler::handle_request() {
+std::string echo_request_handler::handle_request(std::string& log_msg) {
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
     std::string content_length = "Content-Length: ";
     std::string response_body;
@@ -31,8 +31,7 @@ std::string echo_request_handler::handle_request() {
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
 
-    BOOST_LOG_TRIVIAL(info) << "Echo response: \n" << http_response;
+    BOOST_LOG_TRIVIAL(trace) << "Echo response: \n" << http_response;
+    log_msg = "200 - Raddish echoed what Charlie said - ";
     return http_response;
 }
-
-

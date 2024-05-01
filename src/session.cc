@@ -34,11 +34,13 @@ void session::set_buf(std::string buf) {
 
 //public
 std::string session::create_response(){
-
-    BOOST_LOG_TRIVIAL(info) << "Request received: \n" << buf_.data();
+    BOOST_LOG_TRIVIAL(debug) << "Request received: \n" << buf_.data();
 
     // default response, if path is not echo nor static file
     std::string response = "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n";
+
+    // Message for logs
+    std::string log_msg = "";
     
     std::stringstream ss(buf_.data());
     std::string first_line;
@@ -93,16 +95,39 @@ std::string session::create_response(){
 
     if (isStaticFilePath) {
         file_request_handler* handler = new file_request_handler(root + file_path);
-        response = handler->handle_request();
+        response = handler->handle_request(log_msg);
     }
     else if (isEchoPath) { 
         echo_request_handler* handler = new echo_request_handler(buf_.data(), &total_data);
-        response = handler->handle_request();
+        response = handler->handle_request(log_msg); 
     }
     else {
-        BOOST_LOG_TRIVIAL(warning) << "Cannot find valid path in " << buf_.data();
+        log_msg = "400 - Cannot find valid path in " + first_line + " - ";
     }
 
+    // Makes log msg (repeats bc idk how to make severity lvl a useable var)
+    std::string client_addr = "Client: ";
+    std::string host_addr = "Host: ";
+    std::string request = "Request: \"" + first_line + "\"";
+
+    try {
+        tcp::endpoint host = socket().remote_endpoint();
+        tcp::endpoint client = socket().local_endpoint();
+        client_addr += client.address().to_string() + ":" + to_string(client.port()) + "   ";
+        host_addr += host.address().to_string() + ":" + to_string(host.port()) + "   ";
+    } 
+    catch (const boost::system::system_error& e) {
+        BOOST_LOG_TRIVIAL(error) << "Sockets do not exist - How tf are you running this";
+    }
+
+    if(log_msg.substr(0, 3) == "200") {
+        BOOST_LOG_TRIVIAL(info) << log_msg + client_addr + host_addr + request;
+    }
+    else {
+        BOOST_LOG_TRIVIAL(warning) << log_msg + client_addr + host_addr + request;
+    }
+        
+    // return response
     return response;
 }
 
@@ -111,7 +136,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
     if (!error) {
         buf_.insert(buf_.end(), data_, data_ + bytes_transferred);
         if(bytes_transferred >= max_length){ //should never be greater but just in case...
-            BOOST_LOG_TRIVIAL(error) << "Bytes transferred greater than max length";
+            BOOST_LOG_TRIVIAL(debug) << "Bytes transferred greater than max length";
             session::handle_write(error);
         }
         else{
@@ -130,7 +155,7 @@ void session::handle_read(const boost::system::error_code& error, size_t bytes_t
         }
     }
     else if ((boost::asio::error::eof == error) || (boost::asio::error::connection_reset == error)){ //disconnect
-        BOOST_LOG_TRIVIAL(info) << "Disconnect due to end of file reached or connection reset";
+        BOOST_LOG_TRIVIAL(debug) << "Disconnect due to end of file reached or connection reset";
         delete this;
     }
     else {

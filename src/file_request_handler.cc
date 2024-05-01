@@ -11,34 +11,36 @@ file_request_handler::file_request_handler(std::string file_path) {
     file_path_ = file_path;
 }
 
-std::string file_request_handler::handle_request() {
+std::string file_request_handler::handle_request(std::string& return_msg) {
     std::string content_type = get_content_type(file_path_);
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
     std::string content_length = "Content-Length: ";
     std::string response_body;
     std::string file_content;
 
-    if (std::filesystem::exists(file_path_) && std::filesystem::is_regular_file(file_path_)) {
+    if (std::filesystem::exists(file_path_)) {
         std::ifstream file_to_read(file_path_, std::ios::in | std::ios::binary); // already reading in as binary
 
-        if (file_to_read.is_open()) {
+        if (std::filesystem::is_regular_file(file_path_) && file_to_read.is_open()) {
             // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
             file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
                                 (std::istreambuf_iterator<char>()));
             file_to_read.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
+            return_msg = "200 - Raddish has given food (files) to share - ";
         }
         else {
-            // 404 error
-            BOOST_LOG_TRIVIAL(warning) << "404 error";
+            // 404 path is not file
+            return_msg = "404 - " + file_path_ + " is not a file - ";
             http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
-            file_content = "404 not found";
+            file_content = "404 Not Found";
             //error_404_file.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
         }
     }
     else {
-        BOOST_LOG_TRIVIAL(warning) << "File does not exist";
+        // 404 error - file does not exist 
+        return_msg =  "404 - File does not exist at " + file_path_ + " - ";
         http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
-        file_content = "404 not found";
+        file_content = "404 Not Found";
     }
 
 
@@ -47,7 +49,7 @@ std::string file_request_handler::handle_request() {
     content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     http_response = http_response + content_length + response_body;
 
-    BOOST_LOG_TRIVIAL(info) << "Static file response:\n" << http_response;
+    BOOST_LOG_TRIVIAL(trace) << "Static file response:\n" << http_response;
     return http_response;
 }
 
