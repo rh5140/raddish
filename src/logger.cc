@@ -31,13 +31,15 @@ void logger::init_logs() {
         keywords::target_file_name = file_name,  
         keywords::rotation_size = 10000000, // 10MB = 10 * 10^6B 
         keywords::time_based_rotation = sinks::file::rotation_at_time_point(0, 0, 0),
-        keywords::format = "[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%"
+        keywords::format = "[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%",
+        keywords::auto_flush = true
     );
     
     // creates the console sink
     logging::add_console_log(
         std::cout, 
-        keywords::format = "[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%"
+        keywords::format = "[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%",
+        keywords::auto_flush = true
     );
 }
 

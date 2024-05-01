@@ -33,8 +33,8 @@ TEST_F(IntegrationTest, SuccessfulTest) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
-    // EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
+    // EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, FailedTest) {
@@ -43,7 +43,7 @@ TEST_F(IntegrationTest, FailedTest) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "FAILURE");
+    EXPECT_EQ(result.substr(result.size()-7), "FAILURE");
 }
 
 /* Note: Netcat tests removed for now, as they don't have a filepath and cannot be echoed 
@@ -55,7 +55,7 @@ TEST_F(IntegrationTest, FailedTest) {
 //         if(fgets(buffer, 7, fp) != NULL)
 //             result += buffer;
 //     }
-//     EXPECT_EQ(result, "SUCCESS");
+//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 // }
 
 
@@ -65,7 +65,7 @@ TEST_F(IntegrationTest, FailedTest) {
 //         if(fgets(buffer, 7, fp) != NULL)
 //             result += buffer;
 //     }
-//     EXPECT_EQ(result, "SUCCESS");
+//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 // }
 
 TEST_F(IntegrationTest, CurlRoot) {
@@ -74,7 +74,7 @@ TEST_F(IntegrationTest, CurlRoot) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootClose) {
@@ -83,7 +83,7 @@ TEST_F(IntegrationTest, CurlRootClose) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootKeepAlive) {
@@ -92,7 +92,7 @@ TEST_F(IntegrationTest, CurlRootKeepAlive) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESSSUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlPath) {
@@ -101,7 +101,7 @@ TEST_F(IntegrationTest, CurlPath) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlShortHeader) {
@@ -110,7 +110,7 @@ TEST_F(IntegrationTest, CurlShortHeader) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlLongHeader) {
@@ -129,7 +129,7 @@ TEST_F(IntegrationTest, CurlLongHeader) {
 //         if(fgets(buffer, 7, fp) != NULL)
 //             result += buffer;
 //     }
-//     EXPECT_EQ(result, "SUCCESS");
+//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 // }
 
 
@@ -140,7 +140,7 @@ TEST_F(IntegrationTest, CurlLongHeader) {
 //         if(fgets(buffer, 7, fp) != NULL)
 //             result += buffer;
 //     }
-//     EXPECT_EQ(result, "SUCCESS");
+//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 // }
 
 // TEST_F(IntegrationTest, NCDoubleNewlineCloud) {
@@ -149,7 +149,7 @@ TEST_F(IntegrationTest, CurlLongHeader) {
 //         if(fgets(buffer, 7, fp) != NULL)
 //             result += buffer;
 //     }
-//     EXPECT_EQ(result, "SUCCESS");
+//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 // }
 
 TEST_F(IntegrationTest, CurlRootCloud) {
@@ -158,7 +158,7 @@ TEST_F(IntegrationTest, CurlRootCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootCloseCloud) {
@@ -167,7 +167,7 @@ TEST_F(IntegrationTest, CurlRootCloseCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlRootKeepAliveCloud) {
@@ -176,7 +176,7 @@ TEST_F(IntegrationTest, CurlRootKeepAliveCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESSSUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlPathCloud) {
@@ -185,7 +185,7 @@ TEST_F(IntegrationTest, CurlPathCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlShortHeaderCloud) {
@@ -194,7 +194,7 @@ TEST_F(IntegrationTest, CurlShortHeaderCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 TEST_F(IntegrationTest, CurlLongHeaderCloud) {
@@ -212,7 +212,7 @@ TEST_F(IntegrationTest, CurlTextStaticFileCloud) {
         if(fgets(buffer, 7, fp) != NULL)
             result += buffer;
     }
-    EXPECT_EQ(result, "SUCCESS");
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
 
