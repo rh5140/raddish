@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <filesystem>
 #include <boost/log/trivial.hpp>
 #include "request_handler.h"
 
@@ -15,23 +16,31 @@ std::string file_request_handler::handle_request() {
     std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
     std::string content_length = "Content-Length: ";
     std::string response_body;
-    
-    std::ifstream file_to_read(file_path_, std::ios::in | std::ios::binary); // already reading in as binary
     std::string file_content;
 
-    if (file_to_read.is_open()) {
-        // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
-        file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
-                            (std::istreambuf_iterator<char>()));
-        file_to_read.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
+    if (std::filesystem::exists(file_path_) && std::filesystem::is_regular_file(file_path_)) {
+        std::ifstream file_to_read(file_path_, std::ios::in | std::ios::binary); // already reading in as binary
+
+        if (file_to_read.is_open()) {
+            // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
+            file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
+                                (std::istreambuf_iterator<char>()));
+            file_to_read.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
+        }
+        else {
+            // 404 error
+            BOOST_LOG_TRIVIAL(warning) << "404 error";
+            http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
+            file_content = "404 not found";
+            //error_404_file.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
+        }
     }
     else {
-        // 404 error
-        BOOST_LOG_TRIVIAL(error) << "404 error";
+        BOOST_LOG_TRIVIAL(warning) << "File does not exist";
         http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
         file_content = "404 not found";
-        //error_404_file.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
     }
+
 
     response_body = file_content;
     // Content-Length is size of entity body in decimal number of OCTETS

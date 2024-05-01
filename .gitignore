@@ -3,4 +3,4 @@
 build
 build_*
 mirror
-.log
+*.log

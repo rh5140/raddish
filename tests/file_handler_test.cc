@@ -4,21 +4,28 @@
 #include "request_handler.h"
 
 class FileRequestTest : public testing::Test {
-  protected:
-    file_request_handler* handler;
-    std::string file_path;
-    
-    std::string response;    
-    void SetUp() override {
-      // nothing that applies to all since constructor will vary
-    }
-    void TearDown() override {
-      delete handler; 
-    }
+    protected:
+        file_request_handler* handler;
+        std::string file_path;
+        
+        std::string response;    
+        void SetUp() override {
+            // nothing that applies to all since constructor will vary
+        }
+        void TearDown() override {
+            delete handler; 
+        }
 };
 
 TEST_F(FileRequestTest, FileNotFound) {
     file_path = "/static_files/images/DOESNTEXIST.png";
+    handler = new file_request_handler(file_path);
+    response = handler->handle_request();
+    EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");
+}
+
+TEST_F(FileRequestTest, NotAFile) {
+    file_path = "/static_files/images";
     handler = new file_request_handler(file_path);
     response = handler->handle_request();
     EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");
