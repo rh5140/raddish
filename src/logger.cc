@@ -11,18 +11,20 @@ namespace logging = boost::log;
 namespace sinks = boost::log::sinks;
 namespace keywords = boost::log::keywords;
 
-logger::logger(bool isTest) {
-    this->isTest = isTest;
+Logger::Logger() {
+    this->is_test_ = false;
     init_logs();
 }
 
-void logger::init_logs() {
-    // lets timesstamp and threadID values 
+// creates log sinks, sets rotation specs and format
+void Logger::init_logs() {
+    // lets timesstamp and threadID values exist
     logging::add_common_attributes();
 
-    // names the file - logs/2024-04-27_#####.log
-      std::string file_name = "logs/%Y-%m-%d_%H-%M-%S-%f.log"; // uses time to make sure in order
-    if(this->isTest) { // so when remove from tests it does not accidentally rewrite actual logs
+    // names the file - logs/YYYY-MM-DD_hh-mm-ss-ffffff.log
+    std::string file_name = "logs/%Y-%m-%d_%H-%M-%S-%f.log";
+    if(this->is_test_) { 
+        // Reason: to isolate unit test logs from actual so we dont accidentally mess actual up
         file_name = "t_logs/%Y-%m-%d_%H-%M-%S-%f.log";
     }
 
@@ -43,12 +45,18 @@ void logger::init_logs() {
     );
 }
 
-time_t logger::force_log_rotation() {
+// remakes sinks to match right status
+void Logger::set_test_status(bool is_test) {
+    this->is_test_ = is_test;
+    logging::core::get()->remove_all_sinks();
+    this->init_logs();
+}
+
+// forces the logs to push out to sink 
+void Logger::force_log_rotation() {
     logging::core::get()->flush();
     logging::core::get()->remove_all_sinks();
-    time_t log_time = std::time(nullptr);
     this->init_logs();
-    return log_time;
 }
 
 /*
@@ -56,25 +64,18 @@ time_t logger::force_log_rotation() {
 - #include <boost/log/trivial.hpp>
 - BOOST_LOG_TRIVIAL(severity_of_error) << error_msg;
 
-# Format of the logs 
+# Format of general logs 
 [time] [thread] [severity] msg
 
+# Format of request logs (not enforced here)
+[time] [thread] [severity] code - msg - client: ip  host : path  response: "_ _ _"
 
 # Types
-BOOST_LOG_TRIVIAL(trace) << "A trace severity message";
-BOOST_LOG_TRIVIAL(debug) << "A debug severity message";
-BOOST_LOG_TRIVIAL(info) << "An informational severity message";
-BOOST_LOG_TRIVIAL(warning) << "A warning severity message";
-BOOST_LOG_TRIVIAL(error) << "An error severity message";
-BOOST_LOG_TRIVIAL(fatal) << "A fatal severity message";
+trace : for printing data (response, var values, etc)
+debug : for knowing server's state/process is in when running
+info : information thats we want to know (config, request, etc)
+warning : something goes wrong but we dont need to worry / error that we expected to happen (bad requests, etc)
+error : something goes wrong that we dont want to happen (something thats not supposed to happen)
+fatal : error but it kills the server (exceptions, etc)
 */ 
 
-
-/* Code that I got from ChatGPT for this function bc the actual page no longer exists -_-
-logging::formatter console_formatter = logging:expressions::format("[%TimeStamp%] [%ThreadID%] [%Severity%] %Message%");
-logging::formatter test_formatter = logging:expressions::format("[%Severity%] %Message%");
-
-logging::register_simple_formatter_factory<logging::trivial::severity_level, char>(
-    "ConsoleFormatter", 
-    keywords::format = console_formatter);
-*/

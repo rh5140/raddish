@@ -1,14 +1,16 @@
 #include <gtest/gtest_prod.h>
-#include <ctime>
 #include <string.h>
 
-class logger {
+class Logger {
 public:
-    logger(bool isTest);
+    Logger();
 private:
-    void init_logs();   
-    time_t force_log_rotation(); // for test purposes
-    bool isTest;
+    void init_logs();  
+
+    // test functions
+    void set_test_status(bool is_test);
+    void force_log_rotation(); 
+    bool is_test_;
 
     friend class LoggerTest;
     FRIEND_TEST(LoggerTest, CheckFileExists);

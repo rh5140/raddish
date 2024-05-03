@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     NginxConfigParser parser;
     NginxConfig out_config;  
 
-    logger logs = logger(false);
+    Logger logs;
 
     signal(SIGINT, signalHandler); // CNTRL + C handler
 
