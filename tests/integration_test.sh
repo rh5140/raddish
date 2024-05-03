@@ -40,11 +40,6 @@ do
     # for grep purposes
     reg=$(<$3)
 
-    while [$(bash $tmpfile) != 0]
-    do
-    sleep 0.01
-    done
-
     # P for PCRE (multiline), c for count, z for treating the matched text as a sequence of lines 
     if [ "$( bash $tmpfile | grep -Pcz "$reg" - )" != 0 ];
     then
