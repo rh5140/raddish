@@ -123,14 +123,14 @@ TEST_F(IntegrationTest, CurlLongHeader) {
 }
 
 
-// TEST_F(IntegrationTest, CurlTextStaticFile) {
-//     fp = popen("bash integration_test.sh local requests/curl_text_static_file_request responses/curl_text_static_file_response", "r");
-//     while(!feof(fp)) {
-//         if(fgets(buffer, 7, fp) != NULL)
-//             result += buffer;
-//     }
-//     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
-// }
+TEST_F(IntegrationTest, CurlTextStaticFile) {
+    fp = popen("bash integration_test.sh local requests/curl_text_static_file_request responses/curl_text_static_file_response", "r");
+    while(!feof(fp)) {
+        if(fgets(buffer, 7, fp) != NULL)
+            result += buffer;
+    }
+    EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
+}
 
 
 

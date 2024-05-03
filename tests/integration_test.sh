@@ -5,7 +5,12 @@ location=$1
 # Start the webserver
 if [ "$location" == "local" ];
 then
-    ../build/bin/webserver ../server_config &
+    ../build/bin/webserver ../server_config & 
+    until curl --silent --head --fail http://localhost:8080; 
+    do
+        # printf '.'
+        sleep 0.1
+    done
 fi
 
 # Run the test
@@ -17,6 +22,7 @@ do
     cat $2 > $tmpfile
     if [ "$location" == "local" ];
     then
+
         if [[ $2 == *"static_file"* ]];
         then
             echo -n "localhost:8080/text/lobster.txt" >> $tmpfile
@@ -48,7 +54,7 @@ do
         echo -n FAILURE
         if [ "$location" == "local" ];
         then
-            kill %1
+            pkill "webserver"
         fi
         rm "$tmpfile"
         exit 1
@@ -60,7 +66,7 @@ done
 # Stop the webserver
 if [ "$location" == "local" ];
 then
-    kill %1
+    pkill "webserver"
 fi
 rm "$tmpfile"
 exit 0

@@ -3,8 +3,8 @@
 FROM raddish:base as builder
 
 # Share work directory
-COPY . /usr/src/project
-WORKDIR /usr/src/project/build
+COPY . /usr/src/projects/raddish
+WORKDIR /usr/src/projects/raddish/build
 
 # Build and test
 RUN cmake ..
@@ -17,13 +17,13 @@ RUN ctest --output-on_failure
 FROM ubuntu:jammy as deploy
 
 # Copy server output binary to "."
-COPY --from=builder /usr/src/project/build/bin/webserver .
+COPY --from=builder /usr/src/projects/raddish/build/bin/webserver .
 
 # Copy config file (for gcloud deployment)
-COPY --from=builder /usr/src/project/gcloud_server_config .
+COPY --from=builder /usr/src/projects/raddish/gcloud_server_config .
 
 # Copy static files
-COPY --from=builder /usr/src/project/static_files /static_files/
+COPY --from=builder /usr/src/projects/raddish/static_files /static_files/
 
 # Expose ports
 EXPOSE 80
