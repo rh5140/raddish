@@ -49,13 +49,6 @@ std::string session::create_response(){
     bool foundSpace = false;
     std::string file_path = "";
 
-    // check if request is valid
-    // TODO - add logging when refactoring
-    std::regex request_regex("[A-Z]+ \/.* HTTP\/\d\.\d\n(.+: .+\n)*\n.*");
-    if (std::regex_search(buf_.data(), request_regex)) {
-        return response;
-    }
-
     // extract path
     for (int i = 0; i<first_line.length(); i++) {
         if (first_line[i] == ' ') 
@@ -70,41 +63,46 @@ std::string session::create_response(){
             file_path += first_line[i];
         }
     }
-        
-
+    // extract first element of path
+    int idx_end;
+    if (file_path[0] == '/') {
+        for (int i = 1; i < file_path.length(); i++) {
+            if (file_path[i] == '/') {
+                idx_end = i;
+                break;
+            }
+        }
+    }
+    std::string file_path_start = file_path.substr(0, idx_end + 1);
     // compare with list of locations parsed from config
-    enum Handlers {static_file, echo};
-    Handlers selected_handler;
+    bool isStaticFilePath = false;
+    bool isEchoPath = false;
     std::string root = "";
-    std::string curr_longest_match = ""; 
-
-    for (auto const& pair : config_info_.static_file_locations){
-        // checking whether location is a substring of file_path, and starts at index 0
-        if (file_path.find(pair.first) == 0 && pair.first.length() > curr_longest_match.length()) {
-            root = pair.second;
-            curr_longest_match = pair.first;
-            selected_handler = static_file;
+    for (auto const& x : config_info_.static_file_locations){
+        if (x.first == file_path_start) {
+            root = config_info_.static_file_locations[x.first];
+            isStaticFilePath = true;
+            break;
         }
     }
-    for (auto const& location : config_info_.echo_locations){
-        if (file_path.find(location) == 0 && location.length() > curr_longest_match.length()) {
-            curr_longest_match = location;
-            selected_handler = echo;
+    for (auto const& x : config_info_.echo_locations){
+        if (x == file_path) {
+            isEchoPath = true;
+            break;
         }
     }
-
     size_t total_data = buf_.size();
-    request_handler* handler;
 
-    switch(selected_handler) {
-        case static_file:
-            handler = new file_request_handler(root + file_path);
-            response = handler->handle_request(log_msg); // trying to move this out, but segfaulting - TODO
-            break;
-        case echo:
-            handler = new echo_request_handler(buf_.data(), &total_data);
-            response = handler->handle_request(log_msg); 
-            break;
+    if (isStaticFilePath) {
+        file_request_handler* handler = new file_request_handler(root + file_path);
+        response = handler->handle_request(log_msg);
+    }
+    else if (isEchoPath) { 
+        echo_request_handler* handler = new echo_request_handler(buf_.data(), &total_data);
+        response = handler->handle_request(log_msg); 
+    }
+    else {
+        log_msg = "400 - Cannot find valid path in " + first_line + " - ";
     }
 
     // Makes log msg (repeats bc idk how to make severity lvl a useable var)

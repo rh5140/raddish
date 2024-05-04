@@ -21,10 +21,6 @@ server {
     root /usr/src/projects/raddish/static_files;
   }
 
-  location /tests/static_files/ static {
-    root /usr/src/projects/raddish;
-  }
-
 }
 
 
