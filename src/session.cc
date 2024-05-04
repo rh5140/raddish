@@ -39,6 +39,15 @@ std::string session::create_response(){
     // default response, if path is not echo nor static file
     std::string response = "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n";
 
+    // check if request is valid
+    // TODO - add logging when refactoring
+    // currently matches the header
+    std::regex request_regex("GET (.+) HTTP");
+    if (!std::regex_search(buf_.data(), request_regex)) {
+        BOOST_LOG_TRIVIAL(warning) << "invalid request";
+        return response;
+    }
+
     // Message for logs
     std::string log_msg = "";
     
@@ -48,6 +57,7 @@ std::string session::create_response(){
 
     bool foundSpace = false;
     std::string file_path = "";
+
 
     // extract path
     for (int i = 0; i<first_line.length(); i++) {
@@ -63,46 +73,41 @@ std::string session::create_response(){
             file_path += first_line[i];
         }
     }
-    // extract first element of path
-    int idx_end;
-    if (file_path[0] == '/') {
-        for (int i = 1; i < file_path.length(); i++) {
-            if (file_path[i] == '/') {
-                idx_end = i;
-                break;
-            }
-        }
-    }
-    std::string file_path_start = file_path.substr(0, idx_end + 1);
-    // compare with list of locations parsed from config
-    bool isStaticFilePath = false;
-    bool isEchoPath = false;
-    std::string root = "";
-    for (auto const& x : config_info_.static_file_locations){
-        if (x.first == file_path_start) {
-            root = config_info_.static_file_locations[x.first];
-            isStaticFilePath = true;
-            break;
-        }
-    }
-    for (auto const& x : config_info_.echo_locations){
-        if (x == file_path) {
-            isEchoPath = true;
-            break;
-        }
-    }
-    size_t total_data = buf_.size();
+        
 
-    if (isStaticFilePath) {
-        file_request_handler* handler = new file_request_handler(root + file_path);
-        response = handler->handle_request(log_msg);
+    // compare with list of locations parsed from config
+    enum Handlers {static_file, echo};
+    Handlers selected_handler;
+    std::string root = "";
+    std::string curr_longest_match = ""; 
+
+    for (auto const& pair : config_info_.static_file_locations){
+        // checking whether location is a substring of file_path, and starts at index 0
+        if (file_path.find(pair.first) == 0 && pair.first.length() > curr_longest_match.length()) {
+            root = pair.second;
+            curr_longest_match = pair.first;
+            selected_handler = static_file;
+        }
     }
-    else if (isEchoPath) { 
-        echo_request_handler* handler = new echo_request_handler(buf_.data(), &total_data);
-        response = handler->handle_request(log_msg); 
+    for (auto const& location : config_info_.echo_locations){
+        if (file_path.find(location) == 0 && location.length() > curr_longest_match.length()) {
+            curr_longest_match = location;
+            selected_handler = echo;
+        }
     }
-    else {
-        log_msg = "400 - Cannot find valid path in " + first_line + " - ";
+
+    size_t total_data = buf_.size();
+    request_handler* handler;
+
+    switch(selected_handler) {
+        case static_file:
+            handler = new file_request_handler(root + file_path);
+            response = handler->handle_request(log_msg); // trying to move this out, but segfaulting - TODO
+            break;
+        case echo:
+            handler = new echo_request_handler(buf_.data(), &total_data);
+            response = handler->handle_request(log_msg); 
+            break;
     }
 
     // Makes log msg (repeats bc idk how to make severity lvl a useable var)
