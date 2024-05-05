@@ -29,7 +29,6 @@ class NginxConfigParser {
   // iff the input config file is valid.
   bool Parse(std::istream* config_file, NginxConfig* config);
   bool Parse(const char* file_name, NginxConfig* config);
-  bool GetServerSettingsInner(NginxConfig* config);
   bool GetServerSettings(NginxConfig* config);
   const char* NumberToTokenString(int n); //used for testing without exposing private methods
   std::map<std::string, std::string> GetStaticFileLocations();
@@ -58,4 +57,10 @@ class NginxConfigParser {
     TOKEN_STATE_TOKEN_TYPE_NORMAL = 4
   };
   TokenType ParseToken(std::istream* input, std::string* value);
+
+  bool ExtractConfigLayer(NginxConfig* config, std::string target);
+  bool GetServerSettingsInner();
+
+  NginxConfig internal_config_; //used for extracting internal configs
+
 };
