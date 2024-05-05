@@ -164,6 +164,7 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
   }
   return TOKEN_TYPE_EOF;
 }
+
 bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
   std::stack<NginxConfig*> config_stack;
   config_stack.push(config);
@@ -258,11 +259,9 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
   return return_value;
 }
 
-bool NginxConfigParser::GetServerSettings(NginxConfig* config){
-    //config
-    //behold my n^3 function and weep
-    //I'm not sure if this should be made a real function - easier to test but this will eventually return a ton of things.
-    //outermost config
+//TODO: once changes are merged I'm going to rename these functions
+bool NginxConfigParser::GetServerSettingsInner(NginxConfig* server_config){
+
 
     //init
     int port_num = -1;
@@ -271,65 +270,56 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     vector<std::string> default_root_locs;
     std::map<std::string, std::string> static_file_locations = std::map<std::string,std::string>();
     std::vector<std::string> echo_locations = std::vector<std::string>();
+    std::string arg_token = "";
 
-
-
-    for(int i = 0; i < (*config).statements_.size(); i++){ 
-      //parse outermost config to find the server config
-      for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
-        //locate server config so we can find the server args
-        if((*(*config).statements_[i]).tokens_[j] == "server"){
-          BOOST_LOG_TRIVIAL(info) << "Server Config Found";
-          NginxConfig server_config = (*(*(*config).statements_[i]).child_block_);
-          for (int z = 0; z<server_config.statements_.size(); z++) {
-          //iterate through server config to find each argument for server starting
-            for(int k = 0; k < (*server_config.statements_[z]).tokens_.size(); k++){
-              //handles port
-              if((*server_config.statements_[z]).tokens_[k] == "listen" && k <= (*server_config.statements_[z]).tokens_.size()){
-                (port_num) = stoi((*server_config.statements_[z]).tokens_[k + 1]);
-                BOOST_LOG_TRIVIAL(info) << "Port Number found : " << (port_num);
-              }
-
-              // handles root
-              if((*server_config.statements_[z]).tokens_[k] == "root" && k <= (*server_config.statements_[z]).tokens_.size()){
-                root = (*server_config.statements_[z]).tokens_[k + 1];
-                BOOST_LOG_TRIVIAL(info) << "Default root found: " << root;
-              }
-
-              // handles location
-              if((*server_config.statements_[z]).tokens_[k] == "location" && k <= (*server_config.statements_[z]).tokens_.size()){
-                std::string log_output = "";
-                
-                std::string key = (*server_config.statements_[z]).tokens_[k + 1];
-                std::string type = (*server_config.statements_[z]).tokens_[k + 2];
-                log_output = log_output + "Location: " + key + ", ";
-                NginxConfig location_block = (*(*server_config.statements_[z]).child_block_);
-                
-                if (type == "static") {
-                  for (int l = 0; l<location_block.statements_.size(); l++){
-                    for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
-                      if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
-                        static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
-                        log_output = log_output + "root: " + static_file_locations[key] + " for serving static files";
-                      }
-                    }
-                  }
-                  if (static_file_locations.find(key) == static_file_locations.end()) {
-                    log_output = log_output + "default root for serving static files";
-                    default_root_locs.push_back(key);
-                  }
-                }
-                else if (type == "echo") {
-                  echo_locations.push_back(key);
-                  log_output = log_output + "for echoing";
-                }
-
-                BOOST_LOG_TRIVIAL(info) << log_output;
-              }
-              //can add more args as needed here, following the pattern for ports
-            }
+    for (int i = 0; i < server_config->statements_.size(); i++) {
+    //iterate through server config to find each argument for server starting
+      for(int j = 0; j < (*server_config->statements_[i]).tokens_.size(); j++){
+        arg_token = (*server_config->statements_[i]).tokens_[j]; //since we check this a lot, just store it.
+        //need to check this so j+1 doesn't undefined us, not doing this in main loop in case someone needs to check the last thing.
+        if(j < (*server_config->statements_[i]).tokens_.size() - 1){
+          //handles port
+          if(arg_token == "listen"){
+            port_num = stoi((*server_config->statements_[i]).tokens_[j + 1]);
+            BOOST_LOG_TRIVIAL(info) << "Port Number found : " << (port_num);
           }
+          // handles root
+          else if(arg_token == "root"){
+            root = (*server_config->statements_[i]).tokens_[j + 1];
+            BOOST_LOG_TRIVIAL(info) << "Default root found: " << root;
+          }
+          // handles location
+          else if(arg_token == "location"){
+            std::string log_output = "";
+            std::string key = (*server_config->statements_[i]).tokens_[j + 1];
+            std::string type = (*server_config->statements_[i]).tokens_[j + 2];
+            log_output = log_output + "Location: " + key + ", ";
+            NginxConfig location_block = (*(*server_config->statements_[i]).child_block_);
+            
+            if (type == "static") {
+              for (int l = 0; l<location_block.statements_.size(); l++){
+                for (int m = 0; m<(*location_block.statements_[l]).tokens_.size(); m++){
+                  if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
+                    static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
+                    log_output = log_output + "root: " + static_file_locations[key] + " for serving static files";
+                  }
+                }
+              }
+              if (static_file_locations.find(key) == static_file_locations.end()) {
+                log_output = log_output + "default root for serving static files";
+                default_root_locs.push_back(key);
+              }
+            }
+            else if (type == "echo") {
+              echo_locations.push_back(key);
+              log_output = log_output + "for echoing";
+            }
+
+            BOOST_LOG_TRIVIAL(info) << log_output;
+          }
+          //can add more args as needed here, following the pattern for ports
         }
+
       }
     }
 
@@ -347,6 +337,34 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     config_info.echo_locations = echo_locations;
     config_info.port_num = port_num;
 
+    return true;
+
+}
+
+bool NginxConfigParser::GetServerSettings(NginxConfig* config){
+    //config
+    //behold my n^3 function and weep
+    //I'm not sure if this should be made a real function - easier to test but this will eventually return a ton of things.
+    //outermost config
+
+
+    for(int i = 0; i < (*config).statements_.size(); i++){ 
+      //parse outermost config to find the server config
+      for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
+        //locate server config so we can find the server args
+
+        if((*(*config).statements_[i]).tokens_[j] == "server"){
+          BOOST_LOG_TRIVIAL(info) << "Server Config Found";
+          NginxConfig server_config = (*(*(*config).statements_[i]).child_block_);
+          if(!GetServerSettingsInner(&server_config)){
+            return false;
+          }
+        }
+
+        //can add more config sections here, following above example
+
+      }
+    }
     return true;
 }
 
