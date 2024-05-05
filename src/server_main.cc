@@ -15,6 +15,7 @@
 #include <csignal>
 #include "server.h"
 #include "logger.h"
+#include "config_parser.h"
 
 using boost::asio::ip::tcp;
 
@@ -55,7 +56,7 @@ int main(int argc, char* argv[]) {
     // Pass entire struct...
     ConfigInfo config_info = parser.GetConfigInfo();
     
-    server s(io_service, config_info);
+    Server s(io_service, config_info);
     BOOST_LOG_TRIVIAL(info) << "Raddish Online!";
 
     io_service.run();

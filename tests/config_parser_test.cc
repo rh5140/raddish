@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include "config_parser.h"
+#include "info.h"
 
 using namespace std; //for str
 

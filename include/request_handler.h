@@ -1,24 +1,27 @@
 #include <string>
 #include <gtest/gtest_prod.h>
+#include "info.h"
 
-class request_handler {
+class RequestHandler {
     public:
-        virtual std::string handle_request(std::string& return_msg) = 0;
+        virtual std::string handle_request(LogInfo log_info) = 0;
+    protected:
+        void log_request(LogInfo log_info);
 };
 
-class echo_request_handler : public request_handler {
+class EchoRequestHandler : public RequestHandler {
     public:
-        echo_request_handler(const char* request, size_t* max_bytes);
-        std::string handle_request(std::string& return_msg);
+        EchoRequestHandler(std::string request, size_t* max_bytes);
+        std::string handle_request(LogInfo log_info);
     private:
-        const char* request_;
+        std::string request_;
         size_t* max_bytes_;
 };
 
-class file_request_handler : public request_handler {
+class FileRequestHandler : public RequestHandler {
     public:
-        file_request_handler(std::string file_path);
-        std::string handle_request(std::string& return_msg);
+        FileRequestHandler(std::string file_path);
+        std::string handle_request(LogInfo log_info);
     private:
         std::string file_path_;
 

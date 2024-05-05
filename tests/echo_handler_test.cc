@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include "gtest/gtest.h"
 #include "request_handler.h"
+#include "info.h"
 
 using boost::asio::ip::tcp;
 using namespace std;
@@ -34,11 +35,16 @@ TEST_F(ServerTest, ServerStart) {
 
 class EchoTest : public testing::Test {
     protected:
-        echo_request_handler* handler;
+        EchoRequestHandler* handler;
         const char* request;
         size_t max_bytes;
         std::string response;
-        std::string log_msg;
+        LogInfo log_info;
+
+        void SetUp() override {
+            log_info.addr_info.host_addr = "host:8080";
+            log_info.addr_info.client_addr = "client:8080";
+        }
 
         void TearDown() override {
             delete handler; 
@@ -46,11 +52,10 @@ class EchoTest : public testing::Test {
 };
 
 TEST_F(EchoTest, BasicEcho) {
-    std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
-    request = contents.c_str();
+    std::string request = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
     max_bytes = 51;
-    handler = new echo_request_handler(request, &max_bytes);
-    response = handler->handle_request(log_msg);
-    EXPECT_EQ(response, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+contents);
-    EXPECT_EQ(log_msg, "200 - Raddish echoed what Charlie said - ");
+    handler = new EchoRequestHandler(request, &max_bytes);
+    log_info.request_line = "GET / HTTP/1.1";
+    response = handler->handle_request(log_info);
+    EXPECT_EQ(response, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+request);
 }

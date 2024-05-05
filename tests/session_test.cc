@@ -13,15 +13,15 @@ class SessionTest : public testing::Test {
   protected:
     boost::asio::io_service io_service;
     string parse_result;
-    size_t reasonable_length = 10;
+    size_t reasonable_length = 16;
     size_t max_length = 1024;
     size_t greater_than_max_length = 1025;
     bool error_exists = false;
-    session* test_session;
+    Session* test_session;
     ConfigInfo config_info;
 
     void SetUp() override {
-      test_session = new session(io_service, config_info);
+      test_session = new Session(io_service, config_info);
     }
     // void TearDown() override {
     // }
@@ -67,6 +67,9 @@ TEST_F(SessionTest, HandleReadPartialDataRead) {
 }
 
 TEST_F(SessionTest, HandleRead) {
+    std::string contents = "GET / HTTP/1.1\n\n";
+    test_session->config_info_.echo_locations.push_back("/");
+    test_session->set_buf(contents);
     EXPECT_NO_THROW(test_session->handle_read(boost::system::error_code(), reasonable_length));
     delete test_session;
 }

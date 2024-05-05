@@ -16,6 +16,7 @@
 #include <map>
 #include <boost/log/trivial.hpp>
 #include "config_parser.h"
+#include "info.h"
 
 using namespace std; // NOT JUST FOR COUT 
 

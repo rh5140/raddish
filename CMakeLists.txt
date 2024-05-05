@@ -41,6 +41,8 @@ add_library(session_lib src/session.cc)
 # add handler libs
 add_library(echo_handler_lib src/echo_request_handler.cc)
 add_library(file_handler_lib src/file_request_handler.cc)
+add_library(handler_lib src/request_handler.cc)
+add_library(dispatcher_lib src/request_dispatcher.cc)
 
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
@@ -59,19 +61,19 @@ target_link_libraries(config_parser_test config_parser_lib gtest_main Boost::log
 
 #add and link echo test executable
 add_executable(echo_test tests/echo_handler_test.cc)
-target_link_libraries(echo_test echo_handler_lib gtest_main Boost::log)
+target_link_libraries(echo_test echo_handler_lib handler_lib gtest_main Boost::log)
 
 #add and link file handler test executable
 add_executable(file_handler_test tests/file_handler_test.cc)
-target_link_libraries(file_handler_test file_handler_lib gtest_main Boost::log)
+target_link_libraries(file_handler_test file_handler_lib handler_lib gtest_main Boost::log)
 
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib gtest_main echo_handler_lib file_handler_lib Boost::log)
+target_link_libraries(session_test session_lib gtest_main dispatcher_lib echo_handler_lib file_handler_lib handler_lib Boost::log)
 
 #add and link server test executable
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main echo_handler_lib file_handler_lib Boost::log)
+target_link_libraries(server_test server_lib session_lib config_parser_lib gtest_main dispatcher_lib echo_handler_lib file_handler_lib handler_lib Boost::log)
 
 #add and link logger test executable
 add_executable(logger_test tests/logger_test.cc)
@@ -86,7 +88,7 @@ endif()
 
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib session_lib config_parser_lib echo_handler_lib file_handler_lib logger_lib Boost::system Boost::log_setup Boost::log)
+target_link_libraries(webserver server_lib session_lib config_parser_lib dispatcher_lib echo_handler_lib file_handler_lib handler_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
 
 #gtest

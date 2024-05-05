@@ -4,12 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
-
-struct ConfigInfo {
-    int port_num;
-    std::map<std::string, std::string> static_file_locations;
-    std::vector<std::string> echo_locations;
-};
+#include "info.h"
 
 class NginxConfig;
 // The parsed representation of a single config statement.

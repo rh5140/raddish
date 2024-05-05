@@ -1,13 +1,13 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <gtest/gtest_prod.h>
-#include "config_parser.h" // Trying to avoid redefinitions
+#include "info.h"
 
 using boost::asio::ip::tcp;
 
-class session {
+class Session {
 public:
-    session(boost::asio::io_service& io_service, ConfigInfo& config_info);
+    Session(boost::asio::io_service& io_service, ConfigInfo& config_info);
     tcp::socket& socket();
     void start();
     std::string create_response();

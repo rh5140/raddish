@@ -37,11 +37,11 @@ class ServerTest : public testing::Test {
     boost::asio::io_service io_s;
     // int port_num = 8000;
     ConfigInfo config_info;
-    server* test_server;
+    Server* test_server;
     
     void SetUp() override {
       config_info.port_num = 8000;
-      test_server = new server(io_s, config_info);
+      test_server = new Server(io_s, config_info);
     }
     void TearDown() override {
       delete test_server; // session is deleted in server's destructor
@@ -53,13 +53,13 @@ TEST_F(ServerTest, StartAccept) {
 }
 
 TEST_F(ServerTest, HandleAccept) {
-    session* test_session = new session(io_s, config_info);
+    Session* test_session = new Session(io_s, config_info);
     EXPECT_NO_THROW(test_server->handle_accept(test_session, boost::system::error_code()));
     delete test_session;
 }
 
 TEST_F(ServerTest, HandleAcceptError) {
-    session* test_session = new session(io_s, config_info);
+    Session* test_session = new Session(io_s, config_info);
     EXPECT_NO_THROW(test_server->handle_accept(test_session, boost::asio::error::access_denied));
     delete test_session;
 }
@@ -68,7 +68,7 @@ TEST(BasicServerSetupTest, ServerStart) {
     boost::asio::io_service io_s;
     ConfigInfo config_info;
     config_info.port_num = 8080;
-    server* test_server = new server(io_s, config_info);
+    Server* test_server = new Server(io_s, config_info);
     EXPECT_NE(test_server, nullptr);
     delete test_server;
 }

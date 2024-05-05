@@ -5,9 +5,9 @@
 
 using boost::asio::ip::tcp;
 
-class server {
+class Server {
 public:
-    server(boost::asio::io_service& io_service, ConfigInfo& config_info);
+    Server(boost::asio::io_service& io_service, ConfigInfo& config_info);
 
 private:
     boost::asio::io_service& io_service_;
@@ -15,7 +15,7 @@ private:
     ConfigInfo config_info_;
 
     bool start_accept();
-    void handle_accept(session* new_session, const boost::system::error_code& error);
+    void handle_accept(Session* new_session, const boost::system::error_code& error);
 
     FRIEND_TEST(ServerTest, StartAccept);
     FRIEND_TEST(ServerTest, HandleAccept);

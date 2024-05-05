@@ -6,11 +6,10 @@ location=$1
 if [ "$location" == "local" ];
 then
     ../build/bin/webserver ../server_config & 
-    count=1;
-    until curl --silent --head --fail http://localhost:8080 || count==20; 
+    until curl --silent --get --fail http://localhost:8080; 
     do
         # printf '.'
-        sleep 0.1 && count=count+1
+        sleep 0.1 
     done
 fi
 
