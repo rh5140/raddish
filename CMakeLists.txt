@@ -79,6 +79,11 @@ target_link_libraries(server_test server_lib session_lib config_parser_lib gtest
 add_executable(logger_test tests/logger_test.cc)
 target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::log)
 
+
+#add and link dispatcher test executable
+add_executable(dispatcher_test tests/dispatcher_test.cc)
+target_link_libraries(dispatcher_test gtest_main config_parser_lib dispatcher_lib echo_handler_lib file_handler_lib handler_lib Boost::log_setup Boost::log)
+
 # add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
 if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
@@ -98,6 +103,8 @@ gtest_discover_tests(server_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/t
 gtest_discover_tests(echo_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(file_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(logger_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(dispatcher_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
 
 # ignore integration tests if running for coverage
 if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
@@ -107,7 +114,7 @@ endif()
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib echo_handler_lib file_handler_lib logger_lib TESTS config_parser_test session_test server_test echo_test file_handler_test logger_test) 
+generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib echo_handler_lib file_handler_lib logger_lib dispatcher_lib TESTS config_parser_test session_test server_test echo_test file_handler_test logger_test dispatcher_test) 
 
 
 

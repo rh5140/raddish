@@ -18,16 +18,22 @@ std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
         return response_;
     }
     
+    BOOST_LOG_TRIVIAL(debug) << "valid request";
+
     std::string file_path = get_path(info.request);
+    BOOST_LOG_TRIVIAL(debug) << file_path;
 
     // compare with list of locations parsed from config
     Handlers selected_handler;
     std::string root = "";
     std::string curr_longest_match = ""; 
 
+    BOOST_LOG_TRIVIAL(debug) << info.config_info.static_file_locations.size();
+
     for (auto const& pair : info.config_info.static_file_locations){
         // checking whether location is a substring of file_path, and starts at index 0
         if (file_path.find(pair.first) == 0 && pair.first.length() > curr_longest_match.length()) {
+            BOOST_LOG_TRIVIAL(debug) << "Using static path";
             root = pair.second;
             curr_longest_match = pair.first;
             selected_handler = static_file;
@@ -35,6 +41,7 @@ std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
     }
     for (auto const& location : info.config_info.echo_locations){
         if (file_path.find(location) == 0 && location.length() > curr_longest_match.length()) {
+            BOOST_LOG_TRIVIAL(debug) << "Using echo path";
             curr_longest_match = location;
             selected_handler = echo;
         }
@@ -54,6 +61,9 @@ std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
         case echo:
             handler = new EchoRequestHandler(info.request, &info.request_size);
             response_ = handler->handle_request(log_info); 
+            break;
+        default:
+            BOOST_LOG_TRIVIAL(warning) << "no valid dispatcher for request";
             break;
     }
         

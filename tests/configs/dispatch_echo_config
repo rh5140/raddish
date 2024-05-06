@@ -1,0 +1,16 @@
+server {
+  listen   8080;
+
+  root /;
+
+  location / echo {
+  }
+
+  location /echo echo {
+  }
+}
+
+
+
+
+
