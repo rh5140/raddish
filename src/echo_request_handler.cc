@@ -33,5 +33,7 @@ std::string EchoRequestHandler::handle_request(LogInfo log_info) {
     log_info.message = "Echoed";
     log_info.response = http_response;
 
+    log_request(log_info);
+
     return http_response;
 }
