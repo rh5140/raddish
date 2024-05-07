@@ -27,17 +27,17 @@ class NginxConfigParser {
   // Take a opened config file or file name (respectively) and store the
   // parsed config in the provided NginxConfig out-param.  Returns true
   // iff the input config file is valid.
-  bool Parse(std::istream* config_file, NginxConfig* config);
-  bool Parse(const char* file_name, NginxConfig* config);
-  bool GetServerSettings(NginxConfig* config);
-  const char* NumberToTokenString(int n); //used for testing without exposing private methods
-  std::map<std::string, std::string> GetStaticFileLocations();
-  // std::vector<std::string> GetEchoLocations();
-  int GetPortNum();
-  ConfigInfo GetConfigInfo();
+  bool parse(std::istream* config_file, NginxConfig* config);
+  bool parse(const char* file_name, NginxConfig* config);
+  bool get_config_settings(NginxConfig* config);
+  const char* number_to_token_string(int n); //used for testing without exposing private methods
+  std::map<std::string, std::string> get_static_file_locations();
+  // std::vector<std::string> get_echo_locations();
+  int get_port_num();
+  ConfigInfo get_config_info();
  private:
   // std::map<std::string, std::string> locations;
-  ConfigInfo config_info;
+  ConfigInfo config_info_;
   enum TokenType {
     TOKEN_TYPE_START = 0,
     TOKEN_TYPE_NORMAL = 1,
@@ -48,7 +48,7 @@ class NginxConfigParser {
     TOKEN_TYPE_EOF = 6,
     TOKEN_TYPE_ERROR = 7
   };
-  const char* TokenTypeAsString(TokenType type);
+  const char* token_type_as_string(TokenType type);
   enum TokenParserState {
     TOKEN_STATE_INITIAL_WHITESPACE = 0,
     TOKEN_STATE_SINGLE_QUOTE = 1,
@@ -56,10 +56,10 @@ class NginxConfigParser {
     TOKEN_STATE_TOKEN_TYPE_COMMENT = 3,
     TOKEN_STATE_TOKEN_TYPE_NORMAL = 4
   };
-  TokenType ParseToken(std::istream* input, std::string* value);
+  TokenType parse_token(std::istream* input, std::string* value);
 
-  bool ExtractConfigLayer(NginxConfig* config, std::string target);
-  bool GetServerSettingsInner();
+  bool extract_config_layer(NginxConfig* config, std::string target);
+  bool get_server_settings_inner();
 
   NginxConfig internal_config_; //used for extracting internal configs
 

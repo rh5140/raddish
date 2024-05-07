@@ -56,7 +56,7 @@ std::string NginxConfigStatement::ToString(int depth) {
   serialized_statement.append("\n");
   return serialized_statement;
 }
-const char* NginxConfigParser::TokenTypeAsString(TokenType type) {
+const char* NginxConfigParser::token_type_as_string(TokenType type) {
   switch (type) {
     case TOKEN_TYPE_START:         return "TOKEN_TYPE_START";
     case TOKEN_TYPE_NORMAL:        return "TOKEN_TYPE_NORMAL";
@@ -70,29 +70,29 @@ const char* NginxConfigParser::TokenTypeAsString(TokenType type) {
 }
 
 //used for testing the above function publicly
-const char* NginxConfigParser::NumberToTokenString(int n){
+const char* NginxConfigParser::number_to_token_string(int n){
   switch(n){
     case 0:
-      return TokenTypeAsString(TOKEN_TYPE_START);
+      return token_type_as_string(TOKEN_TYPE_START);
     case 1:
-      return TokenTypeAsString(TOKEN_TYPE_NORMAL);
+      return token_type_as_string(TOKEN_TYPE_NORMAL);
     case 2:
-      return TokenTypeAsString(TOKEN_TYPE_START_BLOCK);
+      return token_type_as_string(TOKEN_TYPE_START_BLOCK);
     case 3:
-      return TokenTypeAsString(TOKEN_TYPE_END_BLOCK);
+      return token_type_as_string(TOKEN_TYPE_END_BLOCK);
     case 4:
-      return TokenTypeAsString(TOKEN_TYPE_COMMENT);
+      return token_type_as_string(TOKEN_TYPE_COMMENT);
     case 5:
-      return TokenTypeAsString(TOKEN_TYPE_STATEMENT_END);
+      return token_type_as_string(TOKEN_TYPE_STATEMENT_END);
     case 6:
-      return TokenTypeAsString(TOKEN_TYPE_EOF);
+      return token_type_as_string(TOKEN_TYPE_EOF);
     default:
-      return TokenTypeAsString(TOKEN_TYPE_ERROR);
+      return token_type_as_string(TOKEN_TYPE_ERROR);
   }
 }
 
 
-NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
+NginxConfigParser::TokenType NginxConfigParser::parse_token(std::istream* input,
                                                            std::string* value) {
   TokenParserState state = TOKEN_STATE_INITIAL_WHITESPACE;
   while (input->good()) {
@@ -170,7 +170,7 @@ NginxConfigParser::TokenType NginxConfigParser::ParseToken(std::istream* input,
   return TOKEN_TYPE_EOF;
 }
 
-bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
+bool NginxConfigParser::parse(std::istream* config_file, NginxConfig* config) {
   std::stack<NginxConfig*> config_stack;
   config_stack.push(config);
   TokenType last_token_type = TOKEN_TYPE_START;
@@ -178,8 +178,8 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
   int indent_count = 0;
   while (true) {
     std::string token;
-    token_type = ParseToken(config_file, &token);
-    //printf ("%s: %s\n", TokenTypeAsString(token_type), token.c_str());
+    token_type = parse_token(config_file, &token);
+    //printf ("%s: %s\n", token_type_as_string(token_type), token.c_str());
     if (token_type == TOKEN_TYPE_ERROR) {
       break;
     }
@@ -248,10 +248,10 @@ bool NginxConfigParser::Parse(std::istream* config_file, NginxConfig* config) {
     }
     last_token_type = token_type;
   }
-  BOOST_LOG_TRIVIAL(warning) << "Bad transition from " << TokenTypeAsString(last_token_type) << " to " << TokenTypeAsString(token_type);
+  BOOST_LOG_TRIVIAL(warning) << "Bad transition from " << token_type_as_string(last_token_type) << " to " << token_type_as_string(token_type);
   return false;
 }
-bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
+bool NginxConfigParser::parse(const char* file_name, NginxConfig* config) {
   std::ifstream config_file;
   config_file.open(file_name);
   if (!config_file.good()) {
@@ -259,13 +259,13 @@ bool NginxConfigParser::Parse(const char* file_name, NginxConfig* config) {
     return false;
   }
   const bool return_value =
-      Parse(dynamic_cast<std::istream*>(&config_file), config);
+      parse(dynamic_cast<std::istream*>(&config_file), config);
   config_file.close();
   return return_value;
 }
 
 //TODO: once changes are merged I'm going to rename these functions
-bool NginxConfigParser::GetServerSettingsInner(){
+bool NginxConfigParser::get_server_settings_inner(){
 
     NginxConfig* server_config = &internal_config_; //set to internal config
 
@@ -343,9 +343,9 @@ bool NginxConfigParser::GetServerSettingsInner(){
     }
     
     // Add port number and locations to struct
-    config_info.static_file_locations = static_file_locations;
-    config_info.echo_locations = echo_locations;
-    config_info.port_num = port_num;
+    config_info_.static_file_locations = static_file_locations;
+    config_info_.echo_locations = echo_locations;
+    config_info_.port_num = port_num;
     //add more info here as needed
 
     return true;
@@ -357,7 +357,7 @@ bool NginxConfigParser::GetServerSettingsInner(){
 //we could use vectors or something to only run this once
 //however this only really matters if we have a ridiculously long config, so it's probably not worth implementing
 //as i is realistically going to be like 5 at most
-bool NginxConfigParser::ExtractConfigLayer(NginxConfig* config, std::string target){
+bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string target){
     for(int i = 0; i < (*config).statements_.size(); i++){ 
       //parse outermost config to find the target config
       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
@@ -373,23 +373,23 @@ bool NginxConfigParser::ExtractConfigLayer(NginxConfig* config, std::string targ
 }
 
 
-bool NginxConfigParser::GetServerSettings(NginxConfig* config){
+bool NginxConfigParser::get_config_settings(NginxConfig* config){
 
     //find the specific config we need
-    if(!ExtractConfigLayer(config, "server")){
+    if(!extract_config_layer(config, "server")){
       return false;
     }
     //call the respective config handler
-    if(!GetServerSettingsInner()){
+    if(!get_server_settings_inner()){
       return false;
     }
 
 
     /*
     //new config method: just copy these two commands.
-    //first do extractconfiglayer(config, "string_to_search")
+    //first do extract_config_layer(config, "string_to_search")
     //then, call your custom function to deal with the extracted info.
-    if(!ExtractConfigLayer(config, "foo")){
+    if(!extract_config_layer(config, "foo")){
       return false;
     }
     if(!GetFooSettingsInner()){
@@ -399,10 +399,10 @@ bool NginxConfigParser::GetServerSettings(NginxConfig* config){
     return true;
 }
 
-int NginxConfigParser::GetPortNum() {
-  return config_info.port_num;
+int NginxConfigParser::get_port_num() {
+  return config_info_.port_num;
 }
 
-ConfigInfo NginxConfigParser::GetConfigInfo() {
-  return config_info;
+ConfigInfo NginxConfigParser::get_config_info() {
+  return config_info_;
 }

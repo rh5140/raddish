@@ -39,16 +39,16 @@ class DispatcherTest : public testing::Test {
 };
 
 TEST_F(DispatcherTest, BasicDispatch) {
-    bool success = parser_.Parse("configs/static_files_config", &out_config);
+    bool success = parser_.parse("configs/static_files_config", &out_config);
     EXPECT_TRUE(success);
-    success = parser_.GetServerSettings(&out_config);
+    success = parser_.get_config_settings(&out_config);
     EXPECT_TRUE(success);
 
     req_dis_info.addr_info.client_addr = "client:8080";
     req_dis_info.addr_info.host_addr = "host:8080";
     req_dis_info.request = "bad request!";
     req_dis_info.request_size = 12;
-    req_dis_info.config_info = parser_.GetConfigInfo();
+    req_dis_info.config_info = parser_.get_config_info();
 
     RequestDispatcher* dispatcher = new RequestDispatcher();
     EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n");
@@ -57,16 +57,16 @@ TEST_F(DispatcherTest, BasicDispatch) {
 
 TEST_F(DispatcherTest, BasicEcho) {
     std::string request = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
-    bool success = parser_.Parse("configs/static_files_config", &out_config);
+    bool success = parser_.parse("configs/static_files_config", &out_config);
     EXPECT_TRUE(success);
-    success = parser_.GetServerSettings(&out_config);
+    success = parser_.get_config_settings(&out_config);
     EXPECT_TRUE(success);
 
     req_dis_info.addr_info.client_addr = "client:8080";
     req_dis_info.addr_info.host_addr = "host:8080";
     req_dis_info.request = request;
     req_dis_info.request_size = request.size();
-    req_dis_info.config_info = parser_.GetConfigInfo();
+    req_dis_info.config_info = parser_.get_config_info();
     RequestDispatcher* dispatcher = new RequestDispatcher();
 
     EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 51\n\n"+request);

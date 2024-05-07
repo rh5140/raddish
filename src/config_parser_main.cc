@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
   }
   NginxConfigParser config_parser;
   NginxConfig config;
-  config_parser.Parse(argv[1], &config);
+  config_parser.parse(argv[1], &config);
   printf("%s", config.ToString().c_str());
   return 0;
 }

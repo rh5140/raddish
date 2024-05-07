@@ -43,18 +43,18 @@ int main(int argc, char* argv[]) {
 
     signal(SIGINT, signalHandler); // CNTRL + C handler
 
-    bool success = parser.Parse(argv[1], &out_config);
+    bool success = parser.parse(argv[1], &out_config);
     if(!success){
       return 1;
     }
 
-    if(!parser.GetServerSettings(&out_config)){
+    if(!parser.get_config_settings(&out_config)){
       BOOST_LOG_TRIVIAL(error) << "Failed to parse config file";
       return 1;
     }
 
     // Pass entire struct...
-    ConfigInfo config_info = parser.GetConfigInfo();
+    ConfigInfo config_info = parser.get_config_info();
     
     Server s(io_service, config_info);
     BOOST_LOG_TRIVIAL(info) << "Raddish Online!";
