@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <stack>
 #include "info.h"
 
 class NginxConfig;
@@ -36,6 +37,7 @@ class NginxConfigParser {
   int get_port_num();
   ConfigInfo get_config_info();
  private:
+  bool hasKey(std::vector<std::string> mapping, std::string key);
   // std::map<std::string, std::string> locations;
   ConfigInfo config_info_;
   enum TokenType {

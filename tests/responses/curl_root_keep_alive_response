@@ -1,1 +1,1 @@
-^GET \/ HTTP\/1\.1(\r\n|\r|\n)User-Agent: curl\/\d+\.\d+\.\d+(\r\n|\r|\n)Accept: \*\/\*(\r\n|\r|\n)Connection: keep-alive(\r\n|\r|\n)(\r\n|\r|\n)$
+^GET \/echo HTTP\/1\.1(\r\n|\r|\n)User-Agent: curl\/\d+\.\d+\.\d+(\r\n|\r|\n)Accept: \*\/\*(\r\n|\r|\n)Connection: keep-alive(\r\n|\r|\n)(\r\n|\r|\n)$

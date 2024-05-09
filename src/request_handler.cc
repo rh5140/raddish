@@ -9,7 +9,7 @@ void RequestHandler::log_request(LogInfo log_info) {
     std::string host_str = ", Host: " + log_info.addr_info.host_addr;
     std::string request_line_str = ", Request: \"" + log_info.request_line + "\"";
 
-    int status = 400;
+    int status = 404;
     try {
         // extract status code from response
         std::string http_ver = "HTTP/1.1 ";

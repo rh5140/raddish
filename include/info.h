@@ -12,8 +12,8 @@ struct AddrInfo {
 
 struct ConfigInfo {
     int port_num;
-    std::map<std::string, std::string> static_file_locations;
-    std::vector<std::string> echo_locations;
+    std::map<std::string, std::string> location_to_handler;
+    std::map<std::string, std::string> location_to_root;
 };
 
 struct LogInfo {

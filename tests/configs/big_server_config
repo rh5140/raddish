@@ -1,5 +1,5 @@
-server {
-  listen   8080;
+# server {
+  port   8080;
   foo      bar;
   bar      800;
 
@@ -11,7 +11,7 @@ server {
   location /images/ echo {
     root /forimages/blah;
   }
-}
+# }
 
 #this is a comment
 

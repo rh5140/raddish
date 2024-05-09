@@ -1,12 +1,10 @@
-server {
-  listen   8080;
+# server {
+  port   8080;
 
-  root /default;
-
-  location / static {
+  location / FileRequestHandler {
   }
 
-  location /images/ echo {
+  location /images/ EchoRequestHandler {
     root /forimages/blah;
   }
-}
+# }

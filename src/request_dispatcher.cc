@@ -6,7 +6,7 @@
 
 RequestDispatcher::RequestDispatcher() {
     // default response, if path is not echo nor static file
-    response_ = "HTTP/1.1 400 Bad Request\nContent-Type: text/plain\nContent-Length: 0\n\n";
+    response_ = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n";
 }
 
 std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
@@ -24,28 +24,23 @@ std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
     BOOST_LOG_TRIVIAL(debug) << file_path;
 
     // compare with list of locations parsed from config
-    Handlers selected_handler;
-    std::string root = "";
+    std::string selected_handler = "(no handler found)";
+    // std::string root = "";
     std::string curr_longest_match = ""; 
 
-    BOOST_LOG_TRIVIAL(debug) << info.config_info.static_file_locations.size();
+    // BOOST_LOG_TRIVIAL(debug) << info.config_info.static_file_locations.size();
 
-    for (auto const& pair : info.config_info.static_file_locations){
-        // checking whether location is a substring of file_path, and starts at index 0
-        if (file_path.find(pair.first) == 0 && pair.first.length() > curr_longest_match.length()) {
-            BOOST_LOG_TRIVIAL(debug) << "Using static path";
-            root = pair.second;
+    for (auto const& pair : info.config_info.location_to_handler) {
+        // adding a / at the end if it doesn't already exist - prevents matching of half a directory name
+        std::string path = pair.first[pair.first.length()-1]=='/' ? pair.first : pair.first+'/';
+        std::string compare_file_path = file_path[file_path.length()-1]=='/' ? file_path : file_path+'/';
+        if (compare_file_path.find(path) == 0 && path.length() > curr_longest_match.length()) {
             curr_longest_match = pair.first;
-            selected_handler = static_file;
+            selected_handler = pair.second;
         }
     }
-    for (auto const& location : info.config_info.echo_locations){
-        if (file_path.find(location) == 0 && location.length() > curr_longest_match.length()) {
-            BOOST_LOG_TRIVIAL(debug) << "Using echo path";
-            curr_longest_match = location;
-            selected_handler = echo;
-        }
-    }
+    BOOST_LOG_TRIVIAL(debug) << "Using " << selected_handler;
+
 
     RequestHandler* handler;
     LogInfo log_info;
@@ -53,18 +48,17 @@ std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
     log_info.request_line = get_first_line(info.request);
     // response empty, will be filled in in handler
 
-    switch(selected_handler) {
-        case static_file:
-            handler = new FileRequestHandler(root + file_path);
-            response_ = handler->handle_request(log_info); // trying to move this out, but segfaulting - TODO
-            break;
-        case echo:
-            handler = new EchoRequestHandler(info.request, &info.request_size);
-            response_ = handler->handle_request(log_info); 
-            break;
-        default:
-            BOOST_LOG_TRIVIAL(warning) << "no valid dispatcher for request";
-            break;
+    if (selected_handler == "FileRequestHandler") {
+        std::string root = info.config_info.location_to_root[curr_longest_match];
+        handler = new FileRequestHandler(root+file_path);
+        response_ = handler->handle_request(log_info); // trying to move this out, but segfaulting - TODO
+    }
+    else if (selected_handler == "EchoRequestHandler") {
+        handler = new EchoRequestHandler(info.request, &info.request_size);
+        response_ = handler->handle_request(log_info);
+    }
+    else {
+        BOOST_LOG_TRIVIAL(warning) << "no valid dispatcher for request";
     }
         
     return response_;

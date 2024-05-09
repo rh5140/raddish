@@ -271,11 +271,9 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //init
     int port_num = -1;
-    std::string root = "";
-    // for temporarily storing locations without root overwriting 
-    vector<std::string> default_root_locs;
-    std::map<std::string, std::string> static_file_locations = std::map<std::string,std::string>();
-    std::vector<std::string> echo_locations = std::vector<std::string>();
+    vector<std::string> seen_locations;
+    std::map<std::string, std::string> location_to_handler = std::map<std::string,std::string>();
+    std::map<std::string, std::string> location_to_root = std::map<std::string,std::string>();
     std::string arg_token = "";
 
     //iterate through the config to extract data
@@ -287,14 +285,9 @@ bool NginxConfigParser::get_server_settings_inner(){
         //need to check this so j+1 doesn't segfault, not doing this in main loop in case someone needs to check the last thing.
         if(j < tokens.size() - 1){
           //handles port
-          if(arg_token == "listen"){
+          if(arg_token == "port"){
             port_num = stoi(tokens[j + 1]);
             BOOST_LOG_TRIVIAL(info) << "Port Number found : " << (port_num);
-          }
-          // handles root
-          else if(arg_token == "root"){
-            root = tokens[j + 1];
-            BOOST_LOG_TRIVIAL(info) << "Default root found: " << root;
           }
           //can add more args as needed here, following the pattern for ports
 
@@ -302,30 +295,44 @@ bool NginxConfigParser::get_server_settings_inner(){
           // handles location
           else if(arg_token == "location"){
             std::string log_output = "";
-            std::string key = tokens[j + 1];
+            std::string key = tokens[j + 1][0]=='"' || tokens[j + 1][0]=='\'' ? tokens[j+1].substr(1, tokens[j+1].length()-2) : tokens[j+1];
             std::string type = tokens[j + 2];
             log_output = log_output + "Location: " + key + ", ";
+            std::string remove_slash = key;
+          
+            location_to_handler[key] = type;
             NginxConfig location_block = (*(*server_config->statements_[i]).child_block_);
             
-            if (type == "static") {
+            if (type == "FileRequestHandler") {
               for (int l = 0; l < location_block.statements_.size(); l++){
-                for (int m = 0; m < (*location_block.statements_[l]).tokens_.size(); m++){
-                  if((*location_block.statements_[l]).tokens_[m] == "root" && m <= (*location_block.statements_[l]).tokens_.size()){
-                    static_file_locations[key] = (*location_block.statements_[l]).tokens_[m + 1];
-                    log_output = log_output + "root: " + static_file_locations[key] + " for serving static files";
+                std::vector<std::string> loc_tokens = (*location_block.statements_[l]).tokens_;
+                for (int m = 0; m < loc_tokens.size(); m++){
+                  if(loc_tokens[m] == "root"){
+                    if (hasKey(seen_locations, key)) { // exit if duplicate path
+                      BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path, static file request handler";
+                      return false;
+                    }
+                    // assumes parser has done job, only single quote around entire path
+                    location_to_root[key] = loc_tokens[m+1][0]=='"' || loc_tokens[m+1][0]=='\'' ? loc_tokens[m+1].substr(1, loc_tokens[m+1].length()-2) : loc_tokens[m+1];
+                    log_output = log_output + "root: " + location_to_root[key] + " for serving static files";
                   }
                 }
               }
-              if (static_file_locations.find(key) == static_file_locations.end()) {
-                log_output = log_output + "default root for serving static files";
-                default_root_locs.push_back(key);
-              }
             }
-            else if (type == "echo") {
-              echo_locations.push_back(key);
+            else if (type == "EchoRequestHandler") {
+              if (hasKey(seen_locations, key)) { // make sure echo locations don't overlap either
+                BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path, echo request handler";
+                return false;
+              }
               log_output = log_output + "for echoing";
             }
             BOOST_LOG_TRIVIAL(info) << log_output;
+
+            // add key to the seen locations
+            while (remove_slash[remove_slash.length()-1] == '/') {
+              remove_slash = remove_slash.substr(0, key.length()-1);
+            }
+            seen_locations.push_back(remove_slash);
           }
         }
       }
@@ -333,23 +340,28 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //correctness checking
     if((port_num) < 0 || (port_num) > 65353){ //65353 is the default max range for port
+      BOOST_LOG_TRIVIAL(error) << "invalid port number";
       return false;
     }
     //add more checks here as needed
 
-    // add the locations without explicit root to the map
-    for (const std::string& key : default_root_locs){
-      static_file_locations[key] = root;
-    }
     
     // Add port number and locations to struct
-    config_info_.static_file_locations = static_file_locations;
-    config_info_.echo_locations = echo_locations;
+    config_info_.location_to_handler = location_to_handler;
+    config_info_.location_to_root = location_to_root;
     config_info_.port_num = port_num;
     //add more info here as needed
 
     return true;
 
+}
+
+bool NginxConfigParser::hasKey(std::vector<std::string> seen_locations, std::string key) {
+  // remove excess slashes at end
+  while (key[key.length()-1] == '/') {
+    key = key.substr(0, key.length()-1);
+  }
+  return std::find(seen_locations.begin(), seen_locations.end(), key) != seen_locations.end();
 }
 
 
@@ -376,9 +388,13 @@ bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string ta
 bool NginxConfigParser::get_config_settings(NginxConfig* config){
 
     //find the specific config we need
-    if(!extract_config_layer(config, "server")){
-      return false;
-    }
+    // if(!extract_config_layer(config, "server")){
+    //   return false;
+    // }
+    
+    // remove below if extracting config layer
+    internal_config_ = *config;
+    
     //call the respective config handler
     if(!get_server_settings_inner()){
       return false;

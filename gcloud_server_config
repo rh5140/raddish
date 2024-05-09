@@ -1,23 +1,18 @@
-server {
-  listen   80;
+# server {
+  port   80;
 
-  root /;
-
-  location / echo {
+  location /echo EchoRequestHandler {
   }
 
-  location /echo echo {
-  }
-
-  location /images/ static {
+  location /images/ FileRequestHandler {
     root /static_files;
   }
 
-  location /text/ static {
+  location /text/ FileRequestHandler {
     root /static_files;
   }
 
-  location /applications/ static {
+  location /applications/ FileRequestHandler {
     root /static_files;
   }
-}
+# }

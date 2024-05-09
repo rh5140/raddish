@@ -6,7 +6,7 @@ location=$1
 if [ "$location" == "local" ];
 then
     ../build/bin/webserver ../server_config & 
-    until curl --silent --get --fail http://localhost:8080; 
+    until curl --silent --get --fail http://localhost:8080/echo; 
     do
         # printf '.'
         sleep 0.1 
@@ -27,19 +27,15 @@ do
         then
             echo -n "localhost:8080/text/lobster.txt" >> $tmpfile
         else
-            echo -n "localhost:8080" >> $tmpfile
+            echo -n "localhost:8080/echo" >> $tmpfile
         fi
     else
         if [[ $2 == *"static_file"* ]];
         then
             echo -n "35.230.62.193:80/text/lobster.txt" >> $tmpfile
         else
-            echo -n "35.230.62.193:80" >> $tmpfile
+            echo -n "35.230.62.193:80/echo" >> $tmpfile
         fi
-    fi
-    if [[ $2 == *"path"* ]];
-    then
-        echo -n "/echo" >> $tmpfile
     fi
 
     # putting contents of file into local variable

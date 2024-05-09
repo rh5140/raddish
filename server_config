@@ -1,30 +1,25 @@
-server {
-  listen   8080;
+# server {
+  port   8080;
 
-  root /;
-
-  location / echo {
+  location /echo EchoRequestHandler {
   }
 
-  location /echo echo {
-  }
-
-  location /images/ static {
+  location /images/ FileRequestHandler {
     root /usr/src/projects/raddish/static_files;
   }
 
-  location /text/ static {
+  location /text FileRequestHandler {
     root /usr/src/projects/raddish/static_files;
   }
 
-  location /applications/ static {
+  location /applications/ FileRequestHandler {
     root /usr/src/projects/raddish/static_files;
   }
 
-  location /tests/static_files/ static {
+  location /tests/static_files/ FileRequestHandler {
     root /usr/src/projects/raddish;
   }
 
-}
+# }
 
 
