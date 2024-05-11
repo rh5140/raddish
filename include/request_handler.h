@@ -2,6 +2,16 @@
 #include <gtest/gtest_prod.h>
 #include "info.h"
 
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+
+
 class RequestHandler {
     public:
         virtual std::string handle_request(LogInfo log_info) = 0;
@@ -11,16 +21,16 @@ class RequestHandler {
 
 class EchoRequestHandler : public RequestHandler {
     public:
-        EchoRequestHandler(std::string request, size_t* max_bytes);
+        EchoRequestHandler(http::request<http::string_body> request);
         std::string handle_request(LogInfo log_info);
     private:
         std::string request_;
-        size_t* max_bytes_;
+        size_t max_bytes_;
 };
 
 class FileRequestHandler : public RequestHandler {
     public:
-        FileRequestHandler(std::string file_path);
+        FileRequestHandler(http::request<http::string_body> request, std::string root);
         std::string handle_request(LogInfo log_info);
     private:
         std::string file_path_;
