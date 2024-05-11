@@ -7,17 +7,26 @@
 #include "request_handler.h"
 #include "info.h"
 
-FileRequestHandler::FileRequestHandler(std::string file_path) {
-    file_path_ = file_path;
+//temp
+#include <boost/log/trivial.hpp>
+
+FileRequestHandler::FileRequestHandler(http::request<http::string_body> request, std::string root) : RequestHandler(request){
+    file_path_ = root + std::string(request.target());
 }
 
-std::string FileRequestHandler::handle_request(LogInfo log_info) {
+http::response<http::string_body> FileRequestHandler::handle_request(LogInfo log_info) {
+    
+    
     std::string content_type = get_content_type(file_path_);
-    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
-    std::string content_length = "Content-Length: ";
-    std::string response_body;
+    //std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
+    //std::string content_length = "Content-Length: ";
+    
+
+    //std::string response_body;
     std::string file_content;
-    std::string message;
+    std::string log_message;
+
+    bool message_ok = false;
 
     if (std::filesystem::exists(file_path_)) {
         std::ifstream file_to_read(file_path_, std::ios::in | std::ios::binary); // already reading in as binary
@@ -27,33 +36,40 @@ std::string FileRequestHandler::handle_request(LogInfo log_info) {
             file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
                                 (std::istreambuf_iterator<char>()));
             file_to_read.close(); // here for clarity, not necessary since ifstream destructor also closes file automatically
-            message = "Sent file";
+            log_message = "Sent file";
+            message_ok = true;
         }
         else {
             // 404 path is not file
-            message = file_path_ + " is not a file";
-            http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
-            file_content = "404 Not Found";
+            log_message = file_path_ + " is not a file";
         }
     }
     else {
         // 404 error - file does not exist 
-        message =  "File does not exist at " + file_path_;
-        http_response = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n";
-        file_content = "404 Not Found";
+        log_message =  "File does not exist at " + file_path_;
     }
 
 
-    response_body = file_content;
+    //response_body = file_content;
     // Content-Length is size of entity body in decimal number of OCTETS
-    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-    http_response = http_response + content_length + response_body;
+    //content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
+    //http_response = http_response + content_length + response_body;
 
-    log_info.message = message;
-    log_info.response = http_response;
+    log_info.message = log_message;
+    log_info.response = file_content;
     log_request(log_info);
     
-    return http_response;
+    //we just use the default if we didn't find the file
+    if(message_ok){ 
+        res_.body() = file_content;
+        //set vars
+        res_.result(http::status::ok); 
+        res_.set(http::field::content_type, content_type);
+    }
+
+    return res_;
+
+    //return http_response;
 }
 
 std::string FileRequestHandler::get_content_type(std::string file_path) {

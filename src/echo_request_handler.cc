@@ -1,39 +1,43 @@
+#include <cstdint>
 #include <sstream>
 #include <string>
 #include <iostream>
 #include "request_handler.h"
 
-EchoRequestHandler::EchoRequestHandler(std::string request, size_t* max_bytes) : request_(request), max_bytes_(max_bytes) {
+#include <boost/beast/version.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+
+namespace beast = boost::beast;  
+namespace http = beast::http;    
+
+//temp
+#include <boost/log/trivial.hpp>
+
+
+EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request) : RequestHandler(request){
+        std::ostringstream oss;
+        oss << request;
+        std::string echo_req = oss.str();
+        echo_req_ = echo_req;
+        max_bytes_ = size_t(echo_req_.size());
 }
 
-std::string EchoRequestHandler::handle_request(LogInfo log_info) {
-    std::string http_response = "HTTP/1.1 200 OK\nContent-Type: text/plain\n";
-    std::string content_length = "Content-Length: ";
-    std::string response_body;
-    
-    std::stringstream ss(request_);
-    std::string to;
-    std::string ret = "";
-    while(std::getline(ss, to,'\n')){
-        //safeguard in case of buffer overflow
-        if(ret.length() + to.length() + 1 <= (*max_bytes_)){
-            ret += to + "\n"; 
-        }
-        else{
-            //only add up to bytes read
-            ret += to.substr(0, (*max_bytes_) - ret.length()); 
-            break;
-        }
-    }
+http::response<http::string_body> EchoRequestHandler::handle_request(LogInfo log_info) {
+    //get body
+    std::ostringstream oss;
+    oss << req_; 
+    std::string res_body = oss.str();
+    res_.body() = res_body;
 
-    response_body = ret;
-    content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-    http_response = http_response + content_length + response_body;
-
+    //log
     log_info.message = "Echoed";
-    log_info.response = http_response;
-
+    log_info.response = res_body;
     log_request(log_info);
 
-    return http_response;
+    //set vars
+    res_.result(http::status::ok); 
+    return res_;
+
+    //return http_response;
 }

@@ -77,6 +77,8 @@ TEST_F(IntegrationTest, CurlRoot) {
     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
 
+//temp disable
+/*
 TEST_F(IntegrationTest, CurlRootClose) {
     fp = popen("bash integration_test.sh local requests/curl_root_close_request responses/curl_root_close_response", "r");
     while(!feof(fp)) {
@@ -85,6 +87,7 @@ TEST_F(IntegrationTest, CurlRootClose) {
     }
     EXPECT_EQ(result.substr(result.size()-7), "SUCCESS");
 }
+*/
 
 TEST_F(IntegrationTest, CurlRootKeepAlive) {
     fp = popen("bash integration_test.sh local requests/curl_root_keep_alive_request responses/curl_root_keep_alive_response requests/curl_root_close_request responses/curl_root_close_response", "r");

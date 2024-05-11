@@ -1,8 +1,31 @@
 
 #include "request_handler.h"
 #include "info.h"
-#include <boost/log/trivial.hpp>
+#include <cstdint>
+#include <sstream>
+#include <string>
+#include <iostream>
 
+#include <boost/log/trivial.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+
+namespace beast = boost::beast;  
+namespace http = beast::http;   
+
+RequestHandler::RequestHandler(http::request<http::string_body> request){
+    req_ = request;
+
+    //generate response object
+    res_ = http::response<http::string_body>{http::status::not_found, req_.version()};
+    res_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
+    res_.set(http::field::content_type, "text/html");
+
+    //default error
+    res_.body() = "404 Not Found";
+    //can add more args as needed
+}
 
 void RequestHandler::log_request(LogInfo log_info) {
     std::string client_str = ", Client: " + log_info.addr_info.client_addr;
