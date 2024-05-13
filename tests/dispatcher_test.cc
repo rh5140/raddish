@@ -38,9 +38,6 @@ class DispatcherTest : public testing::Test {
         }
 };
 
-
-
-//TODO: fix these
 TEST_F(DispatcherTest, BasicDispatch) {
     bool success = parser_.parse("configs/static_files_config", &out_config);
     EXPECT_TRUE(success);
@@ -54,7 +51,7 @@ TEST_F(DispatcherTest, BasicDispatch) {
     req_dis_info.config_info = parser_.get_config_info();
 
     RequestDispatcher* dispatcher = new RequestDispatcher();
-    //EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n");
+    EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n");
 }
 
 
@@ -72,7 +69,7 @@ TEST_F(DispatcherTest, BasicEcho) {
     req_dis_info.config_info = parser_.get_config_info();
     RequestDispatcher* dispatcher = new RequestDispatcher();
 
-    //EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 55\n\n"+request);
+    EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 55\n\n"+request);
 }   
 
 
@@ -91,5 +88,5 @@ TEST_F(DispatcherTest, NoMatch) {
     RequestDispatcher* dispatcher = new RequestDispatcher();
 
     // TODO should return a 404 not found!
-    //EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n");
+    EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n");
 }   

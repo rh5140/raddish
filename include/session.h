@@ -3,34 +3,7 @@
 #include <gtest/gtest_prod.h>
 #include "info.h"
 
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-
 using boost::asio::ip::tcp;
-
-struct Body
-{
-    // The type of message::body when used
-    struct value_type;
-
-    /// The algorithm used during parsing
-    class reader;
-
-    /// The algorithm used during serialization
-    class writer;
-
-    /// Returns the body's payload size
-    static
-    std::uint64_t
-    size(value_type const& body);
-};
-
 
 class Session {
 public:
@@ -45,10 +18,6 @@ private:
     char data_[max_length];
     std::vector<char> buf_;
     ConfigInfo config_info_;
-
-    //new object stuff
-    beast::flat_buffer buffer_;
-    http::request<http::string_body> req_;
 
     void handle_read(const boost::system::error_code& error, size_t bytes_transferred); 
     void handle_write(const boost::system::error_code& error);

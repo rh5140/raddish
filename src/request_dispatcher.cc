@@ -3,41 +3,26 @@
 #include <regex>
 #include <string>
 #include <boost/log/trivial.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-
-namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-using namespace std;
 
 RequestDispatcher::RequestDispatcher() {
     // default response, if path is not echo nor static file
     response_ = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n";
 }
 
-std::string RequestDispatcher::dispatch_request(http::request<http::string_body> req, ConfigInfo config_info, std::string host, std::string client){
+std::string RequestDispatcher::dispatch_request(RequestDispatcherInfo info) {
 
-    BOOST_LOG_TRIVIAL(debug) << "Request received: \n" << req; //info.request.substr(0, info.request_size);
-    BOOST_LOG_TRIVIAL(debug) << req.target(); 
+    BOOST_LOG_TRIVIAL(debug) << "Request received: \n" << info.request.substr(0, info.request_size);
 
-    //TODO: fix this - not checking if it's valid yet.
-    
-    if (!is_valid_request(req)) {
+    if (!is_valid_request(info.request)) {
         BOOST_LOG_TRIVIAL(warning) << "invalid request";
         return response_;
     }
     
-    
-    BOOST_LOG_TRIVIAL(debug) << "valid request (CHECKING TEMP DISABLED)";
+    BOOST_LOG_TRIVIAL(debug) << "valid request";
 
-
-    //file path is now just "req.target()"
-    std::string file_path = std::string(req.target());
+    std::string file_path = get_path(info.request);
     BOOST_LOG_TRIVIAL(debug) << file_path;
-    
+
     // compare with list of locations parsed from config
     std::string selected_handler = "(no handler found)";
     // std::string root = "";
@@ -45,7 +30,7 @@ std::string RequestDispatcher::dispatch_request(http::request<http::string_body>
 
     // BOOST_LOG_TRIVIAL(debug) << info.config_info.static_file_locations.size();
 
-    for (auto const& pair : config_info.location_to_handler) {
+    for (auto const& pair : info.config_info.location_to_handler) {
         // adding a / at the end if it doesn't already exist - prevents matching of half a directory name
         std::string path = pair.first[pair.first.length()-1]=='/' ? pair.first : pair.first+'/';
         std::string compare_file_path = file_path[file_path.length()-1]=='/' ? file_path : file_path+'/';
@@ -56,25 +41,20 @@ std::string RequestDispatcher::dispatch_request(http::request<http::string_body>
     }
     BOOST_LOG_TRIVIAL(debug) << "Using " << selected_handler;
 
-    
+
     RequestHandler* handler;
     LogInfo log_info;
-    log_info.addr_info.host_addr = host;
-    log_info.addr_info.client_addr = client;
-    //log_info.request_line = get_first_line(info.request);
-    log_info.request_line = "test";
+    log_info.addr_info = info.addr_info;
+    log_info.request_line = get_first_line(info.request);
     // response empty, will be filled in in handler
 
-    //TODO: only echo handler takes req object rn
-    //tbf the way file request handler is written it's silly to pass the req because we need to check if we have a path first...
-    //but we can
     if (selected_handler == "FileRequestHandler") {
-        std::string root = config_info.location_to_root[curr_longest_match];
-        handler = new FileRequestHandler(req, root);
+        std::string root = info.config_info.location_to_root[curr_longest_match];
+        handler = new FileRequestHandler(root+file_path);
         response_ = handler->handle_request(log_info); // trying to move this out, but segfaulting - TODO
     }
     else if (selected_handler == "EchoRequestHandler") {
-        handler = new EchoRequestHandler(req); //hey at least this takes req
+        handler = new EchoRequestHandler(info.request, &info.request_size);
         response_ = handler->handle_request(log_info);
     }
     else {
@@ -85,13 +65,9 @@ std::string RequestDispatcher::dispatch_request(http::request<http::string_body>
 }
 
 // currently only checks first line essentially
-bool RequestDispatcher::is_valid_request(http::request<http::string_body> req) {
-    std::ostringstream oss;
-    oss << req;
-    std::string str_req = oss.str();
-    BOOST_LOG_TRIVIAL(debug) << str_req;
+bool RequestDispatcher::is_valid_request(std::string request) {
     std::regex request_regex("GET \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
-    return std::regex_search(str_req, request_regex);
+    return std::regex_search(request, request_regex);
 }
 
 std::string RequestDispatcher::get_first_line(std::string request) {

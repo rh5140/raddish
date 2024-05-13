@@ -7,12 +7,8 @@
 #include "request_handler.h"
 #include "info.h"
 
-//temp
-#include <boost/log/trivial.hpp>
-
-FileRequestHandler::FileRequestHandler(http::request<http::string_body> request, std::string root) {
-    file_path_ = root + std::string(request.target());
-    BOOST_LOG_TRIVIAL(debug) << "new path: " << file_path_;
+FileRequestHandler::FileRequestHandler(std::string file_path) {
+    file_path_ = file_path;
 }
 
 std::string FileRequestHandler::handle_request(LogInfo log_info) {

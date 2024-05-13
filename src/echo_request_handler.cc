@@ -3,19 +3,7 @@
 #include <iostream>
 #include "request_handler.h"
 
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-
-namespace beast = boost::beast;  
-namespace http = beast::http;    
-
-EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request){
-        std::ostringstream oss;
-        oss << request;
-        std::string echo_req = oss.str();
-        request_ = echo_req;
-        max_bytes_ = size_t(echo_req.size());
+EchoRequestHandler::EchoRequestHandler(std::string request, size_t* max_bytes) : request_(request), max_bytes_(max_bytes) {
 }
 
 std::string EchoRequestHandler::handle_request(LogInfo log_info) {
@@ -28,12 +16,12 @@ std::string EchoRequestHandler::handle_request(LogInfo log_info) {
     std::string ret = "";
     while(std::getline(ss, to,'\n')){
         //safeguard in case of buffer overflow
-        if(ret.length() + to.length() + 1 <= max_bytes_){
+        if(ret.length() + to.length() + 1 <= (*max_bytes_)){
             ret += to + "\n"; 
         }
         else{
             //only add up to bytes read
-            ret += to.substr(0, max_bytes_ - ret.length()); 
+            ret += to.substr(0, (*max_bytes_) - ret.length()); 
             break;
         }
     }

@@ -48,15 +48,12 @@ TEST_F(SessionTest, CreateResponseStaticFile) {
     delete test_session;
 }
 
-
-//TODO: not sure exactly why this specific test broke
-
 TEST_F(SessionTest, CreateResponseEcho) {
-    //std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept: */*\n\n";
-    //test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
-    //test_session->set_buf(contents);
-    //EXPECT_EQ(test_session->create_response(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 52\n\n"+contents);
-    //delete test_session;
+    std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept: */*\n\n";
+    test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
+    test_session->set_buf(contents);
+    EXPECT_EQ(test_session->create_response(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 52\n\n"+contents);
+    delete test_session;
 }
 
 TEST_F(SessionTest, HandleReadMaxLength) {
