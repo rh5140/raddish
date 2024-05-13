@@ -40,15 +40,15 @@ class EchoTest : public testing::Test {
         const char* request;
         size_t max_bytes;
         std::string response;
-        LogInfo log_info;
+        // LogInfo log_info;
 
         void SetUp() override {
-            log_info.addr_info.host_addr = "host:8080";
-            log_info.addr_info.client_addr = "client:8080";
+            // log_info.addr_info.host_addr = "host:8080";
+            // log_info.addr_info.client_addr = "client:8080";
         }
 
         void TearDown() override {
-            delete handler; 
+            // delete handler; 
         }
 };
 

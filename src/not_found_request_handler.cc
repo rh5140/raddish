@@ -31,8 +31,6 @@ http::response<http::string_body> NotFoundHandler::handle_request(const http::re
     //set vars
     res_.result(http::status::not_found); 
     //log
-    log_info_.message = "Path not configured";
-    log_info_.response = "";
-    log_request();
+    log_request(request, res_, "Path not configured");
     return res_;
 }

@@ -61,18 +61,14 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
         }
     }
 
-    //RequestHandler* handler;
-    LogInfo log_info;
-    log_info.addr_info.host_addr = host;
-    log_info.addr_info.client_addr = client;
-    //log_info.request_line = get_first_line(info.request);
-    log_info.request_line = "test";
-    // response empty, will be filled in in handler
-
     //generate handler data
     RequestHandlerData request_handler_data;
-    std::string root = config_info.location_to_root[curr_longest_match];
+    std::string root = config_info.location_to_directives[curr_longest_match]["root"]; // empty if DNE
     request_handler_data.root = root;
+    AddrInfo addr_info;
+    addr_info.host_addr = host;
+    addr_info.client_addr = client;
+    request_handler_data.addr_info = addr_info;
 
     //create handler and call
     RequestHandler* handler = handler_factory(request_handler_data);
@@ -91,35 +87,4 @@ bool RequestDispatcher::is_valid_request(http::request<http::string_body> req) {
     BOOST_LOG_TRIVIAL(debug) << str_req;
     std::regex request_regex("GET \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
     return std::regex_search(str_req, request_regex);
-}
-
-std::string RequestDispatcher::get_first_line(std::string request) {
-    std::stringstream ss(request);
-    std::string first_line;
-    std::getline(ss, first_line, '\n'); // get the first line
-    return first_line.substr(0, first_line.length()-1); // remove trailing newline
-}
-
-std::string RequestDispatcher::get_path(std::string request) {
-    std::string first_line = get_first_line(request);
-
-    bool foundSpace = false;
-    std::string file_path = "";
-
-    // extract path
-    for (int i = 0; i<first_line.length(); i++) {
-        if (first_line[i] == ' ') 
-            if (!foundSpace)
-            {
-                foundSpace = true;
-                i++;
-            }
-            else 
-                break;
-        if (foundSpace) {
-            file_path += first_line[i];
-        }
-    }
-
-    return file_path;
 }

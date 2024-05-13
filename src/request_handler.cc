@@ -10,12 +10,13 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace beast = boost::beast;  
 namespace http = beast::http;   
 
 RequestHandler::RequestHandler(const RequestHandlerData& request_handler_data){
-    log_info_ = request_handler_data.log_info;
+    addr_info_ = request_handler_data.addr_info;
 }
 
 
@@ -30,31 +31,27 @@ void RequestHandler::init_response(const http::request<http::string_body>& reque
     //can add more args as needed
 }
 
-void RequestHandler::log_request() {
-    std::string client_str = ", Client: " + log_info_.addr_info.client_addr;
-    std::string host_str = ", Host: " + log_info_.addr_info.host_addr;
-    std::string request_line_str = ", Request: \"" + log_info_.request_line + "\"";
+void RequestHandler::log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message) {
+    std::string client_str = ", Client: " + addr_info_.client_addr;
+    std::string host_str = ", Host: " + addr_info_.host_addr;
+    std::string req_header = boost::lexical_cast<std::string>(request.base());
+    std::string request_line_str = ", Request: \"" + req_header.substr(0, req_header.find('\n')-1) + "\"";
 
-    int status = 404;
-    try {
-        // extract status code from response
-        std::string http_ver = "HTTP/1.1 ";
-        status = std::stoi(log_info_.response.substr(http_ver.length(), http_ver.length()+3));
-    }
-    catch(...) {
-        BOOST_LOG_TRIVIAL(error) << "cannot find status code in response - invalid response";
-    }
+    int status = res_.result_int();
 
     // can add more cases e.g. 204 for no content
     switch (status) {
         case (200):
-            BOOST_LOG_TRIVIAL(info) << std::to_string(status) + client_str + host_str + request_line_str + " " + log_info_.message;
+            BOOST_LOG_TRIVIAL(info) << "Status " + std::to_string(status) + client_str + host_str + request_line_str + " " + log_message;
             break;
         default:
-            BOOST_LOG_TRIVIAL(warning) << std::to_string(status) + client_str + host_str + request_line_str + " " + log_info_.message;
+            BOOST_LOG_TRIVIAL(warning) << "Status " + std::to_string(status) + client_str + host_str + request_line_str + " " + log_message;
     }
 
-    BOOST_LOG_TRIVIAL(trace) << log_info_.message << " " << log_info_.response;
+    std::string res_header = boost::lexical_cast<std::string>(response.base());
+    std::string res_body = boost::lexical_cast<std::string>(response.body());
+
+    BOOST_LOG_TRIVIAL(trace) << res_header << res_body;
 }
 
 

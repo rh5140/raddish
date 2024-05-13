@@ -271,9 +271,9 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //init
     int port_num = -1;
-    vector<std::string> seen_locations;
+    vector<std::string> seen_locations; 
     std::map<std::string, std::string> location_to_handler = std::map<std::string,std::string>();
-    std::map<std::string, std::string> location_to_root = std::map<std::string,std::string>();
+    std::map<std::string, std::map<std::string, std::string>> location_to_directives = std::map<std::string, std::map<std::string, std::string>>();
     std::string arg_token = "";
 
     //iterate through the config to extract data
@@ -295,42 +295,38 @@ bool NginxConfigParser::get_server_settings_inner(){
           // handles location
           else if(arg_token == "location"){
             std::string log_output = "";
-            std::string key = tokens[j + 1][0]=='"' || tokens[j + 1][0]=='\'' ? tokens[j+1].substr(1, tokens[j+1].length()-2) : tokens[j+1];
-            std::string type = tokens[j + 2];
-            log_output = log_output + "Location: " + key + ", ";
-            std::string remove_slash = key;
+            std::string location = tokens[j + 1][0]=='"' || tokens[j + 1][0]=='\'' ? tokens[j+1].substr(1, tokens[j+1].length()-2) : tokens[j+1];
+            std::string handler_type = tokens[j + 2];
+            log_output = log_output + "Location: " + location + ", ";
+
+            if (hasKey(seen_locations, location)) { // exit if duplicate path
+              BOOST_LOG_TRIVIAL(error) << location << " is a duplicate path";
+              return false;
+            }
           
-            location_to_handler[key] = type;
+            location_to_handler[location] = handler_type;
             NginxConfig location_block = (*(*server_config->statements_[i]).child_block_);
             
-            if (type == "FileRequestHandler") {
-              for (int l = 0; l < location_block.statements_.size(); l++){
-                std::vector<std::string> loc_tokens = (*location_block.statements_[l]).tokens_;
-                for (int m = 0; m < loc_tokens.size(); m++){
-                  if(loc_tokens[m] == "root"){
-                    if (hasKey(seen_locations, key)) { // exit if duplicate path
-                      BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path, static file request handler";
-                      return false;
-                    }
-                    // assumes parser has done job, only single quote around entire path
-                    location_to_root[key] = loc_tokens[m+1][0]=='"' || loc_tokens[m+1][0]=='\'' ? loc_tokens[m+1].substr(1, loc_tokens[m+1].length()-2) : loc_tokens[m+1];
-                    log_output = log_output + "root: " + location_to_root[key] + " for serving static files";
-                  }
+            for (int l = 0; l < location_block.statements_.size(); l++){
+              std::vector<std::string> loc_tokens = (*location_block.statements_[l]).tokens_;
+              // below assumes that every directive only has one parameter
+              for (int m = 0; m < loc_tokens.size(); m+=2){
+                // if location has not been added yet, add a new map object
+                if (location_to_directives.find(location) == location_to_directives.end()) {
+                  location_to_directives[location] = std::map<std::string, std::string>();
                 }
+                location_to_directives[location][loc_tokens[m]] = loc_tokens[m+1][0]=='"' || loc_tokens[m+1][0]=='\'' ? loc_tokens[m+1].substr(1, loc_tokens[m+1].length()-2) : loc_tokens[m+1];
+                log_output += " directive: " + loc_tokens[m] + ", parameter: " + location_to_directives[location][loc_tokens[m]];
               }
             }
-           else {
-              if (hasKey(seen_locations, key)) { // make sure echo locations don't overlap either
-                BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path " + type;
-                return false;
-              }
-              log_output = log_output;
-            }
+
             BOOST_LOG_TRIVIAL(info) << log_output;
 
-            // add key to the seen locations
+            // add current location to the seen locations
+            // remove extra slashes for consistency
+            std::string remove_slash = location;
             while (remove_slash[remove_slash.length()-1] == '/') {
-              remove_slash = remove_slash.substr(0, key.length()-1);
+              remove_slash = remove_slash.substr(0, location.length()-1);
             }
             seen_locations.push_back(remove_slash);
           }
@@ -348,7 +344,7 @@ bool NginxConfigParser::get_server_settings_inner(){
     
     // Add port number and locations to struct
     config_info_.location_to_handler = location_to_handler;
-    config_info_.location_to_root = location_to_root;
+    config_info_.location_to_directives = location_to_directives;
     config_info_.port_num = port_num;
     //add more info here as needed
 
@@ -387,7 +383,7 @@ bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string ta
 
 bool NginxConfigParser::get_config_settings(NginxConfig* config){
 
-    //find the specific config we need
+    // find the specific config we need - used if config is within http or server block
     // if(!extract_config_layer(config, "server")){
     //   return false;
     // }

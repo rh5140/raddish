@@ -8,12 +8,12 @@ class FileRequestTest : public testing::Test {
     protected:
         FileRequestHandler* handler;
         std::string file_path;
-        LogInfo log_info;
+        // LogInfo log_info;
         
         std::string response;    
         void SetUp() override {
-            log_info.addr_info.host_addr = "host:8080";
-            log_info.addr_info.client_addr = "client:8080";
+            // log_info.addr_info.host_addr = "host:8080";
+            // log_info.addr_info.client_addr = "client:8080";
         }
         void TearDown() override {
             delete handler; 

@@ -44,7 +44,7 @@ TEST_F(SessionTest, CreateResponse) {
 
 TEST_F(SessionTest, CreateResponseStaticFile) {
     test_session->config_info_.location_to_handler["/text/"] = "FileRequestHandler";
-    test_session->config_info_.location_to_root["/text/"] = "/static_files";
+    test_session->config_info_.location_to_directives["root"]["/text/"] = "/static_files";
     test_session->set_buf("GET /text/DOESNOTEXIST.txt HTTP/1.1\n\n");
     //std::string response = test_session->create_response();
     //EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");

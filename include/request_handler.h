@@ -24,8 +24,8 @@ class RequestHandler {
         //http::request<http::string_body> req_;
         http::response<http::string_body> res_;
         void init_response(const http::request<http::string_body>& request);
-        void log_request();
-        LogInfo log_info_;
+        void log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message);
+        AddrInfo addr_info_;
         
 };
 

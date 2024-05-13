@@ -8,6 +8,7 @@
 #include <boost/beast/version.hpp>
 #include <boost/asio/dispatch.hpp>
 #include <boost/asio/strand.hpp>
+#include <type_traits>
 
 namespace beast = boost::beast;  
 namespace http = beast::http;    
@@ -36,13 +37,12 @@ http::response<http::string_body> EchoRequestHandler::handle_request(const http:
     std::string res_body = oss.str();
     res_.body() = res_body;
 
-    //log
-    log_info_.message = "Echoed";
-    log_info_.response = res_body;
-    log_request();
-
     //set vars
     res_.result(http::status::ok); 
+
+    //log
+    log_request(request, res_, "Echoed");
+
     return res_;
 
     //return http_response;

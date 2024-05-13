@@ -64,9 +64,7 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
     //content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     //http_response = http_response + content_length + response_body;
 
-    log_info_.message = log_message;
-    log_info_.response = file_content;
-    log_request();
+    log_request(request, res_, log_message);
     
     //we just use the default if we didn't find the file
     if(message_ok){ 

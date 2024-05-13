@@ -13,8 +13,8 @@ using namespace std;
 class DispatcherTest : public testing::Test {
     protected:
         RequestDispatcher* dispatcher;
-        LogInfo log_info;
-        RequestDispatcherInfo req_dis_info;
+        // LogInfo log_info;
+        // RequestDispatcherInfo req_dis_info;
         vector<char> buf_;
 
         NginxConfigParser parser_;
@@ -22,8 +22,8 @@ class DispatcherTest : public testing::Test {
         ConfigInfo config_info_;
 
         void SetUp() override {
-            log_info.addr_info.host_addr = "host:8080";
-            log_info.addr_info.client_addr = "client:8080";
+            // log_info.addr_info.host_addr = "host:8080";
+            // log_info.addr_info.client_addr = "client:8080";
         }
 
         void TearDown() override {
@@ -47,11 +47,11 @@ TEST_F(DispatcherTest, BasicDispatch) {
     success = parser_.get_config_settings(&out_config);
     EXPECT_TRUE(success);
 
-    req_dis_info.addr_info.client_addr = "client:8080";
-    req_dis_info.addr_info.host_addr = "host:8080";
-    req_dis_info.request = "bad request!";
-    req_dis_info.request_size = 12;
-    req_dis_info.config_info = parser_.get_config_info();
+    // req_dis_info.addr_info.client_addr = "client:8080";
+    // req_dis_info.addr_info.host_addr = "host:8080";
+    // req_dis_info.request = "bad request!";
+    // req_dis_info.request_size = 12;
+    // req_dis_info.config_info = parser_.get_config_info();
 
     RequestDispatcher* dispatcher = new RequestDispatcher();
     //EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n");
@@ -65,11 +65,11 @@ TEST_F(DispatcherTest, BasicEcho) {
     success = parser_.get_config_settings(&out_config);
     EXPECT_TRUE(success);
 
-    req_dis_info.addr_info.client_addr = "client:8080";
-    req_dis_info.addr_info.host_addr = "host:8080";
-    req_dis_info.request = request;
-    req_dis_info.request_size = request.size();
-    req_dis_info.config_info = parser_.get_config_info();
+    // req_dis_info.addr_info.client_addr = "client:8080";
+    // req_dis_info.addr_info.host_addr = "host:8080";
+    // req_dis_info.request = request;
+    // req_dis_info.request_size = request.size();
+    // req_dis_info.config_info = parser_.get_config_info();
     RequestDispatcher* dispatcher = new RequestDispatcher();
 
     //EXPECT_EQ(dispatcher->dispatch_request(req_dis_info), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 55\n\n"+request);
@@ -83,11 +83,11 @@ TEST_F(DispatcherTest, NoMatch) {
     success = parser_.get_config_settings(&out_config);
     EXPECT_TRUE(success);
 
-    req_dis_info.addr_info.client_addr = "client:8080";
-    req_dis_info.addr_info.host_addr = "host:8080";
-    req_dis_info.request = request;
-    req_dis_info.request_size = request.size();
-    req_dis_info.config_info = parser_.get_config_info();
+    // req_dis_info.addr_info.client_addr = "client:8080";
+    // req_dis_info.addr_info.host_addr = "host:8080";
+    // req_dis_info.request = request;
+    // req_dis_info.request_size = request.size();
+    // req_dis_info.config_info = parser_.get_config_info();
     RequestDispatcher* dispatcher = new RequestDispatcher();
 
     // TODO should return a 404 not found!

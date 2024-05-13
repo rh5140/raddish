@@ -14,24 +14,10 @@ struct AddrInfo {
 struct ConfigInfo {
     int port_num;
     std::map<std::string, std::string> location_to_handler;
-    std::map<std::string, std::string> location_to_root;
-};
-
-struct LogInfo {
-    std::string request_line;
-    AddrInfo addr_info;
-    std::string response;
-    std::string message; // for additional info
-};
-
-struct RequestDispatcherInfo {
-    std::string request;
-    size_t request_size;
-    ConfigInfo config_info;
-    AddrInfo addr_info;
+    std::map<std::string, std::map<std::string, std::string>> location_to_directives; // e.g. /images/ -> (root -> /usr/src/projects...)
 };
 
 struct RequestHandlerData{
     std::string root;
-    LogInfo log_info;
+    AddrInfo addr_info;
 };
