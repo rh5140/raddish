@@ -2,7 +2,8 @@
 #include <sstream>
 #include <string>
 #include <iostream>
-#include "request_handler.h"
+#include "echo_request_handler.h"
+#include "request_handler_factory.h"
 
 #include <boost/beast/version.hpp>
 #include <boost/asio/dispatch.hpp>
@@ -15,7 +16,9 @@ namespace http = beast::http;
 #include <boost/log/trivial.hpp>
 
 
-EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request) : RequestHandler(request){
+bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::Init);
+
+EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData) : RequestHandler(request, requestHandlerData){
         std::ostringstream oss;
         oss << request;
         std::string echo_req = oss.str();
@@ -23,7 +26,13 @@ EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request)
         max_bytes_ = size_t(echo_req_.size());
 }
 
-http::response<http::string_body> EchoRequestHandler::handle_request(LogInfo log_info) {
+
+RequestHandler* EchoRequestHandler::Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData) {
+    return new EchoRequestHandler(request, requestHandlerData); 
+}
+
+
+http::response<http::string_body> EchoRequestHandler::handle_request() {
     //get body
     std::ostringstream oss;
     oss << req_; 
@@ -31,9 +40,9 @@ http::response<http::string_body> EchoRequestHandler::handle_request(LogInfo log
     res_.body() = res_body;
 
     //log
-    log_info.message = "Echoed";
-    log_info.response = res_body;
-    log_request(log_info);
+    log_info_.message = "Echoed";
+    log_info_.response = res_body;
+    log_request();
 
     //set vars
     res_.result(http::status::ok); 
@@ -41,3 +50,4 @@ http::response<http::string_body> EchoRequestHandler::handle_request(LogInfo log
 
     //return http_response;
 }
+

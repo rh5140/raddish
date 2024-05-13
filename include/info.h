@@ -29,3 +29,8 @@ struct RequestDispatcherInfo {
     ConfigInfo config_info;
     AddrInfo addr_info;
 };
+
+struct RequestHandlerData{
+    std::string root;
+    LogInfo log_info;
+};
