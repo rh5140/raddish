@@ -16,26 +16,23 @@ namespace http = beast::http;
 #include <boost/log/trivial.hpp>
 
 
-bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::Init);
+bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::init);
 
-EchoRequestHandler::EchoRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData) : RequestHandler(request, requestHandlerData){
-        std::ostringstream oss;
-        oss << request;
-        std::string echo_req = oss.str();
-        echo_req_ = echo_req;
-        max_bytes_ = size_t(echo_req_.size());
+EchoRequestHandler::EchoRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
+
 }
 
 
-RequestHandler* EchoRequestHandler::Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData) {
-    return new EchoRequestHandler(request, requestHandlerData); 
+RequestHandler* EchoRequestHandler::init(const RequestHandlerData& request_handler_data) {
+    return new EchoRequestHandler(request_handler_data); 
 }
 
 
-http::response<http::string_body> EchoRequestHandler::handle_request() {
+http::response<http::string_body> EchoRequestHandler::handle_request(const http::request<http::string_body>& request) {
+    init_response(request);
     //get body
     std::ostringstream oss;
-    oss << req_; 
+    oss << request; 
     std::string res_body = oss.str();
     res_.body() = res_body;
 

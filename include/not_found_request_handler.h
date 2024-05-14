@@ -16,11 +16,10 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
     
 class NotFoundHandler : public RequestHandler {
     public:
-        NotFoundHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData);
-        http::response<http::string_body> handle_request();
-        static RequestHandler* Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData);
+        NotFoundHandler(const RequestHandlerData& request_handler_data);
+        http::response<http::string_body> handle_request(const http::request<http::string_body>& request);
+        static RequestHandler* init(const RequestHandlerData& request_handler_data);
         static bool registered_;
 };
-
 
 #endif

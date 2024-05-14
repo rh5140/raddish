@@ -17,16 +17,17 @@ namespace http = beast::http;
 
 
 
-NotFoundHandler::NotFoundHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData) : RequestHandler(request, requestHandlerData){
+NotFoundHandler::NotFoundHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
 }
 
-RequestHandler* NotFoundHandler::Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData) {
-    return new NotFoundHandler(request, requestHandlerData); 
+RequestHandler* NotFoundHandler::init(const RequestHandlerData& request_handler_data) {
+    return new NotFoundHandler(request_handler_data); 
 }
 
-bool NotFoundHandler::registered_ = RequestHandlerFactory::register_handler("NotFoundHandler", NotFoundHandler::Init);
+bool NotFoundHandler::registered_ = RequestHandlerFactory::register_handler("NotFoundHandler", NotFoundHandler::init);
 
-http::response<http::string_body> NotFoundHandler::handle_request() {
+http::response<http::string_body> NotFoundHandler::handle_request(const http::request<http::string_body>& request) {
+    init_response(request);
     //set vars
     res_.result(http::status::not_found); 
     //log

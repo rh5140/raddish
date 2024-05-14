@@ -17,12 +17,13 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 
 class FileRequestHandler : public RequestHandler {
     public:
-        FileRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData);
-        http::response<http::string_body> handle_request();
-        static RequestHandler* Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData);
+        FileRequestHandler(const RequestHandlerData& request_handler_data);
+        http::response<http::string_body> handle_request(const http::request<http::string_body>& request);
+        static RequestHandler* init(const RequestHandlerData& request_handler_data);
         static bool registered_;
     private:
-        std::string file_path_;
+        std::string root_;
+        //std::string file_path_;
         std::string get_content_type(std::string file_path);
         std::string file_extension_to_content_type(std::string file_extension);
         FRIEND_TEST(FileRequestTest, Extensions);

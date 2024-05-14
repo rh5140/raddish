@@ -14,12 +14,11 @@
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
-
+using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 
 class RequestHandlerFactory{
     public:
-        using CreateRequestHandler = RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData);
         static CreateRequestHandler get_factory(std::string name);
         static bool register_handler(const std::string name, CreateRequestHandler factory);
         static std::map<std::string, CreateRequestHandler>& get_map();

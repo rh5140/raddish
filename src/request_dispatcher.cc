@@ -14,9 +14,7 @@
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 using namespace std;
-
-
-using CreateRequestHandler = RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData);
+using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 RequestDispatcher::RequestDispatcher() {
     // default response, if path is not echo nor static file
@@ -72,13 +70,13 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     // response empty, will be filled in in handler
 
     //generate handler data
-    RequestHandlerData requestHandlerData;
+    RequestHandlerData request_handler_data;
     std::string root = config_info.location_to_root[curr_longest_match];
-    requestHandlerData.root = root;
+    request_handler_data.root = root;
 
     //create handler and call
-    RequestHandler* handler = handler_factory(req, requestHandlerData);
-    response_ = handler->handle_request();
+    RequestHandler* handler = handler_factory(request_handler_data);
+    response_ = handler->handle_request(req);
     delete handler; //handlers are short lived.
 
     //return res object

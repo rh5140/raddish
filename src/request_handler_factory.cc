@@ -17,12 +17,12 @@
 namespace beast = boost::beast;  
 namespace http = beast::http;   
 
-using CreateRequestHandler = RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData);
+using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 //std::map<std::string,  RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData )> RequestHandlerFactory::map_ = {};
 
 std::map<std::string, CreateRequestHandler>& RequestHandlerFactory::get_map(){
-    static std::map<std::string,  RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData )>* map = new std::map<std::string,  RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData )>;
+    static std::map<std::string, CreateRequestHandler>* map = new std::map<std::string,  CreateRequestHandler>;
     return *map;
 }
 
@@ -43,14 +43,14 @@ CreateRequestHandler RequestHandlerFactory::get_factory(std::string name){
 
 
 /*
-RequestHandler* RequestHandlerFactory::create_request_handler(std::string name, http::request<http::string_body> request, RequestHandlerData requestHandlerData){
+RequestHandler* RequestHandlerFactory::create_request_handler(std::string name, http::request<http::string_body> request, RequestHandlerData request_handler_data){
     BOOST_LOG_TRIVIAL(debug) << "handler name: " << name;
     BOOST_LOG_TRIVIAL(debug) << get_map().size();
     if(get_map().count(name) == 0){
         BOOST_LOG_TRIVIAL(warning) << "No handler found for key - defaulting to random one";
-        return get_map().begin()->second(request, requestHandlerData); //just throws out the first one in the list.
+        return get_map().begin()->second(request, request_handler_data); //just throws out the first one in the list.
     }
 
-    return get_map()[name](request, requestHandlerData);
+    return get_map()[name](request, request_handler_data);
 }
 */

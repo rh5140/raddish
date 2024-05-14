@@ -14,12 +14,14 @@
 namespace beast = boost::beast;  
 namespace http = beast::http;   
 
-RequestHandler::RequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData){
-    req_ = request;
-    log_info_ = requestHandlerData.log_info;
+RequestHandler::RequestHandler(const RequestHandlerData& request_handler_data){
+    log_info_ = request_handler_data.log_info;
+}
 
+
+void RequestHandler::init_response(const http::request<http::string_body>& request){
     //generate response object
-    res_ = http::response<http::string_body>{http::status::not_found, req_.version()};
+    res_ = http::response<http::string_body>{http::status::not_found, request.version()};
     res_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res_.set(http::field::content_type, "text/html");
 
@@ -27,7 +29,6 @@ RequestHandler::RequestHandler(http::request<http::string_body> request, Request
     res_.body() = "404 Not Found";
     //can add more args as needed
 }
-
 
 void RequestHandler::log_request() {
     std::string client_str = ", Client: " + log_info_.addr_info.client_addr;

@@ -17,13 +17,11 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 
 class EchoRequestHandler : public RequestHandler {
     public:
-        EchoRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData);
-        http::response<http::string_body> handle_request();
-        static RequestHandler* Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData); //can't put these in parent because they're static.
+        EchoRequestHandler( const RequestHandlerData& request_handler_data);
+        http::response<http::string_body> handle_request(const http::request<http::string_body>& request);
+        static RequestHandler* init(const RequestHandlerData& request_handler_data); //can't put these in parent because they're static.
         static bool registered_;
     private:
-        std::string echo_req_;
-        size_t max_bytes_;
 };
 
 #endif

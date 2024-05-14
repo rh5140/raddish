@@ -11,20 +11,22 @@
 //temp
 #include <boost/log/trivial.hpp>
 
-FileRequestHandler::FileRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData) : RequestHandler(request, requestHandlerData){
-    file_path_ = requestHandlerData.root + std::string(request.target());
+FileRequestHandler::FileRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
+    root_ = request_handler_data.root;
 }
 
-RequestHandler* FileRequestHandler::Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData) {
-    return new FileRequestHandler(request, requestHandlerData); 
+RequestHandler* FileRequestHandler::init(const RequestHandlerData& request_handler_data) {
+    return new FileRequestHandler(request_handler_data); 
 }
-bool FileRequestHandler::registered_ = RequestHandlerFactory::register_handler("FileRequestHandler", FileRequestHandler::Init);
+bool FileRequestHandler::registered_ = RequestHandlerFactory::register_handler("FileRequestHandler", FileRequestHandler::init);
 
 
-http::response<http::string_body> FileRequestHandler::handle_request() {
+http::response<http::string_body> FileRequestHandler::handle_request(const http::request<http::string_body>& request) {
+
+    std::string file_path = root_ + std::string(request.target());
+    init_response(request);
     
-    
-    std::string content_type = get_content_type(file_path_);
+    std::string content_type = get_content_type(file_path);
     //std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
     //std::string content_length = "Content-Length: ";
     
@@ -35,10 +37,10 @@ http::response<http::string_body> FileRequestHandler::handle_request() {
 
     bool message_ok = false;
 
-    if (std::filesystem::exists(file_path_)) {
-        std::ifstream file_to_read(file_path_, std::ios::in | std::ios::binary); // already reading in as binary
+    if (std::filesystem::exists(file_path)) {
+        std::ifstream file_to_read(file_path, std::ios::in | std::ios::binary); // already reading in as binary
 
-        if (std::filesystem::is_regular_file(file_path_) && file_to_read.is_open()) {
+        if (std::filesystem::is_regular_file(file_path) && file_to_read.is_open()) {
             // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
             file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
                                 (std::istreambuf_iterator<char>()));
@@ -48,12 +50,12 @@ http::response<http::string_body> FileRequestHandler::handle_request() {
         }
         else {
             // 404 path is not file
-            log_message = file_path_ + " is not a file";
+            log_message = file_path + " is not a file";
         }
     }
     else {
         // 404 error - file does not exist 
-        log_message =  "File does not exist at " + file_path_;
+        log_message =  "File does not exist at " + file_path;
     }
 
 
