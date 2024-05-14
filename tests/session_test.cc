@@ -20,6 +20,10 @@ class SessionTest : public testing::Test {
     Session* test_session;
     ConfigInfo config_info;
 
+
+    http::request<http::string_body> req;
+    http::response<http::string_body> res;
+
     void SetUp() override {
       test_session = new Session(io_service, config_info);
     }
@@ -34,18 +38,22 @@ TEST_F(SessionTest, SessionStart) {
 
 
 
-//TODO: also broke these tests :))))
-TEST_F(SessionTest, CreateResponse) {
-    const char * test_body = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\nContent-Length: 0\n\n";
-    test_session->set_buf("hello world");
-    //EXPECT_EQ(test_session->create_response(), test_body);
+//TODO: also broke these tests :)))) 
+TEST_F(SessionTest, Create404Response) {
+    test_session->set_req(req);
+    res = test_session->create_response();
+
+    EXPECT_EQ(res.result(), http::status::not_found);
+    EXPECT_EQ(res.at(http::field::content_type), "text/plain");
+    EXPECT_EQ(res.body(), "404 Not Found");
+
     delete test_session;
 }
 
 TEST_F(SessionTest, CreateResponseStaticFile) {
-    test_session->config_info_.location_to_handler["/text/"] = "FileRequestHandler";
-    test_session->config_info_.location_to_directives["root"]["/text/"] = "/static_files";
-    test_session->set_buf("GET /text/DOESNOTEXIST.txt HTTP/1.1\n\n");
+    //test_session->config_info_.location_to_handler["/text/"] = "FileRequestHandler";
+    //test_session->config_info_.location_to_directives["root"]["/text/"] = "/static_files";
+    //test_session->set_buf("GET /text/DOESNOTEXIST.txt HTTP/1.1\n\n");
     //std::string response = test_session->create_response();
     //EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");
     delete test_session;
@@ -55,11 +63,20 @@ TEST_F(SessionTest, CreateResponseStaticFile) {
 //TODO: not sure exactly why this specific test broke
 
 TEST_F(SessionTest, CreateResponseEcho) {
-    //std::string contents = "GET / HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept: */*\n\n";
-    //test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
-    //test_session->set_buf(contents);
-    //EXPECT_EQ(test_session->create_response(), "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 52\n\n"+contents);
-    //delete test_session;
+
+
+    test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
+
+    req.target("/echo");
+    req.method(http::verb::get);
+    test_session->set_req(req);
+    res = test_session->create_response();
+
+    EXPECT_EQ(res.result(), http::status::ok);
+    EXPECT_EQ(res.at(http::field::content_type), "text/plain");
+    EXPECT_EQ(res.body(), "GET /echo HTTP/1.1\r\n\r\n");
+
+
 }
 
 TEST_F(SessionTest, HandleReadMaxLength) {
@@ -76,7 +93,7 @@ TEST_F(SessionTest, HandleReadPartialDataRead) {
 TEST_F(SessionTest, HandleRead) {
     std::string contents = "GET / HTTP/1.1\n\n";
     test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
-    test_session->set_buf(contents);
+    //test_session->set_buf(contents);
     EXPECT_NO_THROW(test_session->handle_read(boost::system::error_code(), reasonable_length));
     delete test_session;
 }

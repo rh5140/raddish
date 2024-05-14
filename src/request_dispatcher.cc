@@ -26,14 +26,12 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     BOOST_LOG_TRIVIAL(debug) << "Request received: \n" << req; //info.request.substr(0, info.request_size);
     BOOST_LOG_TRIVIAL(debug) << req.target(); 
 
-    //TODO: fix this - not checking if it's valid yet.
-
     if (!is_valid_request(req)) {
         BOOST_LOG_TRIVIAL(warning) << "invalid request";
         response_ = http::response<http::string_body>{http::status::not_found, req.version()};
         response_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        response_.set(http::field::content_type, "text/html");
-        response_.body() = "404 Not Found\n"; //for clarity, added \n
+        response_.set(http::field::content_type, "text/plain");
+        response_.body() = "404 Not Found"; //removed /n for consistancy
         return response_;
     }
 
@@ -71,7 +69,9 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     request_handler_data.addr_info = addr_info;
 
     //create handler and call
+
     RequestHandler* handler = handler_factory(request_handler_data);
+    
     response_ = handler->handle_request(req);
     delete handler; //handlers are short lived.
 

@@ -3,41 +3,55 @@
 #include <gmock/gmock.h>
 #include "gtest/gtest.h"
 #include "not_found_request_handler.h"
+#include "request_handler_factory.h"
 #include "info.h"
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+    
+
+using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
+
 using boost::asio::ip::tcp;
 using namespace std;
-//Leaving this commented out for now, as we don't need it but it could prove useful in the future as a template for mocks.
-/*
-class MockServer : public server{
-  public:
-    MockServer(boost::asio::io_service& io_service, short port) : server(io_service, port){}
-    MOCK_METHOD(void, handle_accept, (session* new_session, const boost::system::error_code& error));
-    
-};
-//fixture
-class ServerTest : public testing::Test {
- protected:
-  void SetUp() override {}
-  // void TearDown() override {}
-  boost::asio::io_service io_s;
-  int port_num = 8080;
-  MockServer* test_server = new MockServer(io_s, port_num);
-};
-TEST_F(ServerTest, ServerStart) {
-}
-*/
+
+
 class NotFoundTest : public testing::Test {
     protected:
         NotFoundHandler* handler;
-        const char* request;
-        size_t max_bytes;
-        std::string response;
+        RequestHandlerData request_handler_data;
+        http::request<http::string_body> req;
+        http::response<http::string_body> res;
+        CreateRequestHandler handler_factory;
         // LogInfo log_info;
+
         void SetUp() override {
-            // log_info.addr_info.host_addr = "host:8080";
-            // log_info.addr_info.client_addr = "client:8080";
+            std::string root = "";
+            request_handler_data.root = root;
+            AddrInfo addr_info;
+            addr_info.host_addr =  "host:8080";
+            addr_info.client_addr = "client:8080";
+            request_handler_data.addr_info = addr_info;
+            handler_factory = RequestHandlerFactory::get_factory("FileRequestHandler"); //get factory
         }
+
         void TearDown() override {
-            delete handler; 
+            // delete handler; 
         }
 };
+
+
+TEST_F(NotFoundTest, BasicNotFound) {
+    RequestHandler* handler = handler_factory(request_handler_data);
+    res = handler->handle_request(req);
+
+    EXPECT_EQ(res.result(), http::status::not_found);
+    EXPECT_EQ(res.at(http::field::content_type), "text/plain");
+    EXPECT_EQ(res.body(), "404 Not Found");
+    delete handler;
+}

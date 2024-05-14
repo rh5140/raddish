@@ -34,6 +34,7 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
 
     bool message_ok = false;
 
+
     if (std::filesystem::exists(file_path)) {
         std::ifstream file_to_read(file_path, std::ios::in | std::ios::binary); // already reading in as binary
 

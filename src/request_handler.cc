@@ -24,7 +24,7 @@ void RequestHandler::init_response(const http::request<http::string_body>& reque
     //generate response object
     res_ = http::response<http::string_body>{http::status::not_found, request.version()};
     res_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-    res_.set(http::field::content_type, "text/html");
+    res_.set(http::field::content_type, "text/plain");
 
     //default error
     res_.body() = "404 Not Found";

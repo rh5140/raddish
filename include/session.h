@@ -38,12 +38,10 @@ public:
     tcp::socket& socket();
     void start();
     http::response<http::string_body> create_response();
-    void set_buf(std::string buf);
+    void set_req(http::request<http::string_body> req);
 private:
     tcp::socket socket_;
     enum { max_length = 1024 }; //for testing
-    char data_[max_length];
-    std::vector<char> buf_;
     ConfigInfo config_info_;
 
     //new object stuff

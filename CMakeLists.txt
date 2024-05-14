@@ -124,7 +124,7 @@ endif()
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS webserver config_parser_lib server_lib session_lib handler_factory_lib echo_handler_lib file_handler_lib not_found_handler_lib logger_lib dispatcher_lib TESTS config_parser_test session_test server_test not_found_test echo_test file_handler_test logger_test dispatcher_test) 
+generate_coverage_report(TARGETS config_parser_lib server_lib session_lib handler_factory_lib echo_handler_lib file_handler_lib not_found_handler_lib logger_lib dispatcher_lib TESTS config_parser_test session_test server_test not_found_test echo_test file_handler_test logger_test dispatcher_test) 
 
 
 

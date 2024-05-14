@@ -5,7 +5,21 @@
 #include "gtest/gtest.h"
 #include "request_handler.h"
 #include "echo_request_handler.h"
+#include "request_handler_factory.h"
 #include "info.h"
+
+
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/dispatch.hpp>
+#include <boost/asio/strand.hpp>
+
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>
+    
+
+using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 using boost::asio::ip::tcp;
 using namespace std;
@@ -37,14 +51,20 @@ TEST_F(ServerTest, ServerStart) {
 class EchoTest : public testing::Test {
     protected:
         EchoRequestHandler* handler;
-        const char* request;
-        size_t max_bytes;
-        std::string response;
+        RequestHandlerData request_handler_data;
+        http::request<http::string_body> req;
+        http::response<http::string_body> res;
+        CreateRequestHandler handler_factory; //get factory
         // LogInfo log_info;
 
         void SetUp() override {
-            // log_info.addr_info.host_addr = "host:8080";
-            // log_info.addr_info.client_addr = "client:8080";
+            std::string root = "";
+            request_handler_data.root = root;
+            AddrInfo addr_info;
+            addr_info.host_addr =  "host:8080";
+            addr_info.client_addr = "client:8080";
+            request_handler_data.addr_info = addr_info;
+            handler_factory = RequestHandlerFactory::get_factory("EchoRequestHandler");
         }
 
         void TearDown() override {
@@ -52,12 +72,13 @@ class EchoTest : public testing::Test {
         }
 };
 
-//TODO: FIX
 TEST_F(EchoTest, BasicEcho) {
-    std::string request = "GET /echo HTTP/1.1\nUser-Agent: curl/7.81.0\nAccept:*/*\n\n";
-    max_bytes = 55;
-    //handler = new EchoRequestHandler(request, &max_bytes);
-    //log_info.request_line = "GET /echo HTTP/1.1";
-    //response = handler->handle_request(log_info);
-    //EXPECT_EQ(response, "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 55\n\n"+request);
+    RequestHandler* handler = handler_factory(request_handler_data);
+    res = handler->handle_request(req);
+
+    EXPECT_EQ(res.result(), http::status::ok);
+    EXPECT_EQ(res.at(http::field::content_type), "text/plain");
+    EXPECT_EQ(res.body(), " HTTP/1.1\r\n\r\n");
+
+    delete handler;
 }

@@ -38,47 +38,19 @@ void Session::start() {
         this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
-    /*
-    socket_.async_read_some(boost::asio::buffer(data_, max_length),
-        boost::bind(&Session::handle_read, 
-            this,
-            boost::asio::placeholders::error,
-            boost::asio::placeholders::bytes_transferred));
-            */
 }
 
-// Setter for buf_ (made for testing)
-void Session::set_buf(std::string buf) {
-    for (char c : buf) {
-        buf_.push_back(c);
-    }
+// Setter for req (made for testing)
+void Session::set_req(http::request<http::string_body> req) {
+    req_ = req;
 }
 
 //public
-
-
-
 
 http::response<http::string_body> Session::create_response(){
     BOOST_LOG_TRIVIAL(debug) << "http req object:\n" << req_;
     BOOST_LOG_TRIVIAL(debug) << "http req object method:\n" << req_.method_string();
 
-    /*
-    RequestDispatcherInfo req_dis_info;
-    try {
-        tcp::endpoint client = socket().remote_endpoint();
-        tcp::endpoint host = socket().local_endpoint();
-        req_dis_info.addr_info.client_addr = client.address().to_string() + ":" + to_string(client.port());
-        req_dis_info.addr_info.host_addr = host.address().to_string() + ":" + to_string(host.port());
-    } 
-    catch (const boost::system::system_error& e) {
-        BOOST_LOG_TRIVIAL(error) << "Sockets do not exist";
-    }
-    
-    req_dis_info.request = buf_.data();
-    req_dis_info.request_size = buf_.size();
-    req_dis_info.config_info = config_info_;
-    */
     std::string client_addr, host_addr;
     try {
         tcp::endpoint client = socket().remote_endpoint();
@@ -105,8 +77,6 @@ void Session::handle_read(const boost::system::error_code& error, size_t bytes_t
         res_ = create_response();
 
         //clear buffer for next
-        buf_.clear();
-
         //TODO: make this in create response
 
         res_.prepare_payload();
@@ -131,7 +101,6 @@ void Session::handle_read(const boost::system::error_code& error, size_t bytes_t
         delete this;
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << data_;
         BOOST_LOG_TRIVIAL(trace) << "Error: " << error.message(); 
         BOOST_LOG_TRIVIAL(error) << "Error in handle read";
         delete this;
