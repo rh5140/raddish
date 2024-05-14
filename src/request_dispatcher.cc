@@ -1,5 +1,7 @@
 #include "request_dispatcher.h"
-#include "request_handler.h"
+#include "echo_request_handler.h"
+#include "request_handler_factory.h"
+//#include "request_handler.h"
 #include <regex>
 #include <string>
 #include <boost/log/trivial.hpp>
@@ -12,6 +14,9 @@
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 using namespace std;
+
+
+using CreateRequestHandler = RequestHandler*(*)(http::request<http::string_body>, RequestHandlerData);
 
 RequestDispatcher::RequestDispatcher() {
     // default response, if path is not echo nor static file
@@ -42,13 +47,11 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     //file path is now just "req.target()"
     std::string file_path = std::string(req.target());
     BOOST_LOG_TRIVIAL(debug) << file_path;
-    
-    // compare with list of locations parsed from config
-    std::string selected_handler = "(no handler found)";
-    // std::string root = "";
-    std::string curr_longest_match = ""; 
 
-    // BOOST_LOG_TRIVIAL(debug) << info.config_info.static_file_locations.size();
+    //factory pointer - "CreateRequestHandler" is just a shorthand for the function pointer.
+    CreateRequestHandler handler_factory;
+    std::string curr_longest_match = ""; 
+    
 
     for (auto const& pair : config_info.location_to_handler) {
         // adding a / at the end if it doesn't already exist - prevents matching of half a directory name
@@ -56,39 +59,29 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
         std::string compare_file_path = file_path[file_path.length()-1]=='/' ? file_path : file_path+'/';
         if (compare_file_path.find(path) == 0 && path.length() > curr_longest_match.length()) {
             curr_longest_match = pair.first;
-            selected_handler = pair.second;
+            handler_factory = RequestHandlerFactory::get_factory(pair.second); //get factory
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "Using " << selected_handler;
 
-    
-    RequestHandler* handler;
+    //RequestHandler* handler;
     LogInfo log_info;
     log_info.addr_info.host_addr = host;
     log_info.addr_info.client_addr = client;
     //log_info.request_line = get_first_line(info.request);
     log_info.request_line = "test";
     // response empty, will be filled in in handler
-    
-    //tbf the way file request handler is written it's silly to pass the req because we need to check if we have a path first...
-    //but we can
-    if (selected_handler == "FileRequestHandler") {
-        std::string root = config_info.location_to_root[curr_longest_match];
-        handler = new FileRequestHandler(req, root);
-        response_ = handler->handle_request(log_info); // trying to move this out, but segfaulting - TODO
-    }
-    else if (selected_handler == "EchoRequestHandler") {
-        handler = new EchoRequestHandler(req); 
-        response_ = handler->handle_request(log_info);
-    }
-    else { //no handler, so we need to generate the response here.
-        response_ = http::response<http::string_body>{http::status::not_found, req.version()};
-        response_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
-        response_.set(http::field::content_type, "text/html");
-        response_.body() = "404 Path Not Configured";
-        BOOST_LOG_TRIVIAL(warning) << "no valid dispatcher for request";
-    }
 
+    //generate handler data
+    RequestHandlerData requestHandlerData;
+    std::string root = config_info.location_to_root[curr_longest_match];
+    requestHandlerData.root = root;
+
+    //create handler and call
+    RequestHandler* handler = handler_factory(req, requestHandlerData);
+    response_ = handler->handle_request();
+    delete handler; //handlers are short lived.
+
+    //return res object
     return response_;
 }
 

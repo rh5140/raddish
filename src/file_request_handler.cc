@@ -4,17 +4,24 @@
 #include <fstream>
 #include <vector>
 #include <filesystem>
-#include "request_handler.h"
+#include "file_request_handler.h"
+#include "request_handler_factory.h"
 #include "info.h"
 
 //temp
 #include <boost/log/trivial.hpp>
 
-FileRequestHandler::FileRequestHandler(http::request<http::string_body> request, std::string root) : RequestHandler(request){
-    file_path_ = root + std::string(request.target());
+FileRequestHandler::FileRequestHandler(http::request<http::string_body> request, RequestHandlerData requestHandlerData) : RequestHandler(request, requestHandlerData){
+    file_path_ = requestHandlerData.root + std::string(request.target());
 }
 
-http::response<http::string_body> FileRequestHandler::handle_request(LogInfo log_info) {
+RequestHandler* FileRequestHandler::Init(http::request<http::string_body> request, RequestHandlerData requestHandlerData) {
+    return new FileRequestHandler(request, requestHandlerData); 
+}
+bool FileRequestHandler::registered_ = RequestHandlerFactory::register_handler("FileRequestHandler", FileRequestHandler::Init);
+
+
+http::response<http::string_body> FileRequestHandler::handle_request() {
     
     
     std::string content_type = get_content_type(file_path_);
@@ -55,9 +62,9 @@ http::response<http::string_body> FileRequestHandler::handle_request(LogInfo log
     //content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
     //http_response = http_response + content_length + response_body;
 
-    log_info.message = log_message;
-    log_info.response = file_content;
-    log_request(log_info);
+    log_info_.message = log_message;
+    log_info_.response = file_content;
+    log_request();
     
     //we just use the default if we didn't find the file
     if(message_ok){ 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "gtest/gtest.h"
-#include "request_handler.h"
+#include "file_request_handler.h"
 #include "info.h"
 
 class FileRequestTest : public testing::Test {
