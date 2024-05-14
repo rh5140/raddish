@@ -4,7 +4,6 @@
 #include <gmock/gmock.h>
 #include "gtest/gtest.h"
 #include "request_handler.h"
-#include "echo_request_handler.h"
 #include "info.h"
 
 using boost::asio::ip::tcp;

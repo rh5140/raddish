@@ -319,12 +319,12 @@ bool NginxConfigParser::get_server_settings_inner(){
                 }
               }
             }
-           else {
+            else if (type == "EchoRequestHandler") {
               if (hasKey(seen_locations, key)) { // make sure echo locations don't overlap either
-                BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path " + type;
+                BOOST_LOG_TRIVIAL(error) << key << " is a duplicate path, echo request handler";
                 return false;
               }
-              log_output = log_output;
+              log_output = log_output + "for echoing";
             }
             BOOST_LOG_TRIVIAL(info) << log_output;
 
