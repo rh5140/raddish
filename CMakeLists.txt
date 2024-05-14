@@ -46,7 +46,8 @@ add_library(handler_lib src/request_handler.cc)
 add_library(handler_factory_lib src/request_handler_factory.cc)
 add_library(dispatcher_lib src/request_dispatcher.cc)
 
-#set (HANDLER_LIB echo_handler_lib, file_handler_lib, not_found_handler_lib)
+add_library(all_handlers_lib INTERFACE)
+target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib>)
 
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
@@ -65,11 +66,11 @@ target_link_libraries(config_parser_test config_parser_lib gtest_main Boost::log
 
 #add and link echo test executable
 add_executable(echo_test tests/echo_handler_test.cc)
-target_link_libraries(echo_test $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> handler_factory_lib handler_lib gtest_main Boost::log)
+target_link_libraries(echo_test $<TARGET_OBJECTS:echo_handler_lib> handler_factory_lib handler_lib gtest_main Boost::log)
 
 #add and link file handler test executable
 add_executable(file_handler_test tests/file_handler_test.cc)
-target_link_libraries(file_handler_test handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> handler_lib gtest_main Boost::log)
+target_link_libraries(file_handler_test handler_factory_lib $<TARGET_OBJECTS:file_handler_lib> handler_lib gtest_main Boost::log)
 
 #add and link not found test executable
 add_executable(not_found_test tests/not_found_handler_test.cc)
@@ -78,11 +79,11 @@ target_link_libraries(not_found_test handler_factory_lib $<TARGET_OBJECTS:not_fo
 
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)
-target_link_libraries(session_test session_lib dispatcher_lib handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> handler_lib gtest_main Boost::log)
+target_link_libraries(session_test session_lib dispatcher_lib handler_factory_lib all_handlers_lib handler_lib gtest_main Boost::log)
 
 #add and link server test executable
 add_executable(server_test tests/server_test.cc)
-target_link_libraries(server_test server_lib session_lib config_parser_lib dispatcher_lib handler_factory_lib gtest_main $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> handler_lib  Boost::log)
+target_link_libraries(server_test server_lib session_lib config_parser_lib dispatcher_lib handler_factory_lib gtest_main all_handlers_lib handler_lib  Boost::log)
 
 #add and link logger test executable
 add_executable(logger_test tests/logger_test.cc)
@@ -91,7 +92,7 @@ target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::
 
 #add and link dispatcher test executable
 add_executable(dispatcher_test tests/dispatcher_test.cc)
-target_link_libraries(dispatcher_test gtest_main config_parser_lib dispatcher_lib handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> handler_lib Boost::log_setup Boost::log)
+target_link_libraries(dispatcher_test gtest_main config_parser_lib dispatcher_lib handler_factory_lib all_handlers_lib handler_lib Boost::log_setup Boost::log)
 
 # add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
@@ -102,7 +103,7 @@ endif()
 
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
-target_link_libraries(webserver server_lib session_lib config_parser_lib dispatcher_lib handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib>  handler_lib logger_lib Boost::system Boost::log_setup Boost::log)
+target_link_libraries(webserver server_lib session_lib config_parser_lib dispatcher_lib handler_factory_lib all_handlers_lib  handler_lib logger_lib Boost::system Boost::log_setup Boost::log)
 
 
 #gtest
