@@ -361,24 +361,22 @@ bool NginxConfigParser::hasKey(std::vector<std::string> seen_locations, std::str
 }
 
 
-//This technically wastes effort as we do the i loop redundantly
-//we could use vectors or something to only run this once
-//however this only really matters if we have a ridiculously long config, so it's probably not worth implementing
-//as i is realistically going to be like 5 at most
-bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string target){
-    for(int i = 0; i < (*config).statements_.size(); i++){ 
-      //parse outermost config to find the target config
-      for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
-          if((*(*config).statements_[i]).tokens_[j] == target){ //found config
-          BOOST_LOG_TRIVIAL(info) << (target + " Config Found");
-          internal_config_  = (*(*(*config).statements_[i]).child_block_); //workaround because the nginx config thing uses unique pointers and .release kept segfaulting.
-          return true; //when we find it, we're all good to return
-        }
-      }
-    }
-  BOOST_LOG_TRIVIAL(info) << (target + " Config Not Found");
-  return false;
-}
+// Extracts inner part of config from any external layers (e.g. server block or http block)
+// Currently unused
+// bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string target){
+//     for(int i = 0; i < (*config).statements_.size(); i++){ 
+//       //parse outermost config to find the target config
+//       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
+//           if((*(*config).statements_[i]).tokens_[j] == target){ //found config
+//           BOOST_LOG_TRIVIAL(info) << (target + " Config Found");
+//           internal_config_  = (*(*(*config).statements_[i]).child_block_); //workaround because the nginx config thing uses unique pointers and .release kept segfaulting.
+//           return true; //when we find it, we're all good to return
+//         }
+//       }
+//     }
+//   BOOST_LOG_TRIVIAL(info) << (target + " Config Not Found");
+//   return false;
+// }
 
 
 bool NginxConfigParser::get_config_settings(NginxConfig* config){

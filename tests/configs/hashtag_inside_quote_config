@@ -1,0 +1,8 @@
+  port   8080;
+
+  location /test/ FileRequestHandler {
+  }
+
+  location / EchoRequestHandler {
+    root "/forimages/blah #should be fine";
+  }

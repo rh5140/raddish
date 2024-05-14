@@ -116,6 +116,49 @@ TEST_F(ParseTest, StaticFilesConfig) {
   EXPECT_NO_THROW(parser.get_config_info());
 }
 
+TEST_F(ParseTest, DuplicatePathConfig) {
+  bool success = parser.parse("configs/duplicate_path_config", &out_config);
+  EXPECT_TRUE(success);
+  success = parser.get_config_settings(&out_config);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(ParseTest, TrailingSlashConfig) {
+  bool success = parser.parse("configs/duplicate_path_trailing_slash_config", &out_config);
+  EXPECT_TRUE(success);
+  success = parser.get_config_settings(&out_config);
+  EXPECT_FALSE(success);
+}
+
+TEST_F(ParseTest, HashtagInsideQuoteConfig) {
+  bool success = parser.parse("configs/hashtag_inside_quote_config", &out_config);
+  EXPECT_TRUE(success);
+  success = parser.get_config_settings(&out_config);
+  EXPECT_TRUE(success);
+  EXPECT_NO_THROW(parser.get_config_info());
+  ConfigInfo config_info = parser.get_config_info();
+  EXPECT_EQ(config_info.location_to_directives["/"]["root"], "/forimages/blah #should be fine");
+}
+
+TEST_F(ParseTest, QuotesConfig) {
+  bool success = parser.parse("configs/quotes_config", &out_config);
+  EXPECT_TRUE(success);
+  success = parser.get_config_settings(&out_config);
+  EXPECT_TRUE(success);
+  EXPECT_NO_THROW(parser.get_config_info());
+  ConfigInfo config_info = parser.get_config_info();
+  EXPECT_EQ(config_info.location_to_directives["/test"]["root"], "/forimages/blah");
+  EXPECT_EQ(config_info.location_to_directives["/test/check"]["root"], "/forimages/blah");
+}
+
+TEST_F(ParseTest, RelativePathConfig) {
+  bool success = parser.parse("configs/quotes_config", &out_config);
+  EXPECT_TRUE(success);
+  success = parser.get_config_settings(&out_config);
+  EXPECT_TRUE(success);
+  EXPECT_NO_THROW(parser.get_config_info());
+}
+
 //to string testing
 
 TEST_F(ParseTest, ConfigToString){
