@@ -27,9 +27,6 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
     init_response(request);
     
     std::string content_type = get_content_type(file_path);
-    //std::string http_response = "HTTP/1.1 200 OK\nContent-Type: " + content_type + "\n";
-    //std::string content_length = "Content-Length: ";
-    
 
     //std::string response_body;
     std::string file_content;
@@ -57,16 +54,8 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
         // 404 error - file does not exist 
         log_message =  "File does not exist at " + file_path;
     }
-
-
-    //response_body = file_content;
-    // Content-Length is size of entity body in decimal number of OCTETS
-    //content_length = content_length + std::to_string(response_body.size()) + "\n\n"; //+1 is for the extra \n at the end
-    //http_response = http_response + content_length + response_body;
-
-    log_request(request, res_, log_message);
     
-    //we just use the default if we didn't find the file
+    // fill in response if file found
     if(message_ok){ 
         res_.body() = file_content;
         //set vars
@@ -74,13 +63,12 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
         res_.set(http::field::content_type, content_type);
     }
 
-    return res_;
+    log_request(request, res_, log_message);
 
-    //return http_response;
+    return res_;
 }
 
 std::string FileRequestHandler::get_content_type(std::string file_path) {
-    // unintelligent parsing i think but whatever
     int dot_idx = -1;
     for (int i = file_path.size() - 1; i--; i > 0) {
         if (file_path[i] == '.') {
