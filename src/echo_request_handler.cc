@@ -16,14 +16,14 @@ namespace http = beast::http;
 //temp
 #include <boost/log/trivial.hpp>
 
-
+//register
 bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::init);
 
 EchoRequestHandler::EchoRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
 
 }
 
-
+//factory
 RequestHandler* EchoRequestHandler::init(const RequestHandlerData& request_handler_data) {
     return new EchoRequestHandler(request_handler_data); 
 }
@@ -31,13 +31,14 @@ RequestHandler* EchoRequestHandler::init(const RequestHandlerData& request_handl
 
 http::response<http::string_body> EchoRequestHandler::handle_request(const http::request<http::string_body>& request) {
     init_response(request);
-    //get body
+
+    //convert request to string
     std::ostringstream oss;
     oss << request; 
     std::string res_body = oss.str();
-    res_.body() = res_body;
 
     //set vars
+    res_.body() = res_body;
     res_.result(http::status::ok); 
 
     //log

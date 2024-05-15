@@ -17,8 +17,7 @@ using namespace std;
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 RequestDispatcher::RequestDispatcher() {
-    // default response, if path is not echo nor static file
-    // moved default to dispatch_request because we need the req.
+    // constructor currently has no args, but feel free to add
 }
 
 http::response<http::string_body> RequestDispatcher::dispatch_request(http::request<http::string_body> req, ConfigInfo config_info, std::string host, std::string client){

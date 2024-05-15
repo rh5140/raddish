@@ -19,7 +19,8 @@ RequestHandler::RequestHandler(const RequestHandlerData& request_handler_data){
     addr_info_ = request_handler_data.addr_info;
 }
 
-
+//call in each handler - creates the response object and initializes it to a 404.
+//means that you can just early return on fail.
 void RequestHandler::init_response(const http::request<http::string_body>& request){
     //generate response object
     res_ = http::response<http::string_body>{http::status::not_found, request.version()};
@@ -31,6 +32,7 @@ void RequestHandler::init_response(const http::request<http::string_body>& reque
     //can add more args as needed
 }
 
+//logs client/server ip, result, etc.
 void RequestHandler::log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message) {
     std::string client_str = ", Client: " + addr_info_.client_addr;
     std::string host_str = ", Host: " + addr_info_.host_addr;

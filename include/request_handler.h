@@ -20,18 +20,14 @@ class RequestHandler {
     public:
         RequestHandler(const RequestHandlerData& request_handler_data);
         virtual http::response<http::string_body> handle_request(const http::request<http::string_body>& request) = 0;
+        //can't put the static init function here for registering, because of how subclassing works.
     protected:
-        //http::request<http::string_body> req_;
         http::response<http::string_body> res_;
         void init_response(const http::request<http::string_body>& request);
         void log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message);
         AddrInfo addr_info_;
         
 };
-
-////response handle_request(const request& req)
-
-
 
 
 #endif

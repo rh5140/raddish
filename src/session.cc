@@ -40,7 +40,8 @@ void Session::start() {
         boost::asio::placeholders::bytes_transferred));
 }
 
-// Setter for req (made for testing)
+// Setter for req, used for testing to simulate incoming requests.
+// ONLY CALL THIS IN TESTING - OTHERWISE SHOULD ALWAYS BE SET BY HANDLE READ
 void Session::set_req(http::request<http::string_body> req) {
     req_ = req;
 }
@@ -50,7 +51,6 @@ void Session::set_req(http::request<http::string_body> req) {
 http::response<http::string_body> Session::create_response(){
     BOOST_LOG_TRIVIAL(debug) << "http req object:\n" << req_;
     BOOST_LOG_TRIVIAL(debug) << "http req object method:\n" << req_.method_string();
-
     std::string client_addr, host_addr;
     try {
         tcp::endpoint client = socket().remote_endpoint();
@@ -58,29 +58,26 @@ http::response<http::string_body> Session::create_response(){
         client_addr = client.address().to_string() + ":" + to_string(client.port());
         host_addr = host.address().to_string() + ":" + to_string(host.port());
     } 
-    catch (const boost::system::system_error& e) {
+    catch (const boost::system::system_error& e) { //if this fails it just means our logs are not going to have client info, so we can keep going.
         BOOST_LOG_TRIVIAL(error) << "Sockets do not exist";
     }
     RequestDispatcher* dispatcher = new RequestDispatcher();
-    return dispatcher->dispatch_request(req_, config_info_, client_addr, host_addr);
+    http::response<http::string_body> res =  dispatcher->dispatch_request(req_, config_info_, client_addr, host_addr);
+    delete dispatcher;
+    return res;
 }
 
-//private
+//privateSS
 void Session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
     if (!error) {
-        BOOST_LOG_TRIVIAL(debug) << "Reading in data";
-
         //note - new async_read always reads in the entire message, so we don't need recursive calls anymore.
-
         BOOST_LOG_TRIVIAL(debug) << "Creating Response";
+
         //create response
         res_ = create_response();
-
-        //clear buffer for next
-        //TODO: make this in create response
-
         res_.prepare_payload();
-
+        
+        //write response to client
         http::async_write(
             socket_,
             std::move(res_),
@@ -89,8 +86,8 @@ void Session::handle_read(const boost::system::error_code& error, size_t bytes_t
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
     }
-    else if((boost::beast::http::error::partial_message == error)){
-        BOOST_LOG_TRIVIAL(debug) << "Partial Read";
+    else if((boost::beast::http::error::partial_message == error)){ //should never happen, but good to have just in case.
+        BOOST_LOG_TRIVIAL(debug) << "Partial Read"; 
     }
     else if ((boost::beast::http::error::end_of_stream == error) || (boost::asio::error::eof == error)){ //disconnect
         BOOST_LOG_TRIVIAL(debug) << "Disconnect due to end of file";

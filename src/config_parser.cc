@@ -19,7 +19,7 @@
 #include "config_parser.h"
 #include "info.h"
 
-using namespace std; // NOT JUST FOR COUT 
+using namespace std; 
 
 
 //Note: this is for the NginxConfig class, it was given combined so I left it in the same .cc

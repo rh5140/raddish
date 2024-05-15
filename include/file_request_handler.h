@@ -23,7 +23,6 @@ class FileRequestHandler : public RequestHandler {
         static bool registered_;
     private:
         std::string root_;
-        //std::string file_path_;
         std::string get_content_type(std::string file_path);
         std::string file_extension_to_content_type(std::string file_extension);
         FRIEND_TEST(FileRequestTest, Extensions);

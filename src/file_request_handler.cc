@@ -37,7 +37,6 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
 
     if (std::filesystem::exists(file_path)) {
         std::ifstream file_to_read(file_path, std::ios::in | std::ios::binary); // already reading in as binary
-
         if (std::filesystem::is_regular_file(file_path) && file_to_read.is_open()) {
             // Read file contents into string reference: https://stackoverflow.com/questions/2912520/read-file-contents-into-a-string-in-c
             file_content.assign((std::istreambuf_iterator<char>(file_to_read)),
@@ -58,11 +57,12 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
     
     // fill in response if file found
     if(message_ok){ 
-        res_.body() = file_content;
         //set vars
+        res_.body() = file_content;
         res_.result(http::status::ok); 
         res_.set(http::field::content_type, content_type);
     }
+    //no else, because we have a 404 by default so res_ will be a 404.
 
     log_request(request, res_, log_message);
 
@@ -82,6 +82,7 @@ std::string FileRequestHandler::get_content_type(std::string file_path) {
     std::string content_type = file_extension_to_content_type(file_extension);
     return content_type;
 }
+
 
 std::string FileRequestHandler::file_extension_to_content_type(std::string file_extension) {
     if (file_extension == "html") {
