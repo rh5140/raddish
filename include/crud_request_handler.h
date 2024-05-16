@@ -2,6 +2,8 @@
 #define CRUD_REQUEST_HANDLER
 
 #include <string>
+#include <optional>
+#include <utility>
 #include <gtest/gtest_prod.h>
 #include "request_handler.h"
 
@@ -19,7 +21,10 @@ class CRUDRequestHandler : public RequestHandler {
         static RequestHandler* init(const RequestHandlerData& request_handler_data);
         static bool registered_;
     private:
+        std::string location_path_;
         std::string data_path_;
+        void set_bad_request_response(std::string message);
+        std::optional<std::pair<std::string, int>> extract_elements(const std::string& relative_path);
         // FRIEND_TEST(CRUDRequestTest, Extensions); <- will be helpful for testing?
 };
 

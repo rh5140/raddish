@@ -63,6 +63,7 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     std::string root = config_info.location_to_directives[curr_longest_match]["root"]; // empty if DNE
     request_handler_data.root = root;
     request_handler_data.data_path = config_info.location_to_directives[curr_longest_match]["data_path"];
+    request_handler_data.location_path = curr_longest_match;
     AddrInfo addr_info;
     addr_info.host_addr = host;
     addr_info.client_addr = client;

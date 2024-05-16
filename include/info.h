@@ -21,6 +21,7 @@ struct AddrInfo {
 
 //used for request handler initialization
 struct RequestHandlerData{
+    std::string location_path;
     std::string root;
     std::string data_path;
     AddrInfo addr_info;
