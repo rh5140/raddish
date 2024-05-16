@@ -42,12 +42,13 @@ add_library(session_lib src/session.cc)
 add_library(echo_handler_lib OBJECT src/echo_request_handler.cc)
 add_library(file_handler_lib OBJECT src/file_request_handler.cc)
 add_library(not_found_handler_lib OBJECT src/not_found_request_handler.cc)
+add_library(crud_handler_lib OBJECT src/crud_request_handler.cc)
 add_library(handler_lib src/request_handler.cc)
 add_library(handler_factory_lib src/request_handler_factory.cc)
 add_library(dispatcher_lib src/request_dispatcher.cc)
 
 add_library(all_handlers_lib INTERFACE)
-target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib>)
+target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> $<TARGET_OBJECTS:crud_handler_lib>)
 
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)

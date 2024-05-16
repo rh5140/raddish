@@ -16,7 +16,7 @@ FileRequestHandler::FileRequestHandler(const RequestHandlerData& request_handler
 }
 
 RequestHandler* FileRequestHandler::init(const RequestHandlerData& request_handler_data) {
-    return new FileRequestHandler(request_handler_data); 
+    return new FileRequestHandler(request_handler_data);
 }
 bool FileRequestHandler::registered_ = RequestHandlerFactory::register_handler("FileRequestHandler", FileRequestHandler::init);
 

@@ -62,6 +62,7 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     RequestHandlerData request_handler_data;
     std::string root = config_info.location_to_directives[curr_longest_match]["root"]; // empty if DNE
     request_handler_data.root = root;
+    request_handler_data.data_path = config_info.location_to_directives[curr_longest_match]["data_path"];
     AddrInfo addr_info;
     addr_info.host_addr = host;
     addr_info.client_addr = client;
@@ -84,6 +85,6 @@ bool RequestDispatcher::is_valid_request(http::request<http::string_body> req) {
     oss << req;
     std::string str_req = oss.str();
     BOOST_LOG_TRIVIAL(debug) << str_req;
-    std::regex request_regex("GET \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
+    std::regex request_regex("[GET|POST|PUT|DELETE] \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
     return std::regex_search(str_req, request_regex);
 }
