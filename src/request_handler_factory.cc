@@ -37,8 +37,8 @@ bool RequestHandlerFactory::register_handler(const std::string name, CreateReque
 //defaults to a random factory if the name doesn't exist to prevent crashes.
 CreateRequestHandler RequestHandlerFactory::get_factory(std::string name){
     if(get_map().count(name) == 0){
-        BOOST_LOG_TRIVIAL(warning) << "No handler found for key - defaulting to random one";
-        return get_map().begin()->second; //just throws out the first one in the list.
+        BOOST_LOG_TRIVIAL(fatal) << "FATAL - NO HANDLER FOUND FOR KEY " + name + ". Check if the static init bool is set up properly or fix config.";
+        exit(-1);
     }
     return get_map()[name];
 }

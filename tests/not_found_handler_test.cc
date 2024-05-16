@@ -37,7 +37,7 @@ class NotFoundTest : public testing::Test {
             addr_info.host_addr =  "host:8080";
             addr_info.client_addr = "client:8080";
             request_handler_data.addr_info = addr_info;
-            handler_factory = RequestHandlerFactory::get_factory("FileRequestHandler"); //get factory
+            handler_factory = RequestHandlerFactory::get_factory("NotFoundHandler"); //get factory
         }
 
         void TearDown() override {
