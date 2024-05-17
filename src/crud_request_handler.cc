@@ -5,11 +5,13 @@
 #include "crud_request_handler.h"
 #include "request_handler_factory.h"
 #include "info.h"
+#include <memory>
+#include "crud_store.h"
 
 #include <boost/log/trivial.hpp>
 
-CRUDRequestHandler::CRUDRequestHandler(const RequestHandlerData& request_handler_data) :
-    RequestHandler(request_handler_data), data_path_(request_handler_data.data_path), location_path_(request_handler_data.location_path) {
+CRUDRequestHandler::CRUDRequestHandler(const RequestHandlerData& request_handler_data, std::unique_ptr<CRUDStore> crud_store) :
+    RequestHandler(request_handler_data), data_path_(request_handler_data.data_path), location_path_(request_handler_data.location_path), crud_store_(std::move(crud_store)) {
     if (location_path_[location_path_.length()-1] == '/')
         location_path_.erase(location_path_.length()-1, 1);
 }
@@ -18,7 +20,7 @@ RequestHandler* CRUDRequestHandler::init(const RequestHandlerData& request_handl
     std::filesystem::path data_path = std::filesystem::path(request_handler_data.data_path);
     if (!std::filesystem::is_directory(data_path))
         throw std::runtime_error("Given data path for CRUDRequestHandler is not a directory");
-    return new CRUDRequestHandler(request_handler_data);
+    return new CRUDRequestHandler(request_handler_data, std::make_unique<CRUDStore>(data_path));
 }
 
 bool CRUDRequestHandler::registered_ = RequestHandlerFactory::register_handler("CRUDRequestHandler", CRUDRequestHandler::init);
@@ -38,9 +40,15 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     }
     std::string entity = elements.value().first;
     int id = elements.value().second;
+    std::string body = request.body();
 
+    init_response(request);
+    res_.set(http::field::content_type, "application/json");
+    
     switch (method) {
     case http::verb::get:
+        // expectation: id = -1 in case of a List request
+        get(id, entity, body);
         break;
     case http::verb::post:
         if (id != -1) {
@@ -48,7 +56,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
             set_bad_request_response(log_message);
             break;
         }
-        // res_ = crud_guy_.post(request)
+        post(id, entity, body);
         break;
     case http::verb::put:
         if (id == -1) {
@@ -56,7 +64,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
             set_bad_request_response(log_message);
             break;
         }
-        // res_ = crud_guy_.put(request)
+        put(id, entity, body);
         break;
     case http::verb::delete_:
         if (id == -1) {
@@ -64,7 +72,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
             set_bad_request_response(log_message);
             break;
         }
-        // res_ = crud_guy_.delete(request)
+        del(id, entity, body);
         break;
     default:
         // Currently it is impossible to get here because of the blanked
@@ -108,4 +116,22 @@ std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(
     if (matches[2].matched)
         id = std::stoi(matches[3]);
     return std::make_pair(entity, id);
+}
+
+// these functions will set up the res_ object
+
+void CRUDRequestHandler::get(int id, std::string entity, std::string json) {
+    
+}
+
+void CRUDRequestHandler::post(int id, std::string entity, std::string json) {
+
+}
+
+void CRUDRequestHandler::put(int id, std::string entity, std::string json) {
+    
+}
+
+void CRUDRequestHandler::del(int id, std::string entity, std::string json) {
+    
 }
