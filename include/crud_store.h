@@ -7,6 +7,9 @@
 
 // these methods do not throw exceptions
 // they signal errors through return values
+
+// PRECONDITION(!): the 'id' parameter must be non-negative
+// internally, we do not check, but note -1 is used as a sentinel in 'create'
 class CRUDStore {
 public:
     CRUDStore(std::string data_path);
