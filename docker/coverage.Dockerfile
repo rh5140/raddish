@@ -4,6 +4,12 @@ FROM raddish:base as coverage
 
 # Share work directory
 COPY . /usr/src/project
+
+# Submodule init
+WORKDIR /usr/src/project
+RUN git submodule update --init --recursive
+
+# Go to build coverage
 WORKDIR /usr/src/project/build_coverage
 
 # Build 

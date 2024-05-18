@@ -34,6 +34,9 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 
 include_directories(include)
 
+# Json parsing
+include_directories(external/json/single_include)
+
 # Update name and srcs
 add_library(server_lib src/server.cc)
 add_library(session_lib src/session.cc)

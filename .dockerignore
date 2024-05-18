@@ -1,5 +1,4 @@
 .dockerignore
-.git*
 .vscode
 build
 build_*
