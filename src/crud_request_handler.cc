@@ -7,8 +7,8 @@
 #include "info.h"
 #include <memory>
 #include "crud_store.h"
-
 #include <boost/log/trivial.hpp>
+#include <boost/lexical_cast.hpp>
 
 CRUDRequestHandler::CRUDRequestHandler(const RequestHandlerData& request_handler_data, std::unique_ptr<CRUDStore> crud_store) :
     RequestHandler(request_handler_data), data_path_(request_handler_data.data_path), location_path_(request_handler_data.location_path), crud_store_(std::move(crud_store)) {
@@ -47,19 +47,19 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     
     switch (method) {
     case http::verb::get:
-        // expectation: id = -1 in case of a List request
-        get(id, entity, body);
+        // expectation: id = 0 in case of a List request
+        get(id, entity);
         break;
     case http::verb::post:
-        if (id != -1) {
+        if (id != 0) {
             log_message = "POST requests cannot specify an entity ID";
             set_bad_request_response(log_message);
             break;
         }
-        post(id, entity, body);
+        post(entity, body);
         break;
     case http::verb::put:
-        if (id == -1) {
+        if (id == 0) {
             log_message = "PUT requests must specify an entity ID";
             set_bad_request_response(log_message);
             break;
@@ -67,12 +67,12 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
         put(id, entity, body);
         break;
     case http::verb::delete_:
-        if (id == -1) {
+        if (id == 0) {
             log_message = "DELETE requests must specify an entity ID";
             set_bad_request_response(log_message);
             break;
         }
-        del(id, entity, body);
+        del(id, entity);
         break;
     default:
         // Currently it is impossible to get here because of the blanked
@@ -91,10 +91,30 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     return res_;
 }
 
-void CRUDRequestHandler::set_bad_request_response(std::string message) {
+void CRUDRequestHandler::set_bad_request_response(const std::string& message) {
     res_.result(http::status::bad_request);
     res_.body() = message;
     res_.set(http::field::content_type, "text/plain");
+}
+
+void CRUDRequestHandler::set_file_not_found_response() {
+    res_.result(http::status::not_found);
+    res_.body() = "404 File Not Found";
+    res_.set(http::field::content_type, "text/plain");
+}
+
+void CRUDRequestHandler::set_internal_server_error_response() {
+    res_.result(http::status::internal_server_error);
+    res_.body() = "500 Internal Server Error";
+    res_.set(http::field::content_type, "text/plain");
+}
+
+std::optional<json> CRUDRequestHandler::validate_json(const std::string& json) {
+    try {
+        return json::parse(json);
+    } catch (const json::parse_error&) {
+        return std::nullopt;
+    }
 }
 
 std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(const std::string& relative_path) {
@@ -107,7 +127,7 @@ std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(
     std::smatch matches;
 
     std::string entity;
-    int id = -1;
+    int id = 0;
     // In case the URL doesn't adhere to the above requirements we should fail early so we return nullopt and check in calling function to set bad request (400)
     if (!std::regex_search(relative_path, matches, pattern)) {
         return std::nullopt;
@@ -120,18 +140,49 @@ std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(
 
 // these functions will set up the res_ object
 
-void CRUDRequestHandler::get(int id, std::string entity, std::string json) {
-    
+void CRUDRequestHandler::get(int id, std::string entity) {
+    if (id == 0) {
+        res_.result(http::status::ok);
+        res_.body() = json(crud_store_->list(entity)).dump();
+        return;
+    }
+
+    auto v = crud_store_->retrieve(entity, id);
+    if (v.has_value()) {
+        res_.result(http::status::ok);
+        res_.body() = v.value();
+    } else {
+        set_file_not_found_response();
+    }
 }
 
-void CRUDRequestHandler::post(int id, std::string entity, std::string json) {
-
+void CRUDRequestHandler::post(std::string entity, std::string body) {
+    int id;
+    auto res = validate_json(body);
+    if (!res.has_value())
+        set_bad_request_response();
+    else if ((id = crud_store_->create(entity, res.value().dump())) == -1)
+        set_internal_server_error_response();
+    else {
+        res_.result(http::status::ok);
+        res_.body() = "{\"id\": " + boost::lexical_cast<std::string>(id) + "}";
+    }
 }
 
-void CRUDRequestHandler::put(int id, std::string entity, std::string json) {
-    
+void CRUDRequestHandler::put(int id, std::string entity, std::string body) {
+    auto res = validate_json(body);
+    if (!res.has_value())
+        set_bad_request_response();
+    else if (!crud_store_->update(entity, id, res.value().dump()))
+        set_internal_server_error_response();
+    else {
+        res_.result(http::status::ok);
+    }
 }
 
-void CRUDRequestHandler::del(int id, std::string entity, std::string json) {
-    
+void CRUDRequestHandler::del(int id, std::string entity) {
+    if (crud_store_->del(entity, id)) {
+        res_.result(http::status::ok);
+    } else
+        set_file_not_found_response();
 }

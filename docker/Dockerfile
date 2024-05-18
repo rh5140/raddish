@@ -4,6 +4,12 @@ FROM raddish:base as builder
 
 # Share work directory
 COPY . /usr/src/projects/raddish
+
+# Submodule init
+WORKDIR /usr/src/projects/raddish
+RUN git submodule update --init --recursive
+
+# Go to build
 WORKDIR /usr/src/projects/raddish/build
 
 # Build and test
