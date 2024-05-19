@@ -66,6 +66,7 @@ function(generate_coverage_report)
             COMMAND ${CMAKE_COMMAND} -E make_directory "${COVERAGE_REPORT_DIR}"
             COMMAND "${GCOVR_PATH}" --html --html-details -s
             -r "${CMAKE_SOURCE_DIR}"
+            -e "${CMAKE_SOURCE_DIR}/external/*"
             --object-directory "${CMAKE_BINARY_DIR}"
             -o "${COVERAGE_REPORT_FILE}"
             DEPENDS ${COVERAGE_DATA_STAMP_FILE}
