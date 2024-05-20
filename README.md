@@ -186,3 +186,80 @@ class NotFoundHandler : public RequestHandler {
 #endif
 ```
 
+# CRUD Handler Readme
+
+## Handler Overview
+
+The CRUD handler provides capabilities as required by assignment 7, spec shown [here](https://www.cs130.org/assignments/7/).
+
+One should also note before looking at the operations that follow, that we assume the CRUD handler to be setup and have a specified valid `data_path`, or directory to be used internally by the persistent key-value store as implemented by the `CRUD store`. This is enforced by the handler's construction and initialization.
+
+Despite the name of CRUD where one would expect 4 operations, the handler supports 5 distinct operations. Additionally, we define an operation as those that follow as supported by the CRUD handler, and an op code, or `${OP}`, as one of the HTTP verbs such as GET or POST.
+
+#### Supported Operations
+
+* Create: `POST /api/Shoes` -> which creates a new key-value store and writes the POST body to `data_path/Shoes/${ID}`, and then returns the ID of a newly created shoe entity
+* Retrieve: `GET /api/Shoes/1` -> returns the data at the key of 1 in the entity Shoes by internally reading `data_path/Shoes/1`
+* Update: `PUT /api/Shoes/5` -> updates the data for shoe 5 with the PUT body, by writing to `data_path/Shoes/5`. If shoe at ID 5 already existing, update the value. If shoe at 5 has not already been created, then we create a shoe at 5 and put the PUT body there, allowing for creation of entity values with a pre-determined ID.
+* Delete: `DELETE /api/Shoes/1` -> delete shoe 1 from the system by interally removing the file `data_path/Shoes/1`
+* List: `GET /api/Shoes` -> returns a JSON list of valid IDs for the given entity, in this case all IDs currently in use for Shoes, internally located at `data_path/Shoes/`
+
+#### Mapping of Op Codes to Operations
+* `GET` -> retrieval of a single item if ID specified *__OR__* a list of all valid IDs if no ID specified
+* `POST` -> creation of a single item using the POST body as input to the value
+* `PUT` -> update of data at existing ID, or creation with data at specific non-existing ID
+* `DELETE` -> deletion of item at specified ID
+
+#### Request Format
+ All requests delivered to the CRUD handler API are expected to be in the format `${OP} ${API}/${Entity}/${ID}?`, where each of the following are defined as follows:
+* `${OP}` is one of the operations specified above
+* `${API}` is the location of the server's CRUD handler, such as `/api/` or other defined by           server config
+* `${Entity}` is any simply-defined string name of an entity type (with some limitations noted below)
+* `${ID}` is the ID if of the item in question if required by the operation
+
+## More Info & Edge Cases
+
+Edge cases will be specified per the 5 distinct operations and bad requests in general. Bad requests at the fault of the user will receive `400 Bad Request`. If the internals of the CRUD store fail for any reason not due to request input, then we will return `500 Internal Server Error` since this is not the fault of the user.
+
+### General Info On Bad Requests 
+* `${Entity}` can be any word with upper or lowercase letters, but cannot contain any other characters. This is defined by the Regex `[A-Za-z]+` and is our interpretation of a simply-defined string word. 
+* `${ID}` can be any number of digits so long as there is one if required, but this is limited internally by its implementation and storage as an `int`, so be wary of overflow which will lead to undefined behavior
+* If a request does not match our required format we return `400 Bad Request` with a body of `Invalid request format for CRUD API`. For example, if an operation requires an ID but one is not provided, then that is a `400`. Vice-versa, if an ID should not be specified and one is specified, that is a `400`.
+
+### Create
+* Uses an op code of `POST`
+* IDs start at 1 and count upwards. 
+* When creating a new item, the new ID will be `max value of the currently used IDs + 1`
+* `POST` with an ID specified is a bad request
+* `POST` with invalid JSON in the POST body is a bad request
+* If the `${Entity}` subdirectory does not already exist (perhaps because there were no entries previously to this entity type), then one will be created and operation continues as normal
+
+### Retrieve
+* Uses an op code of `GET`
+* If no ID is specified, we assume List operation (discussed below)
+* If an invalid ID is specified, we return `404 File Not Found`
+* Since IDs start at 1, `GET` with an ID of 0 or no ID will be interpreted as a `List` operation, since internally an ID of 0 (or no ID given) is used to signal a `List` operation
+
+### Update
+* Uses an op code of `PUT`
+* If the ID is 0, bad request
+* If the JSON in the POST body is invalid, bad request
+* If the ID is in use already, update the value at that ID
+* If the ID is not in use already, create a new item with that ID and the POST body as the value
+* If ID not in use already and `${Entity}` also does not exist, create the `${Entity}` store and proceed as if everything is fine and ID not in use, so create a new item with that ID
+
+### Delete
+* Uses an op code of `DELETE`
+* If no ID is specified or the ID specified is 0, bad request
+* If the file exists at that ID, delete it
+* If the file does not exist to delete, return `404 File Not Found`
+
+### List
+* Shares an op code of `GET` with retrieve
+* Unspecified or ID of 0 is routed to the list functionality
+* The list of valid IDs returned will be sorted in ascending order
+* If there are no valid IDs, then we give back an empty list of IDs with `200`
+* If the entity type does not exist, give back an empty list of IDs with `200`
+* The list implementation ignores non-integer filenames and only returns those with valid IDs (integers only). These files would only end up here if the server admin interfered and put them there.
+
+
