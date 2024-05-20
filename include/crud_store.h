@@ -15,17 +15,22 @@ public:
     CRUDStore(std::string data_path);
 public:
     // return id of new entity or -1 if error
+    // id of new entity will be 1 if no id's in system or max_id + 1
+    // this will never stomp on an old id
     virtual int create(std::string entity_type, std::string post_body);
-    // reads relevant entity's id's value and gives back or std::nullopt if none
+    // reads relevant entity's id's value and gives back
+    // if entity or id doesn't exist, gives std::nullopt
     virtual std::optional<std::string> retrieve(std::string entity_type, int id);
     // writes the put_body to the entity's id's value and gives indicator of success
-    // if the entity or the id doesn't exist, this will fail
+    // if doesn't exist, will create both the entity and the id
     virtual bool update(std::string entity_type, int id, std::string put_body);
     // deletes the entity's id and associated value and indicates if successful
-    // if file non-exist, returns 'false'
+    // this changes the max_id value in the system
+    // if entity or id doesn't exist, returns false
     virtual bool del(std::string entity_type, int id);
     // return vector of the ids for the given entity
-    // empty if none
+    // empty if entity does not exist or no ids for the entity
+    // this vector will be sorted in ascending order
     virtual std::vector<int> list(std::string entity_type);
 private:
     std::string data_path_;

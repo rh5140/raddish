@@ -123,7 +123,7 @@ std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(
     // [ID] can be any number of digits so long as there is at least 1,
     // and an ID must be preceded by a / if it exists. (note ID will be cast to int so beware of overflow)
     // The [ENTITY] and [ID] are returned as an optional pair
-    std::regex pattern(R"(/*([A-Za-z]+)(/(\d+))?$)");
+    std::regex pattern(R"(^/*([A-Za-z]+)/*(/(\d+))?$)");
     std::smatch matches;
 
     std::string entity;
