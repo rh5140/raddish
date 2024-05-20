@@ -239,6 +239,7 @@ bool NginxConfigParser::parse(std::istream* config_file, NginxConfig* config) {
       }
       //handle {} mismatch
       if(indent_count != 0){
+        BOOST_LOG_TRIVIAL(error) << "Mismatched amount of start/end blocks";
         return false;
       }
       return true;
@@ -248,7 +249,7 @@ bool NginxConfigParser::parse(std::istream* config_file, NginxConfig* config) {
     }
     last_token_type = token_type;
   }
-  BOOST_LOG_TRIVIAL(warning) << "Bad transition from " << token_type_as_string(last_token_type) << " to " << token_type_as_string(token_type);
+  BOOST_LOG_TRIVIAL(error) << "Bad transition from " << token_type_as_string(last_token_type) << " to " << token_type_as_string(token_type);
   return false;
 }
 bool NginxConfigParser::parse(const char* file_name, NginxConfig* config) {
@@ -300,7 +301,7 @@ bool NginxConfigParser::get_server_settings_inner(){
             log_output = log_output + "Location: " + location + ", ";
 
             if (hasKey(seen_locations, location)) { // exit if duplicate path
-              BOOST_LOG_TRIVIAL(error) << location << " is a duplicate path";
+              BOOST_LOG_TRIVIAL(error) << "Duplicate path found : " << location;
               return false;
             }
           
@@ -336,7 +337,7 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //correctness checking
     if((port_num) < 0 || (port_num) > 65353){ //65353 is the default max range for port
-      BOOST_LOG_TRIVIAL(error) << "invalid port number";
+      BOOST_LOG_TRIVIAL(error) << "Invalid port number given";
       return false;
     }
     //add more checks here as needed

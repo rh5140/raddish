@@ -21,27 +21,24 @@ RequestDispatcher::RequestDispatcher() {
 }
 
 http::response<http::string_body> RequestDispatcher::dispatch_request(http::request<http::string_body> req, ConfigInfo config_info, std::string host, std::string client){
-
-    BOOST_LOG_TRIVIAL(debug) << "Request received: \n" << req; //info.request.substr(0, info.request_size);
-    BOOST_LOG_TRIVIAL(debug) << req.target(); 
+    BOOST_LOG_TRIVIAL(debug) << "Received " << req.method_string() << " request from " << client;
+    BOOST_LOG_TRIVIAL(trace) << "Full HTTP request object :\n" << req;
 
     if (!is_valid_request(req)) {
-        BOOST_LOG_TRIVIAL(warning) << "invalid request";
         response_ = http::response<http::string_body>{http::status::not_found, req.version()};
         response_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         response_.set(http::field::content_type, "text/plain");
         response_.body() = "404 Not Found"; //removed /n for consistancy
+        BOOST_LOG_TRIVIAL(warning) << "Status 404 - Not Found" 
+            << ", Client: " + client 
+            << ", Host: " + host 
+            << ", Request: \"" + req.method_string().to_string() + " " + req.target().to_string() + " HTTP/" + std::to_string(req.version() / 10) + "." + std::to_string(req.version() % 10) + "\"";
         return response_;
     }
-
-
     
-    BOOST_LOG_TRIVIAL(debug) << "valid request";
-
-
     //file path is now just "req.target()"
     std::string file_path = std::string(req.target());
-    BOOST_LOG_TRIVIAL(debug) << file_path;
+    BOOST_LOG_TRIVIAL(trace) << "Path of request : " << file_path;
 
     //factory pointer - "CreateRequestHandler" is just a shorthand for the function pointer.
     CreateRequestHandler handler_factory;
@@ -82,10 +79,12 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
 
 // currently only checks first line essentially
 bool RequestDispatcher::is_valid_request(http::request<http::string_body> req) {
+    bool is_valid; 
     std::ostringstream oss;
     oss << req;
     std::string str_req = oss.str();
-    BOOST_LOG_TRIVIAL(debug) << str_req;
-    std::regex request_regex("[GET|POST|PUT|DELETE] \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
-    return std::regex_search(str_req, request_regex);
+    std::regex request_regex("(GET|POST|PUT|DELETE) \/.* HTTP\/1\.1(\n|\r\n)(.+:.+(\n|\r\n))*(\n|\r\n).*", std::regex::extended);
+    is_valid = std::regex_search(str_req, request_regex);
+    BOOST_LOG_TRIVIAL(debug) << "Request Valid? " << is_valid ? "true" : "false";
+    return is_valid;
 }

@@ -28,7 +28,7 @@ std::map<std::string, CreateRequestHandler>& RequestHandlerFactory::get_map(){
 
 //called by each handler to assign themselves
 bool RequestHandlerFactory::register_handler(const std::string name, CreateRequestHandler factory) {
-    BOOST_LOG_TRIVIAL(debug) << "handler name: " << name;
+    BOOST_LOG_TRIVIAL(debug) << "Handler created : " << name;
     get_map()[name] = factory;
     return true; //can do error checking if needed
 }

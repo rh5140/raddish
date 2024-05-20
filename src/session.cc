@@ -49,8 +49,6 @@ void Session::set_req(http::request<http::string_body> req) {
 //public
 
 http::response<http::string_body> Session::create_response(){
-    BOOST_LOG_TRIVIAL(debug) << "http req object:\n" << req_;
-    BOOST_LOG_TRIVIAL(debug) << "http req object method:\n" << req_.method_string();
     std::string client_addr, host_addr;
     try {
         tcp::endpoint client = socket().remote_endpoint();
@@ -61,6 +59,7 @@ http::response<http::string_body> Session::create_response(){
     catch (const boost::system::system_error& e) { //if this fails it just means our logs are not going to have client info, so we can keep going.
         BOOST_LOG_TRIVIAL(error) << "Sockets do not exist";
     }
+
     RequestDispatcher* dispatcher = new RequestDispatcher();
     http::response<http::string_body> res =  dispatcher->dispatch_request(req_, config_info_, client_addr, host_addr);
     delete dispatcher;
@@ -70,9 +69,6 @@ http::response<http::string_body> Session::create_response(){
 //privateSS
 void Session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
     if (!error) {
-        //note - new async_read always reads in the entire message, so we don't need recursive calls anymore.
-        BOOST_LOG_TRIVIAL(debug) << "Creating Response";
-
         //create response
         res_ = create_response();
         res_.prepare_payload();
@@ -98,8 +94,7 @@ void Session::handle_read(const boost::system::error_code& error, size_t bytes_t
         delete this;
     }
     else {
-        BOOST_LOG_TRIVIAL(trace) << "Error: " << error.message(); 
-        BOOST_LOG_TRIVIAL(error) << "Error in handle read";
+        BOOST_LOG_TRIVIAL(error) << "Error in handle read : " << error.message();
         delete this;
     }
 }

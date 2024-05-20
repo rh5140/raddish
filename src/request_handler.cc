@@ -44,16 +44,19 @@ void RequestHandler::log_request(const http::request<http::string_body>& request
     // can add more cases e.g. 204 for no content
     switch (status) {
         case (200):
-            BOOST_LOG_TRIVIAL(info) << "Status " + std::to_string(status) + client_str + host_str + request_line_str + " " + log_message;
+            BOOST_LOG_TRIVIAL(info) << "Status " + std::to_string(status) + " - " + log_message + client_str + host_str + request_line_str;
             break;
         default:
-            BOOST_LOG_TRIVIAL(warning) << "Status " + std::to_string(status) + client_str + host_str + request_line_str + " " + log_message;
+            BOOST_LOG_TRIVIAL(warning) << "Status " + std::to_string(status) + " - " + log_message + client_str + host_str + request_line_str;
     }
 
     std::string res_header = boost::lexical_cast<std::string>(response.base());
     std::string res_body = boost::lexical_cast<std::string>(response.body());
+    if (response[http::field::content_type].to_string() != "text/plain") { 
+        res_body = "Binary of " + std::string(request.target()); // for clarity in logs
+    }
 
-    BOOST_LOG_TRIVIAL(trace) << res_header << res_body;
+    BOOST_LOG_TRIVIAL(trace) << "Full HTTP response :\n" << res_header << res_body;
 }
 
 

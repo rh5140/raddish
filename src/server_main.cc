@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
       return 1;
     }
 
+    Logger logs;
+
     boost::asio::io_service io_service;
 
     using namespace std; // For atoi.
@@ -39,17 +41,17 @@ int main(int argc, char* argv[]) {
     NginxConfigParser parser;
     NginxConfig out_config;  
 
-    Logger logs;
+    signal(SIGINT, signalHandler); // CTRL + C handler
 
-    signal(SIGINT, signalHandler); // CNTRL + C handler
-
+    // Loading in Configs
+    BOOST_LOG_TRIVIAL(info) << "Getting the (con)figs - Start!";
     bool success = parser.parse(argv[1], &out_config);
     if(!success){
+      BOOST_LOG_TRIVIAL(fatal) << "Oh no! Bad (con)figs were provided";
       return 1;
     }
-
     if(!parser.get_config_settings(&out_config)){
-      BOOST_LOG_TRIVIAL(error) << "Failed to parse config file";
+      BOOST_LOG_TRIVIAL(fatal) << "Failed to parse config file";
       return 1;
     }
 
