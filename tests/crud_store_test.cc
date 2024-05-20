@@ -72,7 +72,7 @@ TEST_F(CRUDStoreTest, NonExistentFile) {
     ASSERT_NE(id, -1);
     ASSERT_TRUE(store.del("test_entity", id));
     bool updated = store.update("test_entity", id, R"({"name": "updated_test"})");
-    EXPECT_FALSE(updated);
+    EXPECT_TRUE(updated);
 }
 
 TEST_F(CRUDStoreTest, ListErrors) {
@@ -116,4 +116,22 @@ TEST_F(CRUDStoreTest, ComplexCRUD) {
     store.del(entity, 4);
     id = store.create(entity, content);
     ASSERT_EQ(id, 2);
+}
+
+TEST_F(CRUDStoreTest, CreateOnUpdate) {
+    CRUDStore store(test_path);
+
+    std::string entity = "test_entity";
+    std::string content = R"({"name": "test"})";
+
+    bool created = store.update("test_entity", 5, R"({"name": "updated_test"})");
+    EXPECT_TRUE(created);
+
+    created = store.update("test_entity", 10, R"({"name": "updated_test"})");
+    EXPECT_TRUE(created);
+
+    auto ids = store.list(entity);
+    EXPECT_EQ(ids.size(), 2);
+    EXPECT_EQ(ids[0], 5);
+    EXPECT_EQ(ids[1], 10);
 }

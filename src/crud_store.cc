@@ -52,8 +52,13 @@ std::optional<std::string> CRUDStore::retrieve(std::string entity_type, int id) 
 
 bool CRUDStore::update(std::string entity_type, int id, std::string put_body) {
     std::string file_path = data_path_ + "/" + entity_type + "/" + std::to_string(id);
+    // Update may also be used to create an Entity with a specific pre-determined ID.
     if (!std::filesystem::exists(file_path)) {
-        return false;
+        // if the entity_type does not exist, create it
+        std::string entity_path = data_path_ + "/" + entity_type;
+        if (!std::filesystem::exists(entity_path)) {
+        std::filesystem::create_directories(entity_path);
+        }
     }
 
     std::ofstream file(file_path);
