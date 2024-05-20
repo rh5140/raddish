@@ -36,19 +36,17 @@ TEST_F(SessionTest, SessionStart) {
     EXPECT_NO_THROW(test_session->start());
 }
 
-
-
-//TODO: also broke these tests :)))) 
-TEST_F(SessionTest, Create404Response) {
+TEST_F(SessionTest, Create400Response) {
     test_session->set_req(req);
     res = test_session->create_response();
 
-    EXPECT_EQ(res.result(), http::status::not_found);
+    EXPECT_EQ(res.result(), http::status::bad_request);
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
-    EXPECT_EQ(res.body(), "404 Not Found");
+    EXPECT_EQ(res.body(), "400 Bad Request");
 
     delete test_session;
 }
+
 
 TEST_F(SessionTest, CreateResponseStaticFile) {
     //test_session->config_info_.location_to_handler["/text/"] = "FileRequestHandler";
@@ -63,10 +61,7 @@ TEST_F(SessionTest, CreateResponseStaticFile) {
 //TODO: not sure exactly why this specific test broke
 
 TEST_F(SessionTest, CreateResponseEcho) {
-
-
     test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
-
     req.target("/echo");
     req.method(http::verb::get);
     test_session->set_req(req);
@@ -75,8 +70,6 @@ TEST_F(SessionTest, CreateResponseEcho) {
     EXPECT_EQ(res.result(), http::status::ok);
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
     EXPECT_EQ(res.body(), "GET /echo HTTP/1.1\r\n\r\n");
-
-
 }
 
 TEST_F(SessionTest, HandleReadMaxLength) {

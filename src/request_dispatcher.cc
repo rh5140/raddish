@@ -25,11 +25,11 @@ http::response<http::string_body> RequestDispatcher::dispatch_request(http::requ
     BOOST_LOG_TRIVIAL(trace) << "Full HTTP request object :\n" << req;
 
     if (!is_valid_request(req)) {
-        response_ = http::response<http::string_body>{http::status::not_found, req.version()};
+        response_ = http::response<http::string_body>{http::status::bad_request, req.version()};
         response_.set(http::field::server, BOOST_BEAST_VERSION_STRING);
         response_.set(http::field::content_type, "text/plain");
-        response_.body() = "404 Not Found"; //removed /n for consistancy
-        BOOST_LOG_TRIVIAL(warning) << "Status 404 - Not Found" 
+        response_.body() = "400 Bad Request"; //removed /n for consistancy
+        BOOST_LOG_TRIVIAL(warning) << "Status 400 - Bad Request" 
             << ", Client: " + client 
             << ", Host: " + host 
             << ", Request: \"" + req.method_string().to_string() + " " + req.target().to_string() + " HTTP/" + std::to_string(req.version() / 10) + "." + std::to_string(req.version() % 10) + "\"";

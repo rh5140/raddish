@@ -44,9 +44,9 @@ TEST_F(DispatcherTest, BasicDispatch) {
 
     RequestDispatcher* dispatcher = new RequestDispatcher();
     res = dispatcher->dispatch_request(req, parser_.get_config_info(), "8080", "8080");
-    EXPECT_EQ(res.result(), http::status::not_found);
+    EXPECT_EQ(res.result(), http::status::bad_request);
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
-    EXPECT_EQ(res.body(), "404 Not Found");
+    EXPECT_EQ(res.body(), "400 Bad Request");
 }
 
 
@@ -83,3 +83,7 @@ TEST_F(DispatcherTest, NoMatch) {
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
     EXPECT_EQ(res.body(), "404 Not Found");
 }   
+
+TEST_F(DispatcherTest, CheckIfValid) {
+    
+}
