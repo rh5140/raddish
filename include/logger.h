@@ -1,5 +1,4 @@
 #include <gtest/gtest_prod.h>
-#include <string.h>
 
 class Logger {
 public:

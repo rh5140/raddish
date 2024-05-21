@@ -1,23 +1,8 @@
-
+#include <boost/log/trivial.hpp>
+#include <string>
+#include <map>
 #include "request_handler_factory.h"
 #include "info.h"
-#include <cstdint>
-#include <sstream>
-#include <string>
-#include <iostream>
-
-#include <boost/log/trivial.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/log/trivial.hpp>
-#include <sys/types.h>
-
-
-namespace beast = boost::beast;  
-namespace http = beast::http;   
-
-using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 //this prevents the static initialization issue where the order isn't fixed
 //creates map on first call, after that just returns the same map as from before.

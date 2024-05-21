@@ -1,4 +1,9 @@
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include "server.h"
+#include "info.h"
+
+using boost::asio::ip::tcp;
 
 Server::Server(boost::asio::io_service& io_service, ConfigInfo& config_info) : io_service_(io_service), acceptor_(io_service, tcp::endpoint(tcp::v4(), config_info.port_num)) {
     config_info_ = config_info;

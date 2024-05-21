@@ -1,8 +1,7 @@
-#pragma once
+#ifndef INFO
+#define INFO
 #include <string>
 #include <map>
-#include <vector>
-
 
 // holds structs for use in other files
 
@@ -26,3 +25,5 @@ struct RequestHandlerData{
     std::string data_path;
     AddrInfo addr_info;
 };
+
+#endif

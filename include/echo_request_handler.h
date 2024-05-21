@@ -4,6 +4,7 @@
 #include <string>
 #include <gtest/gtest_prod.h>
 #include "request_handler.h"
+#include "info.h"
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>

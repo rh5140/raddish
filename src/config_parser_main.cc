@@ -1,5 +1,7 @@
 // Usage: ./config_parser <path to config file>
+#include <cstdio>
 #include "config_parser.h"
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     printf("Usage: ./config_parser <path to config file>\n");

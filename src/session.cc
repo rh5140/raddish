@@ -1,25 +1,15 @@
-#include <cstddef>
-#include <cstdlib>
-#include <iostream>
-#include <string>
+#include <boost/bind.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-#include <boost/config.hpp>
+#include <string>
 #include "session.h"
 #include "request_dispatcher.h"
-
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 
-
 using namespace std;
-
-
 
 Session::Session(boost::asio::io_service& io_service, ConfigInfo& config_info) : socket_(io_service) {
     config_info_ = config_info;
@@ -47,7 +37,6 @@ void Session::set_req(http::request<http::string_body> req) {
 }
 
 //public
-
 http::response<http::string_body> Session::create_response(){
     std::string client_addr, host_addr;
     try {
@@ -66,7 +55,7 @@ http::response<http::string_body> Session::create_response(){
     return res;
 }
 
-//privateSS
+//private
 void Session::handle_read(const boost::system::error_code& error, size_t bytes_transferred) {
     if (!error) {
         //create response

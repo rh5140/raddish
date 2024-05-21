@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <stack>
 #include "info.h"
 
 class NginxConfig;

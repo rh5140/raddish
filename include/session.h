@@ -1,13 +1,8 @@
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <gtest/gtest_prod.h>
-#include "info.h"
-
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
+#include <gtest/gtest_prod.h>
+#include "info.h"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>

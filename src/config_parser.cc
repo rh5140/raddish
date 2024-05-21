@@ -6,25 +6,21 @@
 //
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
-#include <cstddef>
-#include <cstdio>
+
+#include <boost/log/trivial.hpp>
 #include <fstream>
-#include <iostream>
-#include <memory>
 #include <stack>
 #include <string>
 #include <vector>
 #include <map>
-#include <boost/log/trivial.hpp>
 #include "config_parser.h"
 #include "info.h"
 
 using namespace std; 
 
-
 //Note: this is for the NginxConfig class, it was given combined so I left it in the same .cc
-std::string NginxConfig::ToString(int depth) {
-  std::string serialized_config;
+string NginxConfig::ToString(int depth) {
+  string serialized_config;
   for (const auto& statement : statements_) {
     serialized_config.append(statement->ToString(depth));
   }
@@ -32,8 +28,8 @@ std::string NginxConfig::ToString(int depth) {
 }
 
 //and this is for the statement class
-std::string NginxConfigStatement::ToString(int depth) {
-  std::string serialized_statement;
+string NginxConfigStatement::ToString(int depth) {
+  string serialized_statement;
   for (int i = 0; i < depth; ++i) {
     serialized_statement.append("  ");
   }
@@ -92,8 +88,8 @@ const char* NginxConfigParser::number_to_token_string(int n){
 }
 
 
-NginxConfigParser::TokenType NginxConfigParser::parse_token(std::istream* input,
-                                                           std::string* value) {
+NginxConfigParser::TokenType NginxConfigParser::parse_token(istream* input,
+                                                           string* value) {
   TokenParserState state = TOKEN_STATE_INITIAL_WHITESPACE;
   while (input->good()) {
     const char c = input->get();
@@ -170,16 +166,15 @@ NginxConfigParser::TokenType NginxConfigParser::parse_token(std::istream* input,
   return TOKEN_TYPE_EOF;
 }
 
-bool NginxConfigParser::parse(std::istream* config_file, NginxConfig* config) {
-  std::stack<NginxConfig*> config_stack;
+bool NginxConfigParser::parse(istream* config_file, NginxConfig* config) {
+  stack<NginxConfig*> config_stack;
   config_stack.push(config);
   TokenType last_token_type = TOKEN_TYPE_START;
   TokenType token_type;
   int indent_count = 0;
   while (true) {
-    std::string token;
+    string token;
     token_type = parse_token(config_file, &token);
-    //printf ("%s: %s\n", token_type_as_string(token_type), token.c_str());
     if (token_type == TOKEN_TYPE_ERROR) {
       break;
     }
@@ -253,14 +248,14 @@ bool NginxConfigParser::parse(std::istream* config_file, NginxConfig* config) {
   return false;
 }
 bool NginxConfigParser::parse(const char* file_name, NginxConfig* config) {
-  std::ifstream config_file;
+  ifstream config_file;
   config_file.open(file_name);
   if (!config_file.good()) {
     BOOST_LOG_TRIVIAL(error) << "Failed to open config file: " << file_name;
     return false;
   }
   const bool return_value =
-      parse(dynamic_cast<std::istream*>(&config_file), config);
+      parse(dynamic_cast<istream*>(&config_file), config);
   config_file.close();
   return return_value;
 }
@@ -272,14 +267,14 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //init
     int port_num = -1;
-    vector<std::string> seen_locations; 
-    std::map<std::string, std::string> location_to_handler = std::map<std::string,std::string>();
-    std::map<std::string, std::map<std::string, std::string>> location_to_directives = std::map<std::string, std::map<std::string, std::string>>();
-    std::string arg_token = "";
+    vector<string> seen_locations; 
+    map<string, string> location_to_handler = map<string,string>();
+    map<string, map<string, string>> location_to_directives = map<string, map<string, string>>();
+    string arg_token = "";
 
     //iterate through the config to extract data
     for (int i = 0; i < server_config->statements_.size(); i++) {
-      std::vector<std::string> tokens = (*server_config->statements_[i]).tokens_;
+      vector<string> tokens = (*server_config->statements_[i]).tokens_;
       //iterate through the config lines to find each argument
       for(int j = 0; j < tokens.size(); j++){
         arg_token = tokens[j]; //since we check this a lot, just store it.
@@ -295,9 +290,9 @@ bool NginxConfigParser::get_server_settings_inner(){
           //keep this one last as it's more complex
           // handles location
           else if(arg_token == "location"){
-            std::string log_output = "";
-            std::string location = tokens[j + 1][0]=='"' || tokens[j + 1][0]=='\'' ? tokens[j+1].substr(1, tokens[j+1].length()-2) : tokens[j+1];
-            std::string handler_type = tokens[j + 2];
+            string log_output = "";
+            string location = tokens[j + 1][0]=='"' || tokens[j + 1][0]=='\'' ? tokens[j+1].substr(1, tokens[j+1].length()-2) : tokens[j+1];
+            string handler_type = tokens[j + 2];
             log_output = log_output + "Location: " + location + ", ";
 
             if (hasKey(seen_locations, location)) { // exit if duplicate path
@@ -309,12 +304,12 @@ bool NginxConfigParser::get_server_settings_inner(){
             NginxConfig location_block = (*(*server_config->statements_[i]).child_block_);
             
             for (int l = 0; l < location_block.statements_.size(); l++){
-              std::vector<std::string> loc_tokens = (*location_block.statements_[l]).tokens_;
+              vector<string> loc_tokens = (*location_block.statements_[l]).tokens_;
               // below assumes that every directive only has one parameter
               for (int m = 0; m < loc_tokens.size(); m+=2){
                 // if location has not been added yet, add a new map object
                 if (location_to_directives.find(location) == location_to_directives.end()) {
-                  location_to_directives[location] = std::map<std::string, std::string>();
+                  location_to_directives[location] = map<string, string>();
                 }
                 location_to_directives[location][loc_tokens[m]] = loc_tokens[m+1][0]=='"' || loc_tokens[m+1][0]=='\'' ? loc_tokens[m+1].substr(1, loc_tokens[m+1].length()-2) : loc_tokens[m+1];
                 log_output += " directive: " + loc_tokens[m] + ", parameter: " + location_to_directives[location][loc_tokens[m]];
@@ -325,7 +320,7 @@ bool NginxConfigParser::get_server_settings_inner(){
 
             // add current location to the seen locations
             // remove extra slashes for consistency
-            std::string remove_slash = location;
+            string remove_slash = location;
             while (remove_slash[remove_slash.length()-1] == '/') {
               remove_slash = remove_slash.substr(0, location.length()-1);
             }
@@ -353,18 +348,18 @@ bool NginxConfigParser::get_server_settings_inner(){
 
 }
 
-bool NginxConfigParser::hasKey(std::vector<std::string> seen_locations, std::string key) {
+bool NginxConfigParser::hasKey(vector<string> seen_locations, string key) {
   // remove excess slashes at end
   while (key[key.length()-1] == '/') {
     key = key.substr(0, key.length()-1);
   }
-  return std::find(seen_locations.begin(), seen_locations.end(), key) != seen_locations.end();
+  return find(seen_locations.begin(), seen_locations.end(), key) != seen_locations.end();
 }
 
 
 // Extracts inner part of config from any external layers (e.g. server block or http block)
 // Currently unused
-// bool NginxConfigParser::extract_config_layer(NginxConfig* config, std::string target){
+// bool NginxConfigParser::extract_config_layer(NginxConfig* config, string target){
 //     for(int i = 0; i < (*config).statements_.size(); i++){ 
 //       //parse outermost config to find the target config
 //       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
