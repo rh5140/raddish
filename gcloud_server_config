@@ -18,4 +18,8 @@
   location /applications/ FileRequestHandler {
     root /static_files;
   }
+
+  location /api/ CRUDRequestHandler {
+    data_path /crud;
+  }
 # }

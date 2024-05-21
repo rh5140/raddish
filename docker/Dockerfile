@@ -31,6 +31,9 @@ COPY --from=builder /usr/src/projects/raddish/gcloud_server_config .
 # Copy static files
 COPY --from=builder /usr/src/projects/raddish/static_files /static_files/
 
+# Copy crud directory
+COPY --from=builder /usr/src/projects/raddish/crud /crud/
+
 # Expose ports
 EXPOSE 80
 

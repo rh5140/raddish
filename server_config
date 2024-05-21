@@ -24,6 +24,10 @@
     root /usr/src/projects/raddish;
   }
 
+  location /api/ CRUDRequestHandler {
+    data_path /usr/src/projects/raddish/crud;
+  }
+
 # }
 
 

@@ -113,6 +113,31 @@ if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
     target_link_libraries(integration_test gtest_main)
 endif()
 
+# Python integration test stuff
+# Essentially this is automating the collection of tests. Any function (method or not)
+# with the prefix `test_` will be collected as a potential test and the python
+# script will be run passing in the test to be tested.
+set(INTEGRATION_PYTHON_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/tests/integration_test.py")
+set(INTEGRATION_OUTPUT_CMAKE "${CMAKE_BINARY_DIR}/integration_test_python.cmake")
+file(READ "${INTEGRATION_PYTHON_SOURCE}" INTEGRATION_PYTHON_CONTENT)
+string(REGEX MATCHALL "def test_([a-zA-Z0-9_]+)" MATCHES "${INTEGRATION_PYTHON_CONTENT}")
+
+file(WRITE "${INTEGRATION_OUTPUT_CMAKE}" "# Auto-generated test file\n\n")
+foreach(MATCH ${MATCHES})
+    string(REGEX REPLACE "def test_([a-zA-Z0-9_]+)" "\\1" TEST_NAME "${MATCH}")
+    message("-- Extracted test name: ${TEST_NAME}")
+    file(APPEND "${INTEGRATION_OUTPUT_CMAKE}" "add_test(\n")
+    # Add name for the test
+    file(APPEND "${INTEGRATION_OUTPUT_CMAKE}" "  \"PythonIntegration.${TEST_NAME}\"\n")
+    # Since the `test_` prefix was removed we need to add it back before passing as arg
+    file(APPEND "${INTEGRATION_OUTPUT_CMAKE}" "  \"python3\" \"${INTEGRATION_PYTHON_SOURCE}\" \"test_${TEST_NAME}\"\n")
+    file(APPEND "${INTEGRATION_OUTPUT_CMAKE}" ")\n\n")
+endforeach()
+# I only surrounded this one in the check because I really didn't want to nest the whole thing
+if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
+    include(${INTEGRATION_OUTPUT_CMAKE})
+endif()
+
 # Update executable name, srcs, and deps
 add_executable(webserver src/server_main.cc)
 target_link_libraries(webserver server_lib session_lib config_parser_lib dispatcher_lib handler_factory_lib all_handlers_lib  handler_lib logger_lib Boost::system Boost::log_setup Boost::log)

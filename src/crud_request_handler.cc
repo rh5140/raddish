@@ -41,9 +41,6 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     std::string entity = elements.value().first;
     int id = elements.value().second;
     std::string body = request.body();
-
-    init_response(request);
-    res_.set(http::field::content_type, "application/json");
     
     switch (method) {
     case http::verb::get:
@@ -141,6 +138,7 @@ std::optional<std::pair<std::string, int>> CRUDRequestHandler::extract_elements(
 // these functions will set up the res_ object
 
 void CRUDRequestHandler::get(int id, std::string entity) {
+    res_.set(http::field::content_type, "application/json");
     if (id == 0) {
         res_.result(http::status::ok);
         res_.body() = json(crud_store_->list(entity)).dump();
@@ -165,6 +163,7 @@ void CRUDRequestHandler::post(std::string entity, std::string body) {
         set_internal_server_error_response();
     else {
         res_.result(http::status::ok);
+        res_.set(http::field::content_type, "application/json");
         res_.body() = "{\"id\": " + boost::lexical_cast<std::string>(id) + "}";
     }
 }
