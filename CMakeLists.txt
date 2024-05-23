@@ -46,6 +46,7 @@ add_library(echo_handler_lib OBJECT src/echo_request_handler.cc)
 add_library(file_handler_lib OBJECT src/file_request_handler.cc)
 add_library(not_found_handler_lib OBJECT src/not_found_request_handler.cc)
 add_library(crud_handler_lib OBJECT src/crud_request_handler.cc)
+add_library(blocking_handler_lib OBJECT src/blocking_request_handler.cc)
 add_library(crud_store_lib OBJECT src/crud_store.cc)
 add_library(health_handler_lib OBJECT src/health_request_handler.cc)
 add_library(handler_lib src/request_handler.cc)
@@ -53,7 +54,8 @@ add_library(handler_factory_lib src/request_handler_factory.cc)
 add_library(dispatcher_lib src/request_dispatcher.cc)
 
 add_library(all_handlers_lib INTERFACE)
-target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> $<TARGET_OBJECTS:crud_handler_lib> $<TARGET_OBJECTS:crud_store_lib> $<TARGET_OBJECTS:health_handler_lib>)
+
+target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> $<TARGET_OBJECTS:crud_handler_lib> $<TARGET_OBJECTS:crud_store_lib> $<TARGET_OBJECTS:health_handler_lib> $<TARGET_OBJECTS:blocking_handler_lib>)
 
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
@@ -110,6 +112,11 @@ target_link_libraries(logger_test logger_lib gtest_main Boost::log_setup Boost::
 add_executable(dispatcher_test tests/dispatcher_test.cc)
 target_link_libraries(dispatcher_test gtest_main config_parser_lib dispatcher_lib handler_factory_lib all_handlers_lib handler_lib Boost::log_setup Boost::log)
 
+#add and link blocking test executable
+add_executable(blocking_handler_test tests/blocking_handler_test.cc)
+target_link_libraries(blocking_handler_test handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:blocking_handler_lib> handler_lib gtest_main Boost::log)
+
+
 # add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
 if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
@@ -159,6 +166,8 @@ gtest_discover_tests(dispatcher_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DI
 gtest_discover_tests(crud_store_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(crud_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(health_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+gtest_discover_tests(blocking_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+
 
 # ignore integration tests if running for coverage
 if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
@@ -168,7 +177,7 @@ endif()
 include(cmake/CodeCoverageReportConfig.cmake)
 
 #coverage
-generate_coverage_report(TARGETS config_parser_lib server_lib session_lib handler_factory_lib echo_handler_lib file_handler_lib not_found_handler_lib logger_lib dispatcher_lib crud_store_lib crud_handler_lib health_handler_lib TESTS config_parser_test session_test server_test not_found_test echo_test file_handler_test logger_test dispatcher_test crud_store_test crud_handler_test health_handler_test) 
+generate_coverage_report(TARGETS config_parser_lib server_lib session_lib handler_factory_lib echo_handler_lib file_handler_lib not_found_handler_lib logger_lib dispatcher_lib crud_store_lib crud_handler_lib health_handler_lib TESTS config_parser_test session_test server_test not_found_test echo_test file_handler_test logger_test dispatcher_test crud_store_test crud_handler_test health_handler_test blocking_handler_test) 
 
 
 

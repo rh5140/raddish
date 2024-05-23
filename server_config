@@ -28,3 +28,6 @@ location /tests/static_files/ FileRequestHandler {
 location /api/ CRUDRequestHandler {
   data_path /usr/src/projects/raddish/crud;
 }
+
+location /sleep/ BlockingRequestHandler {
+}

@@ -4,6 +4,7 @@ import requests
 import time
 import socket
 import traceback
+import threading
 
 class webserver_fixture:
     def __init__(self, location):
@@ -64,6 +65,29 @@ class local_tests(webserver_fixture):
         assert list_response.text == f'[{json_response["id"]}]'
         delete_response = requests.request('DELETE', f'{self.url}/api/Test/{json_response["id"]}')
         assert delete_response.status_code == 200
+
+    def test_multithreaded(self):
+        block_time = []
+        regular_time = []
+        t1 = threading.Thread(target=self.send_request, args=('sleep', block_time))
+        t2 = threading.Thread(target=self.send_request, args=('echo', regular_time))
+        t1.start()
+        t2.start()
+        t1.join() # wait for t1 & t2 to finish
+        t2.join() 
+        print("Time taken for /sleep request: " + str(block_time[0]))
+        print("Time taken for /echo request: " + str(regular_time[0]))
+        assert block_time[0] > 1
+        assert regular_time[0] < 1
+
+
+    def send_request(self, request_path, result):
+        time_exec = time.time()
+        requests.request('GET', f'{self.url}/{request_path}', data="")
+        time_exec = time.time() - time_exec
+        result.append(time_exec)
+
+
 
 
 # This is the entrypoint for all tests. When running the python program like

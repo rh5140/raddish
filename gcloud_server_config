@@ -24,3 +24,6 @@ location /applications/ FileRequestHandler {
 location /api/ CRUDRequestHandler {
   data_path /crud;
 }
+
+location /sleep/ BlockingRequestHandler {
+}

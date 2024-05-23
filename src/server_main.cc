@@ -12,6 +12,8 @@
 #include <boost/log/trivial.hpp>
 #include <csignal>
 #include <iostream>
+#include <thread>
+#include <vector>
 #include "server.h"
 #include "logger.h"
 #include "config_parser.h"
@@ -60,6 +62,20 @@ int main(int argc, char* argv[]) {
     
     Server s(io_service, config_info);
     BOOST_LOG_TRIVIAL(info) << "Raddish Online!";
+
+    int threads = 2; // arbitrary number - could probably be specified in config
+
+    /*
+    code below from https://www.boost.org/doc/libs/1_79_0/libs/beast/example/advanced/server/advanced_server.cpp
+    */
+    std::vector<std::thread> v;
+    v.reserve(threads - 1);
+    for(auto i = threads - 1; i > 0; --i)
+        v.emplace_back(
+        [&io_service]
+        {
+            io_service.run();
+        });
 
     io_service.run();
   }
