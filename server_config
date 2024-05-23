@@ -1,33 +1,30 @@
-# server {
-  port   8080;
+port   8080;
 
-  location / NotFoundHandler {
-  }
+location / NotFoundHandler {
+}
 
+location /health HealthRequestHandler {
+}
 
-  location /echo EchoRequestHandler {
-  }
+location /echo EchoRequestHandler {
+}
 
-  location /images/ FileRequestHandler {
-    root /usr/src/projects/raddish/static_files;
-  }
+location /images/ FileRequestHandler {
+  root /usr/src/projects/raddish/static_files;
+}
 
-  location /text FileRequestHandler {
-    root /usr/src/projects/raddish/static_files;
-  }
+location /text FileRequestHandler {
+  root /usr/src/projects/raddish/static_files;
+}
 
-  location /applications/ FileRequestHandler {
-    root /usr/src/projects/raddish/static_files;
-  }
+location /applications/ FileRequestHandler {
+  root /usr/src/projects/raddish/static_files;
+}
 
-  location /tests/static_files/ FileRequestHandler {
-    root /usr/src/projects/raddish;
-  }
+location /tests/static_files/ FileRequestHandler {
+  root /usr/src/projects/raddish;
+}
 
-  location /api/ CRUDRequestHandler {
-    data_path /usr/src/projects/raddish/crud;
-  }
-
-# }
-
-
+location /api/ CRUDRequestHandler {
+  data_path /usr/src/projects/raddish/crud;
+}
