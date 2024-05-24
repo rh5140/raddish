@@ -98,6 +98,12 @@ std::string FileRequestHandler::file_extension_to_content_type(std::string file_
     else if (file_extension == "zip") {
         return "application/zip";
     }
+    else if (file_extension == "css") {
+        return "text/css";
+    }
+    else if (file_extension == "js") {
+        return "text/javascript";
+    }
     else { // for binary files
         return "application/octet-stream";
     }
