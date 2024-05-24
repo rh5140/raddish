@@ -1,16 +1,12 @@
 
 #include "request_handler.h"
-#include "info.h"
+
 #include <cstdint>
 #include <sstream>
 #include <string>
 #include <iostream>
-
-#include <boost/log/trivial.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace beast = boost::beast;  
 namespace http = beast::http;   

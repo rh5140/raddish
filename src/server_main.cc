@@ -7,17 +7,16 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+#include "server.h"
+#include "config_parser.h"
+#include "logger.h"
+#include "info.h"
 
-#include <boost/asio.hpp>
-#include <boost/log/trivial.hpp>
 #include <csignal>
 #include <iostream>
 #include <thread>
 #include <vector>
-#include "server.h"
-#include "logger.h"
-#include "config_parser.h"
-#include "info.h"
+#include <boost/log/trivial.hpp>
 
 using boost::asio::ip::tcp;
 

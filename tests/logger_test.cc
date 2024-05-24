@@ -1,12 +1,13 @@
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/trivial.hpp>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+#include "logger.h"
+
 #include <filesystem>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <regex>
-#include "logger.h"
+#include <boost/log/utility/setup/file.hpp>
+#include <boost/log/trivial.hpp>
 
 using namespace std; 
 namespace fs = std::filesystem;

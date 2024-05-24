@@ -2,8 +2,8 @@
 #define CRUD_STORE
 
 #include <optional>
-#include <vector>
 #include <string>
+#include <vector>
 
 // these methods do not throw exceptions
 // they signal errors through return values

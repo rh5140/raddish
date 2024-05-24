@@ -1,8 +1,12 @@
+#ifndef SESSION
+#define SESSION
+
+#include "info.h"
+
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <gtest/gtest_prod.h>
-#include "info.h"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -59,6 +63,7 @@ private:
     FRIEND_TEST(SessionTest, HandleRead);
     FRIEND_TEST(SessionTest, HandleWriteError);
     FRIEND_TEST(SessionTest, HandleWrite);
-    FRIEND_TEST(SessionTest, CreateResponseStaticFile);
     FRIEND_TEST(SessionTest, CreateResponseEcho);
 };
+
+#endif

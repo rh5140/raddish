@@ -1,19 +1,15 @@
-
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/log/trivial.hpp>
-#include <regex>
-#include <string>
 #include "request_dispatcher.h"
 #include "echo_request_handler.h"
 #include "request_handler_factory.h"
-#include "info.h"
+
+#include <regex>
+#include <string>
+#include <boost/log/trivial.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 using namespace std;
+
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
 RequestDispatcher::RequestDispatcher() {

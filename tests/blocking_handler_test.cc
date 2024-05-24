@@ -1,26 +1,14 @@
-#include <iostream>
-#include <boost/asio.hpp>
-#include <gmock/gmock.h>
-#include <chrono>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "blocking_request_handler.h"
 #include "request_handler_factory.h"
-#include "echo_request_handler.h"
-#include "info.h"
-#include <boost/log/trivial.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
+
+#include <chrono>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
     
-
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
-using boost::asio::ip::tcp;
 using namespace std;
 
 using std::chrono::high_resolution_clock;

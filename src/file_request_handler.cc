@@ -1,15 +1,10 @@
-#include <sstream>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <filesystem>
 #include "file_request_handler.h"
 #include "request_handler_factory.h"
-#include "info.h"
 
-//temp
-#include <boost/log/trivial.hpp>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
 
 FileRequestHandler::FileRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
     root_ = request_handler_data.root;

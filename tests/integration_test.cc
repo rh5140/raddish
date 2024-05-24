@@ -1,17 +1,8 @@
-
-#include <iostream>
-#include <boost/asio.hpp>
-#include <gmock/gmock.h>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-// #include "server.h"
+#include <string>
 
-
-
-
-using boost::asio::ip::tcp;
 using namespace std;
 
 //fixture

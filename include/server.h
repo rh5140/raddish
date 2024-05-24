@@ -1,7 +1,10 @@
+#ifndef SERVER
+#define SERVER
+
+#include "session.h"
+
 #include <boost/asio.hpp>
 #include <gtest/gtest_prod.h>
-#include "session.h"
-#include "info.h"
 
 using boost::asio::ip::tcp;
 
@@ -21,3 +24,5 @@ private:
     FRIEND_TEST(ServerTest, HandleAccept);
     FRIEND_TEST(ServerTest, HandleAcceptError);
 };
+
+#endif

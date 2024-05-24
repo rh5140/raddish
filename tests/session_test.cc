@@ -1,12 +1,8 @@
-
-#include <iostream>
-#include <boost/asio.hpp>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "session.h"
 
 using boost::asio::ip::tcp;
 using namespace std;
-
 
 //fixture
 class SessionTest : public testing::Test {
@@ -27,8 +23,6 @@ class SessionTest : public testing::Test {
     void SetUp() override {
       test_session = new Session(io_service, config_info);
     }
-    // void TearDown() override {
-    // }
 };
 
 //new unit tests
@@ -46,19 +40,6 @@ TEST_F(SessionTest, Create400Response) {
 
     delete test_session;
 }
-
-
-TEST_F(SessionTest, CreateResponseStaticFile) {
-    //test_session->config_info_.location_to_handler["/text/"] = "FileRequestHandler";
-    //test_session->config_info_.location_to_directives["root"]["/text/"] = "/static_files";
-    //test_session->set_buf("GET /text/DOESNOTEXIST.txt HTTP/1.1\n\n");
-    //std::string response = test_session->create_response();
-    //EXPECT_EQ(response.substr(0,22), "HTTP/1.1 404 Not Found");
-    delete test_session;
-}
-
-
-//TODO: not sure exactly why this specific test broke
 
 TEST_F(SessionTest, CreateResponseEcho) {
     test_session->config_info_.location_to_handler["/"] = "EchoRequestHandler";
@@ -103,7 +84,7 @@ TEST_F(SessionTest, HandleReadEOF) {
 }
 
 TEST_F(SessionTest, HandleReadConnectionReset) {
-  EXPECT_NO_THROW(test_session->handle_read(boost::asio::error::connection_reset, reasonable_length));
+    EXPECT_NO_THROW(test_session->handle_read(boost::asio::error::connection_reset, reasonable_length));
 }
 
 TEST_F(SessionTest, HandleReadOtherError) {

@@ -22,7 +22,7 @@ location /applications/ FileRequestHandler {
 }
 
 location /api/ CRUDRequestHandler {
-  data_path /crud;
+  data_path /mnt/storage/crud;
 }
 
 location /sleep/ BlockingRequestHandler {

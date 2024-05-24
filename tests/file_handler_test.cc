@@ -1,28 +1,12 @@
-
-#include <iostream>
-#include <boost/asio.hpp>
-#include <gmock/gmock.h>
-#include "gtest/gtest.h"
-#include "request_handler.h"
+#include <gtest/gtest.h>
 #include "file_request_handler.h"
 #include "request_handler_factory.h"
-#include "info.h"
-
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 
-
-
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
-using boost::asio::ip::tcp;
 using namespace std;
 
 class FileRequestTest : public testing::Test {
@@ -33,7 +17,6 @@ class FileRequestTest : public testing::Test {
         http::request<http::string_body> req;
         http::response<http::string_body> res;
         CreateRequestHandler handler_factory;
-        // LogInfo log_info;
 
         void SetUp() override {
             std::string root = "";
@@ -43,10 +26,6 @@ class FileRequestTest : public testing::Test {
             addr_info.client_addr = "client:8080";
             request_handler_data.addr_info = addr_info;
             handler_factory = RequestHandlerFactory::get_factory("FileRequestHandler"); //get factory
-        }
-
-        void TearDown() override {
-            // delete handler; 
         }
 };
 
@@ -94,12 +73,6 @@ TEST_F(FileRequestTest, LobsterTest) {
 
 
 TEST_F(FileRequestTest, Extensions) {
-    // The actual file path is irrelevant to the test and is just necessary for the constructor
-    //std::string file = __FILE__;
-    //std::string file_name = "file_handler_test.cc";
-    //file_path = file.substr(0, file.length() - file_name.length()) + "/../static_files/text/lobster.txt";
-
-    //req.target(file_path);
     RequestHandler* temp_handler = handler_factory(request_handler_data);
 
     FileRequestHandler* handler = static_cast<FileRequestHandler*>(temp_handler);

@@ -1,5 +1,6 @@
-#include "crud_store.h"
 #include <gtest/gtest.h>
+#include "crud_store.h"
+
 #include <filesystem>
 #include <fstream>
 

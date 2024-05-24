@@ -1,15 +1,6 @@
-#include <iostream>
-#include <boost/asio.hpp>
-#include <gmock/gmock.h>
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "not_found_request_handler.h"
 #include "request_handler_factory.h"
-#include "info.h"
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -17,9 +8,7 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
-using boost::asio::ip::tcp;
 using namespace std;
-
 
 class NotFoundTest : public testing::Test {
     protected:
@@ -41,7 +30,7 @@ class NotFoundTest : public testing::Test {
         }
 
         void TearDown() override {
-            // delete handler; 
+            delete handler;
         }
 };
 
@@ -53,5 +42,4 @@ TEST_F(NotFoundTest, BasicNotFound) {
     EXPECT_EQ(res.result(), http::status::not_found);
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
     EXPECT_EQ(res.body(), "404 Not Found");
-    delete handler;
 }

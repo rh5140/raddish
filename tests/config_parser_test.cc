@@ -1,8 +1,7 @@
-#include "gtest/gtest.h"
-#include <sstream>
-#include <string>
+#include <gtest/gtest.h>
 #include "config_parser.h"
-#include "info.h"
+
+#include <string>
 
 using namespace std; //for str
 
@@ -44,13 +43,10 @@ TEST_F(ParseTest, OpenEnd){
   EXPECT_FALSE(success);
 }
 
-
 TEST_F(ParseTest, OpenBeginning){
   bool success = parser.parse("configs/open_config", &out_config);
   EXPECT_FALSE(success);
 }
-
-
 
 //TokenAsString testing
 TEST_F(ParseTest, TokenToString){
@@ -63,7 +59,6 @@ TEST_F(ParseTest, TokenToString){
   EXPECT_EQ(string(parser.number_to_token_string(6)), "TOKEN_TYPE_EOF");
   EXPECT_EQ(string(parser.number_to_token_string(7)), "TOKEN_TYPE_ERROR");
 }
-
 
 //get server settings test
 TEST_F(ParseTest, ServerPortGood){
@@ -81,7 +76,6 @@ TEST_F(ParseTest, ServerPortBad){
   success = parser.get_config_settings(&out_config);
   EXPECT_FALSE(success);
 }
-
 
 TEST_F(ParseTest, ServerPortTooBig){
   bool success = parser.parse("configs/port_too_big_config", &out_config);

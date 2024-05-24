@@ -1,10 +1,14 @@
+#ifndef CONFIG_PARSER
+#define CONFIG_PARSER
 // An nginx config file parser.
+
+#include "info.h"
+
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
-#include "info.h"
 
 class NginxConfig;
 // The parsed representation of a single config statement.
@@ -65,3 +69,5 @@ class NginxConfigParser {
   NginxConfig internal_config_; //used for extracting internal configs
 
 };
+
+#endif

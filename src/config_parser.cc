@@ -6,15 +6,14 @@
 //
 // How Nginx does it:
 //   http://lxr.nginx.org/source/src/core/ngx_conf_file.c
+#include "config_parser.h"
 
-#include <boost/log/trivial.hpp>
 #include <fstream>
+#include <map>
 #include <stack>
 #include <string>
 #include <vector>
-#include <map>
-#include "config_parser.h"
-#include "info.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std; 
 

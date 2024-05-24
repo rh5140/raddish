@@ -16,7 +16,6 @@ private:
     FRIEND_TEST(LoggerTest, CheckFormat);
     FRIEND_TEST(LoggerTest, CheckConsole);
     FRIEND_TEST(LoggerTest, RotateWhenFull);
-    //FRIEND_TEST(LoggerTest, RotateWhenNight);
 };
 
 

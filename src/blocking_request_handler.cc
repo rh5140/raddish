@@ -1,19 +1,8 @@
-#include <cstdint>
-#include <sstream>
-#include <string>
-#include <iostream>
-#include <unistd.h> 
 #include "blocking_request_handler.h"
 #include "request_handler_factory.h"
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-namespace beast = boost::beast;  
-namespace http = beast::http;    
-//temp
-#include <boost/log/trivial.hpp>
 
-
+namespace beast = boost::beast;         // from <boost/beast.hpp>
+namespace http = beast::http;           // from <boost/beast/http.hpp>   
 
 // calls parent constructor
 // can be used to set handler-specific variables - e.g. the root for file handler.
@@ -27,11 +16,9 @@ RequestHandler* BlockingRequestHandler::init(const RequestHandlerData& request_h
     return new BlockingRequestHandler(request_handler_data); 
 }
 
-
 // add self-init to registry on startup. 
 // defined as a static bool in the header file.
 bool BlockingRequestHandler::registered_ = RequestHandlerFactory::register_handler("BlockingRequestHandler", BlockingRequestHandler::init);
-
 
 // implementation of handle_request
 http::response<http::string_body> BlockingRequestHandler::handle_request(const http::request<http::string_body>& request) {

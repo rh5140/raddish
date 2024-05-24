@@ -1,7 +1,8 @@
 #ifndef INFO
 #define INFO
-#include <string>
+
 #include <map>
+#include <string>
 
 // holds structs for use in other files
 
@@ -10,7 +11,6 @@ struct ConfigInfo {
     std::map<std::string, std::string> location_to_handler;
     std::map<std::string, std::map<std::string, std::string>> location_to_directives; // e.g. /images/ -> (root -> /usr/src/projects...)
 };
-
 
 //host/client info used to generate responses in request handlers.
 struct AddrInfo {

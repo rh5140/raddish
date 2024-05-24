@@ -1,8 +1,8 @@
 #include "crud_store.h"
+
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <algorithm>
-#include <iostream>
 
 CRUDStore::CRUDStore(std::string data_path) : data_path_(data_path) {
     // no checks need to be done on the data path

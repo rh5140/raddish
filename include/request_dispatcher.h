@@ -1,7 +1,10 @@
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <string>
+#ifndef REQUEST_DISPATCHER
+#define REQUEST_DISPATCHER
+
 #include "info.h"
+
+#include <string>
+#include <boost/beast/http.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -20,3 +23,4 @@ class RequestDispatcher {
         std::string client_;
 };
 
+#endif

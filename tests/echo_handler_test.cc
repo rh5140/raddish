@@ -1,52 +1,13 @@
-
-#include <iostream>
-#include <boost/asio.hpp>
-#include <gmock/gmock.h>
-#include "gtest/gtest.h"
-#include "request_handler.h"
+#include <gtest/gtest.h>
 #include "echo_request_handler.h"
 #include "request_handler_factory.h"
-#include "info.h"
-
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
-namespace http = beast::http;           // from <boost/beast/http.hpp>
-    
+namespace http = beast::http;           // from <boost/beast/http.hpp>  
 
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
-using boost::asio::ip::tcp;
 using namespace std;
-
-//Leaving this commented out for now, as we don't need it but it could prove useful in the future as a template for mocks.
-/*
-class MockServer : public server{
-  public:
-    MockServer(boost::asio::io_service& io_service, short port) : server(io_service, port){}
-    MOCK_METHOD(void, handle_accept, (session* new_session, const boost::system::error_code& error));
-    
-};
-
-//fixture
-class ServerTest : public testing::Test {
- protected:
-  void SetUp() override {}
-  // void TearDown() override {}
-  boost::asio::io_service io_s;
-  int port_num = 8080;
-  MockServer* test_server = new MockServer(io_s, port_num);
-
-};
-
-TEST_F(ServerTest, ServerStart) {
-}
-*/
 
 class EchoTest : public testing::Test {
     protected:
@@ -55,7 +16,6 @@ class EchoTest : public testing::Test {
         http::request<http::string_body> req;
         http::response<http::string_body> res;
         CreateRequestHandler handler_factory; //get factory
-        // LogInfo log_info;
 
         void SetUp() override {
             std::string root = "";
@@ -65,10 +25,6 @@ class EchoTest : public testing::Test {
             addr_info.client_addr = "client:8080";
             request_handler_data.addr_info = addr_info;
             handler_factory = RequestHandlerFactory::get_factory("EchoRequestHandler");
-        }
-
-        void TearDown() override {
-            // delete handler; 
         }
 };
 

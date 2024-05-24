@@ -1,16 +1,13 @@
 #ifndef CRUD_REQUEST_HANDLER
 #define CRUD_REQUEST_HANDLER
 
-#include <string>
-#include <optional>
-#include <utility>
-#include <memory>
-#include <gtest/gtest_prod.h>
 #include "request_handler.h"
-
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
 #include "nlohmann/json.hpp"
+
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
 
 class CRUDStore;
 
@@ -39,7 +36,6 @@ class CRUDRequestHandler : public RequestHandler {
         std::optional<json> validate_json(const std::string& json);
         std::optional<std::pair<std::string, int>> extract_elements(const std::string& relative_path);
         std::unique_ptr<CRUDStore> crud_store_;
-        // FRIEND_TEST(CRUDRequestTest, Extensions); <- will be helpful for testing?
 };
 
 #endif

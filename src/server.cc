@@ -1,7 +1,7 @@
+#include "server.h"
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include "server.h"
-#include "info.h"
 
 using boost::asio::ip::tcp;
 

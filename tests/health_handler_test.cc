@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 #include "health_request_handler.h"
 #include "request_handler_factory.h"
 
@@ -37,6 +37,4 @@ TEST_F(HealthHandlerTest, BasicHealthTest) {
     EXPECT_EQ(res.result(), http::status::ok);
     EXPECT_EQ(res.at(http::field::content_type), "text/plain");
     EXPECT_EQ(res.body(), "OK");
-
-    delete handler;
 }

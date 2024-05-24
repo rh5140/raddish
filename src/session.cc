@@ -1,10 +1,9 @@
-#include <boost/bind.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <string>
 #include "session.h"
 #include "request_dispatcher.h"
+
+#include <string>
+#include <boost/bind.hpp>
+#include <boost/log/trivial.hpp>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>

@@ -1,6 +1,10 @@
-#include <string>
-#include <map>
+#ifndef REQUEST_HANDLER_FACTORY
+#define REQUEST_HANDLER_FACTORY
+
 #include "request_handler.h"
+
+#include <map>
+#include <string>
 
 using CreateRequestHandler = RequestHandler*(*)(const RequestHandlerData&);
 
@@ -10,3 +14,5 @@ class RequestHandlerFactory{
         static bool register_handler(const std::string name, CreateRequestHandler factory);
         static std::map<std::string, CreateRequestHandler>& get_map();
 };
+
+#endif

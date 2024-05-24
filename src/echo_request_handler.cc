@@ -1,20 +1,11 @@
-#include <cstdint>
-#include <sstream>
-#include <string>
-#include <iostream>
 #include "echo_request_handler.h"
 #include "request_handler_factory.h"
 
-#include <boost/beast/version.hpp>
-#include <boost/asio/dispatch.hpp>
-#include <boost/asio/strand.hpp>
-#include <type_traits>
+#include <sstream>
+#include <string>
 
 namespace beast = boost::beast;  
 namespace http = beast::http;    
-
-//temp
-#include <boost/log/trivial.hpp>
 
 //register
 bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::init);
@@ -27,7 +18,6 @@ EchoRequestHandler::EchoRequestHandler(const RequestHandlerData& request_handler
 RequestHandler* EchoRequestHandler::init(const RequestHandlerData& request_handler_data) {
     return new EchoRequestHandler(request_handler_data); 
 }
-
 
 http::response<http::string_body> EchoRequestHandler::handle_request(const http::request<http::string_body>& request) {
     init_response(request);
@@ -44,8 +34,7 @@ http::response<http::string_body> EchoRequestHandler::handle_request(const http:
     //log
     log_request(request, res_, "Echoed");
 
-    return res_;
-
     //return http_response;
+    return res_;
 }
 
