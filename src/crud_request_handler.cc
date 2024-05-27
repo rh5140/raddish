@@ -11,6 +11,7 @@
 
 CRUDRequestHandler::CRUDRequestHandler(const RequestHandlerData& request_handler_data, std::unique_ptr<CRUDStore> crud_store) :
     RequestHandler(request_handler_data), data_path_(request_handler_data.data_path), location_path_(request_handler_data.location_path), crud_store_(std::move(crud_store)) {
+    handler_name_ = "CRUDRequestHandler";
     if (location_path_[location_path_.length()-1] == '/')
         location_path_.erase(location_path_.length()-1, 1);
 }
@@ -36,7 +37,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     if (!elements.has_value()) {
         log_message = "Invalid request format for CRUD API";
         set_bad_request_response(log_message);
-        log_request(request, res_, log_message, "CRUDRequestHandler");
+        log_request(request, res_, log_message);
         return res_;
     }
     std::string entity = elements.value().first;
@@ -85,7 +86,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
         res_.set(http::field::content_type, "text/plain");
         break;
     }
-    log_request(request, res_, log_message, "CRUDRequestHandler");
+    log_request(request, res_, log_message);
     return res_;
 }
 

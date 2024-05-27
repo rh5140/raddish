@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 
-FileRequestHandler::FileRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
+FileRequestHandler::FileRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) {
+    handler_name_ = "FileRequestHandler";
     root_ = request_handler_data.root;
 }
 
@@ -14,7 +15,6 @@ RequestHandler* FileRequestHandler::init(const RequestHandlerData& request_handl
     return new FileRequestHandler(request_handler_data);
 }
 bool FileRequestHandler::registered_ = RequestHandlerFactory::register_handler("FileRequestHandler", FileRequestHandler::init);
-
 
 http::response<http::string_body> FileRequestHandler::handle_request(const http::request<http::string_body>& request) {
 
@@ -59,7 +59,7 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
     }
     //no else, because we have a 404 by default so res_ will be a 404.
 
-    log_request(request, res_, log_message, "FileRequestHandler");
+    log_request(request, res_, log_message);
 
     return res_;
 }

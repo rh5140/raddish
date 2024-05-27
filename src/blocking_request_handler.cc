@@ -7,7 +7,8 @@ namespace http = beast::http;           // from <boost/beast/http.hpp>
 // calls parent constructor
 // can be used to set handler-specific variables - e.g. the root for file handler.
 // all data needed should be added to the RequestHandlerData struct contained in info.h.
-BlockingRequestHandler::BlockingRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
+BlockingRequestHandler::BlockingRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) {
+    handler_name_ = "BlockingRequestHandler";
 }
 
 // factory function
@@ -28,6 +29,6 @@ http::response<http::string_body> BlockingRequestHandler::handle_request(const h
     res_.result(http::status::ok); 
     res_.body() = "Returned response after 1 seconds"; 
     //log
-    log_request(request, res_, res_.body(), "BlockingRequestHandler");
+    log_request(request, res_, res_.body());
     return res_;
 }

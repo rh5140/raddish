@@ -3,7 +3,6 @@
 
 #include <map>
 #include <string>
-#include <boost/log/trivial.hpp>
 
 //this prevents the static initialization issue where the order isn't fixed
 //creates map on first call, after that just returns the same map as from before.

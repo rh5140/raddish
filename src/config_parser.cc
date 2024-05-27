@@ -16,6 +16,13 @@
 #include <boost/log/trivial.hpp>
 
 using namespace std; 
+namespace sev_lvl = boost::log::trivial;
+
+//init for logs
+NginxConfigParser::NginxConfigParser() : process_("Config Parser"), severity_(sev_lvl::info) {
+  lg_.add_attribute("Process", process_);
+  lg_.add_attribute("Severity", severity_);
+};
 
 //Note: this is for the NginxConfig class, it was given combined so I left it in the same .cc
 string NginxConfig::ToString(int depth) {
@@ -233,7 +240,8 @@ bool NginxConfigParser::parse(istream* config_file, NginxConfig* config) {
       }
       //handle {} mismatch
       if(indent_count != 0){
-        BOOST_LOG_TRIVIAL(error) << "Mismatched amount of start/end blocks";
+        severity_.set(sev_lvl::error);
+        BOOST_LOG(lg_) << "Mismatched amount of start/end blocks";
         return false;
       }
       return true;
@@ -243,14 +251,16 @@ bool NginxConfigParser::parse(istream* config_file, NginxConfig* config) {
     }
     last_token_type = token_type;
   }
-  BOOST_LOG_TRIVIAL(error) << "Bad transition from " << token_type_as_string(last_token_type) << " to " << token_type_as_string(token_type);
+  severity_.set(sev_lvl::error);
+  BOOST_LOG(lg_) << "Bad transition from " << token_type_as_string(last_token_type) << " to " << token_type_as_string(token_type);
   return false;
 }
 bool NginxConfigParser::parse(const char* file_name, NginxConfig* config) {
   ifstream config_file;
   config_file.open(file_name);
   if (!config_file.good()) {
-    BOOST_LOG_TRIVIAL(error) << "Failed to open config file: " << file_name;
+    severity_.set(sev_lvl::error);
+    BOOST_LOG(lg_) << "Failed to open config file: " << file_name;
     return false;
   }
   const bool return_value =
@@ -281,8 +291,9 @@ bool NginxConfigParser::get_server_settings_inner(){
         if(j < tokens.size() - 1){
           //handles port
           if(arg_token == "port"){
-            port_num = stoi(tokens[j + 1]);
-            BOOST_LOG_TRIVIAL(info) << "Port Number found : " << (port_num);
+            port_num = stoi(tokens[j + 1]);        
+            severity_.set(sev_lvl::info);
+            BOOST_LOG(lg_) << "Port Number found : " << (port_num);
           }
           //can add more args as needed here, following the pattern for ports
 
@@ -295,7 +306,8 @@ bool NginxConfigParser::get_server_settings_inner(){
             log_output = log_output + "Location: " + location + ", ";
 
             if (hasKey(seen_locations, location)) { // exit if duplicate path
-              BOOST_LOG_TRIVIAL(error) << "Duplicate path found : " << location;
+              severity_.set(sev_lvl::error);
+              BOOST_LOG(lg_) << "Duplicate path found : " << location;
               return false;
             }
           
@@ -314,8 +326,8 @@ bool NginxConfigParser::get_server_settings_inner(){
                 log_output += " directive: " + loc_tokens[m] + ", parameter: " + location_to_directives[location][loc_tokens[m]];
               }
             }
-
-            BOOST_LOG_TRIVIAL(info) << log_output;
+            severity_.set(sev_lvl::info);
+            BOOST_LOG(lg_) << log_output;
 
             // add current location to the seen locations
             // remove extra slashes for consistency
@@ -331,7 +343,8 @@ bool NginxConfigParser::get_server_settings_inner(){
 
     //correctness checking
     if((port_num) < 0 || (port_num) > 65353){ //65353 is the default max range for port
-      BOOST_LOG_TRIVIAL(error) << "Invalid port number given";
+      severity_.set(sev_lvl::error);
+      BOOST_LOG(lg_) << "Invalid port number given";
       return false;
     }
     //add more checks here as needed
@@ -363,13 +376,15 @@ bool NginxConfigParser::hasKey(vector<string> seen_locations, string key) {
 //       //parse outermost config to find the target config
 //       for(int j = 0; j < (*(*config).statements_[i]).tokens_.size(); j++){
 //           if((*(*config).statements_[i]).tokens_[j] == target){ //found config
-//           BOOST_LOG_TRIVIAL(info) << (target + " Config Found");
+//           severity_.set(sev_lvl::info);
+//           BOOST_LOG(lg_) << (target + " Config Found");
 //           internal_config_  = (*(*(*config).statements_[i]).child_block_); //workaround because the nginx config thing uses unique pointers and .release kept segfaulting.
 //           return true; //when we find it, we're all good to return
 //         }
 //       }
 //     }
-//   BOOST_LOG_TRIVIAL(info) << (target + " Config Not Found");
+//     severity_.set(sev_lvl::error);
+//     BOOST_LOG(lg_) << (target + " Config Not Found");
 //   return false;
 // }
 

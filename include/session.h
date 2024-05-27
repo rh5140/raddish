@@ -6,15 +6,20 @@
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
+#include <boost/log/attributes.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/logger.hpp>
 #include <gtest/gtest_prod.h>
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
+namespace logging = boost::log;
+namespace attrs = boost::log::attributes;
+namespace sev_lvl = boost::log::trivial;
 
 using boost::asio::ip::tcp;
 
-struct Body
-{
+struct Body {
     // The type of message::body when used
     struct value_type;
 
@@ -30,7 +35,6 @@ struct Body
     size(value_type const& body);
 };
 
-
 class Session {
 public:
     Session(boost::asio::io_service& io_service, ConfigInfo& config_info);
@@ -43,11 +47,15 @@ private:
     enum { max_length = 1024 }; //for testing
     ConfigInfo config_info_;
 
+    // logger 
+    logging::sources::logger lg_;
+    attrs::mutable_constant<std::string> process_;
+    attrs::mutable_constant<sev_lvl::severity_level> severity_;
+    
     //new object stuff
     beast::flat_buffer buffer_;
     http::request<http::string_body> req_;
     http::response<http::string_body> res_;
-
 
     void handle_read(const boost::system::error_code& error, size_t bytes_transferred); 
     void handle_write(const boost::system::error_code& error, size_t bytes_transferred);

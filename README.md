@@ -146,7 +146,9 @@ namespace http = beast::http;
 // calls parent constructor
 // can be used to set handler-specific variables - e.g. the root for file handler.
 // all data needed should be added to the RequestHandlerData struct contained in info.h.
-NotFoundHandler::NotFoundHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
+// also sets name to be used in logging
+NotFoundHandler::NotFoundHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) {
+    handler_name_ = "NotFoundHandler";
 }
 
 // factory function
@@ -167,7 +169,7 @@ http::response<http::string_body> NotFoundHandler::handle_request(const http::re
     //set vars
     res_.result(http::status::not_found); //technically already done in init_response, but done here for clarity. 
     //log
-    log_request(request, res_, "Path not configured", "NotFoundHandler");
+    log_request(request, res_, "Path not configured");
     return res_;
 }
 ```

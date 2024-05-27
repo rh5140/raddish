@@ -9,6 +9,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <boost/log/attributes.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/sources/logger.hpp>
+
+namespace logging = boost::log;
+namespace attrs = boost::log::attributes;
+namespace sev_lvl = boost::log::trivial;
 
 class NginxConfig;
 // The parsed representation of a single config statement.
@@ -27,7 +34,7 @@ class NginxConfig {
 // The driver that parses a config file and generates an NginxConfig.
 class NginxConfigParser {
  public:
-  NginxConfigParser() {}
+  NginxConfigParser();
   // Take a opened config file or file name (respectively) and store the
   // parsed config in the provided NginxConfig out-param.  Returns true
   // iff the input config file is valid.
@@ -68,6 +75,10 @@ class NginxConfigParser {
 
   NginxConfig internal_config_; //used for extracting internal configs
 
+  // for logger
+  logging::sources::logger lg_;
+  attrs::mutable_constant<std::string> process_;
+  attrs::mutable_constant<sev_lvl::severity_level> severity_;
 };
 
 #endif

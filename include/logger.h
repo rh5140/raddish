@@ -17,6 +17,3 @@ private:
     FRIEND_TEST(LoggerTest, CheckConsole);
     FRIEND_TEST(LoggerTest, RotateWhenFull);
 };
-
-
-

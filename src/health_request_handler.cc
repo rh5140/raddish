@@ -6,7 +6,9 @@ namespace http = beast::http;
 
 bool HealthRequestHandler::registered_ = RequestHandlerFactory::register_handler("HealthRequestHandler", HealthRequestHandler::init);
 
-HealthRequestHandler::HealthRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) { }
+HealthRequestHandler::HealthRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) {
+    handler_name_ = "HealthRequestHandler";
+}
 
 //factory
 RequestHandler* HealthRequestHandler::init(const RequestHandlerData& request_handler_data) {
@@ -21,7 +23,7 @@ http::response<http::string_body> HealthRequestHandler::handle_request(const htt
     res_.result(http::status::ok); 
 
     //log
-    log_request(request, res_, "Health check", "HealthRequestHandler");
+    log_request(request, res_, "Health check");
 
     return res_;
 

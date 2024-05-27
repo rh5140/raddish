@@ -10,8 +10,8 @@ namespace http = beast::http;
 //register
 bool EchoRequestHandler::registered_ = RequestHandlerFactory::register_handler("EchoRequestHandler", EchoRequestHandler::init);
 
-EchoRequestHandler::EchoRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data){
-
+EchoRequestHandler::EchoRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data) {
+    handler_name_ = "EchoRequestHandler";
 }
 
 //factory
@@ -32,7 +32,7 @@ http::response<http::string_body> EchoRequestHandler::handle_request(const http:
     res_.result(http::status::ok); 
 
     //log
-    log_request(request, res_, "Echoed", "EchoRequestHandler");
+    log_request(request, res_, "Echoed");
 
     //return http_response;
     return res_;
