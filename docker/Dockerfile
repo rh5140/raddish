@@ -34,6 +34,9 @@ COPY --from=builder /usr/src/projects/raddish/static_files /static_files/
 # Copy crud directory
 COPY --from=builder /usr/src/projects/raddish/crud /crud/
 
+# install libsqlite3 
+RUN apt-get update && apt-get install -y libsqlite3-dev
+
 # Expose ports
 EXPOSE 80
 

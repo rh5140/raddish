@@ -22,7 +22,12 @@ location /applications/ FileRequestHandler {
 }
 
 location /clicker_game/ FileRequestHandler {
-  root /usr/src/projects/raddish/static_files;
+  root /static_files;
+}
+
+location /clicker_game/data GameRequestHandler {
+  root /static_files;
+  data_path /static_files/clicker_game/data/gamedata.db;
 }
 
 location /api/ CRUDRequestHandler {

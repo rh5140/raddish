@@ -17,4 +17,6 @@ RUN apt-get update && apt-get install -y \
     libgtest-dev \
     netcat \
     gcovr \
-    git
+    git \
+    libsqlite3-dev \ 
+    sqlite3
