@@ -32,7 +32,7 @@ http::response<http::string_body> EchoRequestHandler::handle_request(const http:
     res_.result(http::status::ok); 
 
     //log
-    log_request(request, res_, "Echoed");
+    log_request(request, res_, "Echoed", "EchoRequestHandler");
 
     //return http_response;
     return res_;

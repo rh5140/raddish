@@ -29,7 +29,7 @@ void RequestHandler::init_response(const http::request<http::string_body>& reque
 }
 
 //logs client/server ip, result, etc.
-void RequestHandler::log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message) {
+void RequestHandler::log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message, std::string handler_name) {
     std::string client_str = ", Client: " + addr_info_.client_addr;
     std::string host_str = ", Host: " + addr_info_.host_addr;
     std::string req_header = boost::lexical_cast<std::string>(request.base());
@@ -53,6 +53,8 @@ void RequestHandler::log_request(const http::request<http::string_body>& request
     }
 
     BOOST_LOG_TRIVIAL(trace) << "Full HTTP response :\n" << res_header << res_body;
+    BOOST_LOG_TRIVIAL(info) << "[ResponseMetrics] response_code:" << std::to_string(status) << " request_path:" << (std::string)request.target()
+     << " request_ip:" << addr_info_.client_addr << " request_handler_name:" << handler_name;
 }
 
 

@@ -34,7 +34,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
     if (!elements.has_value()) {
         log_message = "Invalid request format for CRUD API";
         set_bad_request_response(log_message);
-        log_request(request, res_, log_message);
+        log_request(request, res_, log_message, "CRUDRequestHandler");
         return res_;
     }
     std::string entity = elements.value().first;
@@ -83,7 +83,7 @@ http::response<http::string_body> CRUDRequestHandler::handle_request(const http:
         res_.set(http::field::content_type, "text/plain");
         break;
     }
-    log_request(request, res_, log_message);
+    log_request(request, res_, log_message, "CRUDRequestHandler");
     return res_;
 }
 

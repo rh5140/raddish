@@ -26,6 +26,6 @@ http::response<http::string_body> NotFoundHandler::handle_request(const http::re
     //set vars
     res_.result(http::status::not_found);  //technically already done in init_response, but done here for clarity. 
     //log
-    log_request(request, res_, "Path not configured");
+    log_request(request, res_, "Path not configured", "NotFoundHandler");
     return res_;
 }

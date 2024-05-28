@@ -18,7 +18,7 @@ class RequestHandler {
     protected:
         http::response<http::string_body> res_;
         void init_response(const http::request<http::string_body>& request);
-        void log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message);
+        void log_request(const http::request<http::string_body>& request, const http::response<http::string_body>& response, std::string log_message, std::string handler_name);
         AddrInfo addr_info_;
 };
 

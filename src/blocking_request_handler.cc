@@ -28,6 +28,6 @@ http::response<http::string_body> BlockingRequestHandler::handle_request(const h
     res_.result(http::status::ok); 
     res_.body() = "Returned response after 1 seconds"; 
     //log
-    log_request(request, res_, res_.body());
+    log_request(request, res_, res_.body(), "BlockingRequestHandler");
     return res_;
 }

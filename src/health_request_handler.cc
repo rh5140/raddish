@@ -21,7 +21,7 @@ http::response<http::string_body> HealthRequestHandler::handle_request(const htt
     res_.result(http::status::ok); 
 
     //log
-    log_request(request, res_, "Health check");
+    log_request(request, res_, "Health check", "HealthRequestHandler");
 
     return res_;
 

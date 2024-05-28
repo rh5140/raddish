@@ -59,7 +59,7 @@ http::response<http::string_body> FileRequestHandler::handle_request(const http:
     }
     //no else, because we have a 404 by default so res_ will be a 404.
 
-    log_request(request, res_, log_message);
+    log_request(request, res_, log_message, "FileRequestHandler");
 
     return res_;
 }
