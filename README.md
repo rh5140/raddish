@@ -80,6 +80,12 @@
 - sets 404 Not Found status 
 - returns response
 
+#### blocking_request_handler.cc
+- blocks for 1 second to test multithreading
+
+#### health_request_handler.cc
+- returns 200 OK response to confirm server is healthy
+
 #### Configuration side note:
 - configuration should match format as specified in [Assignment 6](https://www.cs130.org/assignments/6/#config-file-format)
 
