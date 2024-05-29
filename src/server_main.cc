@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     Server s(io_service, config_info);
     BOOST_LOG_TRIVIAL(info) << "Raddish Online!";
 
-    int threads = 2; // arbitrary number - could probably be specified in config
+    int threads = 4; // arbitrary number - could probably be specified in config
 
     /*
     code below from https://www.boost.org/doc/libs/1_79_0/libs/beast/example/advanced/server/advanced_server.cpp
