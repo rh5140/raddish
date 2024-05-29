@@ -25,10 +25,12 @@ RequestHandler* CRUDRequestHandler::init(const RequestHandlerData& request_handl
 bool CRUDRequestHandler::registered_ = RequestHandlerFactory::register_handler("CRUDRequestHandler", CRUDRequestHandler::init);
 
 http::response<http::string_body> CRUDRequestHandler::handle_request(const http::request<http::string_body>& request) {
+    init_response(request); 
+    
     // List of the boost::beast::http verbs can be seen here https://www.boost.org/doc/libs/1_84_0/boost/beast/http/verb.hpp
     http::verb method = request.method();
-    std::string log_message;
-
+    std::string log_message = "Completed CRUD " + std::string(request.method_string()) + " Request";
+    
     std::string relative_path = request.target().to_string().substr(location_path_.length());
     std::optional<std::pair<std::string, int>> elements = extract_elements(relative_path);
     if (!elements.has_value()) {
