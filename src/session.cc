@@ -40,8 +40,8 @@ void Session::set_req(http::request<http::string_body> req) {
 http::response<http::string_body> Session::create_response(){
     std::string client_addr, host_addr;
     try {
-        tcp::endpoint client = socket().remote_endpoint();
-        tcp::endpoint host = socket().local_endpoint();
+        tcp::endpoint client = socket().local_endpoint();
+        tcp::endpoint host = socket().remote_endpoint();
         client_addr = client.address().to_string() + ":" + to_string(client.port());
         host_addr = host.address().to_string() + ":" + to_string(host.port());
     } 
