@@ -5,3 +5,76 @@ h1 {
 p {
     color: red;
 }
+
+.card {
+    /* Hardcoded dimensions for now, should fill column width */
+    display: flex;
+    flex-direction: row;
+    width: 500px; 
+    height: 200px; 
+    padding: 10px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
+}
+
+.left_col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 30%;
+    padding: 10px;
+}
+
+.upgrade_img {
+    width: 100%;
+}
+
+.buy_button {
+    background-color: darkseagreen;
+    border: none;
+    color: white;
+    padding: 4px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.buy_button:hover {
+    background-color: #04AA6D; /* Green */
+    color: white;
+  }
+
+.right_col {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+}
+
+.upgrade_name {
+    color: black;
+    font-size: larger;
+    font-family: cursive;
+}
+
+.upgrade_info {
+    color: black;
+    font-family: cursive;
+}
+
+.price_count_info {
+    font-family: cursive;
+    display: flex;
+    flex-direction: row;
+}
+
+.upgrade_price {
+    color: black;
+    width: 50%;
+}
+
+.upgrade_count {
+    color: black;
+    width: 50%;
+}
