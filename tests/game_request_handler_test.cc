@@ -63,12 +63,12 @@ TEST_F(GameHandlerTest, TestFactory) {
 // general flow
 // make account, get data, edit data/log out, get data again, log out
 TEST_F(GameHandlerTest, BasicGameTest) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "User successfully added\n");
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     json json_body = json::parse(response.body());
@@ -80,7 +80,7 @@ TEST_F(GameHandlerTest, BasicGameTest) {
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "Changes successful!\n");
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     json_body = json::parse(response.body());
@@ -95,12 +95,12 @@ TEST_F(GameHandlerTest, BasicGameTest) {
 }
 
 TEST_F(GameHandlerTest, DuplicateUser) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "User successfully added\n");
 
-    request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"anotherpass\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"anotherpass\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Unable to add user\n");
@@ -108,19 +108,19 @@ TEST_F(GameHandlerTest, DuplicateUser) {
 
 // logging in to a logged in acc
 TEST_F(GameHandlerTest, DoubleLogin) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "User successfully added\n");
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     json json_body = json::parse(response.body());
     EXPECT_EQ(json_body.at("radish_num"), 0);
     EXPECT_EQ(json_body.at("upgrades").empty(), true);
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Unable to find offline user and/or username/password mismatch\n");
@@ -128,7 +128,7 @@ TEST_F(GameHandlerTest, DoubleLogin) {
 
 // logging in to an user that DNE
 TEST_F(GameHandlerTest, NonexistentLogin) {
-    auto request = construct_request(http::verb::get, "{ \"username\": \"USERDNE\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"USERDNE\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Unable to find offline user and/or username/password mismatch\n");
@@ -136,7 +136,7 @@ TEST_F(GameHandlerTest, NonexistentLogin) {
 
 // logging out with the wrong session ID
 TEST_F(GameHandlerTest, WrongSessionLogout) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "User successfully added\n");
@@ -157,12 +157,12 @@ TEST_F(GameHandlerTest, NonexistentLogout) {
 
 // logging out from an account that isn't online
 TEST_F(GameHandlerTest, NotOnlineLogin) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
     EXPECT_EQ(response.body(), "User successfully added\n");
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::ok);
 
@@ -179,12 +179,12 @@ TEST_F(GameHandlerTest, NotOnlineLogin) {
 }
 
 TEST_F(GameHandlerTest, InvalidJSON) {
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Invalid JSON\n");
 
-    request = construct_request(http::verb::get, "{ \"username\": \"testuser1\",  \"password\": \"testpass1\"");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Invalid JSON\n");
@@ -197,20 +197,20 @@ TEST_F(GameHandlerTest, InvalidJSON) {
 
 // e.g. instead of a string username, putting an int
 TEST_F(GameHandlerTest, WrongTypes) {
-    auto request = construct_request(http::verb::post, "{ \"username\": 1,  \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": 1,  \"password\": \"testpass1\"}");
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::unprocessable_entity);
-    EXPECT_EQ(response.body(), "Error with database\n");
+    EXPECT_EQ(response.body(), "[json.exception.type_error.302] type must be string, but is number");
 
-    request = construct_request(http::verb::get, "{ \"username\": 1,  \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": 1,  \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::unprocessable_entity);
-    EXPECT_EQ(response.body(), "Error with database\n");
+    EXPECT_EQ(response.body(), "[json.exception.type_error.302] type must be string, but is number");
 
     request = construct_request(http::verb::put, "{ \"username\": \"testuser1\",  \"session_id\": \"xxx\", \"radish_num\": 7, \"upgrades\": {\"upgrade1\": \"2\", \"upgrade2\": 15 }}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::unprocessable_entity);
-    EXPECT_EQ(response.body(), "Error with database\n");
+    EXPECT_EQ(response.body(), "[json.exception.type_error.302] type must be number, but is string");
 }
 
 TEST_F(GameHandlerTest, MissingElements) {
@@ -219,7 +219,7 @@ TEST_F(GameHandlerTest, MissingElements) {
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Must have username and password\n");
 
-    request = construct_request(http::verb::get, "{ \"password\": \"testpass1\"}");
+    request = construct_request(http::verb::post, "{ \"password\": \"testpass1\"}");
     response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Must have username and password\n");
@@ -240,9 +240,16 @@ TEST_F(GameHandlerTest, InvalidMethod) {
 TEST_F(GameHandlerTest, NonexistentDB) {
     request_handler_data.data_path = ":memory:"; // new transient DB in memory - not shared
     GameRequestHandler* new_handler = new GameRequestHandler(request_handler_data);
-    auto request = construct_request(http::verb::post, "{ \"username\": \"testuser1\", \"password\": \"testpass1\"}");
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\", \"password\": \"testpass1\"}");
     auto response = new_handler->handle_request(request);
-    EXPECT_EQ(response.result(), http::status::bad_request);
-    EXPECT_EQ(response.body(), "Unable to add user\n");
+    EXPECT_EQ(response.result(), http::status::unprocessable_entity);
+    EXPECT_EQ(response.body(), "Error while preparing statement");
     delete new_handler;
+}
+
+TEST_F(GameHandlerTest, InvalidAction) {
+    auto request = construct_request(http::verb::post, "{ \"action\": \"DNE\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto response = handler->handle_request(request);
+    EXPECT_EQ(response.result(), http::status::bad_request);
+    EXPECT_EQ(response.body(), "Invalid Action\n");
 }

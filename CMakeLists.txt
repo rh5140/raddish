@@ -35,6 +35,9 @@ message(STATUS "Boost version: ${Boost_VERSION}")
 # find sqlite
 find_package (SQLite3 REQUIRED)
 
+# find openssl
+find_package (OpenSSL REQUIRED)
+
 include_directories(include)
 
 # Json parsing
@@ -57,11 +60,11 @@ add_library(handler_lib src/request_handler.cc)
 add_library(handler_factory_lib src/request_handler_factory.cc)
 add_library(dispatcher_lib src/request_dispatcher.cc)
 
-target_link_libraries(game_handler_lib sqlite3)
+target_link_libraries(game_handler_lib sqlite3 OpenSSL::SSL)
 
 add_library(all_handlers_lib INTERFACE)
 
-target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> $<TARGET_OBJECTS:crud_handler_lib> $<TARGET_OBJECTS:crud_store_lib> $<TARGET_OBJECTS:health_handler_lib> $<TARGET_OBJECTS:blocking_handler_lib> $<TARGET_OBJECTS:game_handler_lib> sqlite3)
+target_link_libraries(all_handlers_lib INTERFACE $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:file_handler_lib> $<TARGET_OBJECTS:not_found_handler_lib> $<TARGET_OBJECTS:crud_handler_lib> $<TARGET_OBJECTS:crud_store_lib> $<TARGET_OBJECTS:health_handler_lib> $<TARGET_OBJECTS:blocking_handler_lib> $<TARGET_OBJECTS:game_handler_lib> sqlite3 OpenSSL::SSL)
 
 #add config parser lib
 add_library(config_parser_lib src/config_parser.cc)
@@ -104,7 +107,7 @@ target_link_libraries(health_handler_test handler_factory_lib $<TARGET_OBJECTS:h
 
 #add and link game handler test executable
 add_executable(game_handler_test tests/game_request_handler_test.cc)
-target_link_libraries(game_handler_test handler_factory_lib $<TARGET_OBJECTS:game_handler_lib> handler_lib gtest_main Boost::log sqlite3)
+target_link_libraries(game_handler_test handler_factory_lib $<TARGET_OBJECTS:game_handler_lib> handler_lib gtest_main Boost::log sqlite3 OpenSSL::SSL)
 
 #add and link session test executable
 add_executable(session_test tests/session_test.cc)

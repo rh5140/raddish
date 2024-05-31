@@ -16,8 +16,6 @@ struct GameData {
     std::map<std::string, int> upgrades;
     std::string session_id;
 };
-
-static int callback(void *data, int argc, char **argv, char **azColName);
     
 class GameRequestHandler : public RequestHandler {
     public:
@@ -32,10 +30,10 @@ class GameRequestHandler : public RequestHandler {
         bool update_values(std::string username, std::string session_id, int radish_num, std::map<std::string, int> upgrades);
         bool is_online(std::string username);
         bool user_exists(std::string username);
-        bool run_sql(std::string sql_string);
         void create_salt(unsigned char* salt);
-        void hash_password(std::string salted_pass, unsigned char* hashed_pass);
-        int salt_num_bytes_ = 32;
+        void hash_password(unsigned char* salted_pass, unsigned char* hashed_pass, int len);
+        void check_rc(int rc);
+        int salt_num_bytes_ = 10;
         int hashed_pass_bytes_ = 32;
         std::string data_path_;
         GameData game_data_;

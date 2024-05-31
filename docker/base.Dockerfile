@@ -19,4 +19,5 @@ RUN apt-get update && apt-get install -y \
     gcovr \
     git \
     libsqlite3-dev \ 
-    sqlite3
+    sqlite3 \
+    libssl-dev

@@ -3,8 +3,12 @@
 #include "nlohmann/json.hpp"
 #include <cctype>
 #include <sqlite3.h>
+#include <stdexcept>
 #include <vector>
 #include <boost/log/trivial.hpp>
+#include <openssl/rand.h>
+#include <openssl/sha.h>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -48,35 +52,8 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
 
     bool success = false;
 
-    // TODO using binding to prevent injection!
     try {
-        if (request.method_string() == "GET") {
-            if (!(body.contains("username") && body.contains("password"))) {
-                res_.body() = "Must have username and password\n";
-                log_request(request, res_, "Game request handled");
-                return res_;
-            }
-            auto name_ptr = body.find("username");
-            auto pass_ptr = body.find("password");
-            success = get_values(*name_ptr, *pass_ptr);
-
-            if (!success) {
-                res_.body() = "Unable to find offline user and/or username/password mismatch\n";
-                log_request(request, res_, "Game request handled");
-                return res_;
-            }
-
-            // fill out response
-            json json_res_body = json{
-                {"radish_num", game_data_.radish_num},
-                {"session_id", game_data_.session_id},
-                {"upgrades", game_data_.upgrades}
-            };
-
-            res_.set(http::field::content_type, "application/json");
-            res_.body() = json_res_body.dump();
-        }
-        else if (request.method_string() == "PUT"){ // update function
+        if (request.method_string() == "PUT"){ // update function
             if (!(body.contains("username") && body.contains("session_id") && body.contains("radish_num") && body.contains("upgrades"))) {
                 res_.body() = "Must have username, session id, radish number, and upgrades\n";
                 log_request(request, res_, "Game request handled");
@@ -95,22 +72,51 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
             res_.body() = "Changes successful!\n";
         }
         else if (request.method_string() == "POST") {
-            if (!(body.contains("username") && body.contains("password"))) {
+            if (!(body.contains("action") && body.contains("username") && body.contains("password"))) {
                 res_.body() = "Must have username and password\n";
                 log_request(request, res_, "Game request handled");
                 return res_;
             }
+            auto action_ptr = body.find("action");
             auto name_ptr = body.find("username");
             auto pass_ptr = body.find("password");
-            success = add_user(*name_ptr, *pass_ptr);
 
-            if (!success) {
-                res_.body() = "Unable to add user\n";  
+            if (*action_ptr=="create") {
+                success = add_user(*name_ptr, *pass_ptr);
+
+                if (!success) {
+                    res_.body() = "Unable to add user\n";  
+                    log_request(request, res_, "Game request handled");
+                    return res_;
+                }
+
+                res_.body() = "User successfully added\n";
+            }
+            else if (*action_ptr=="login") {
+
+                success = get_values(*name_ptr, *pass_ptr);
+
+                if (!success) {
+                    res_.body() = "Unable to find offline user and/or username/password mismatch\n";
+                    log_request(request, res_, "Game request handled");
+                    return res_;
+                }
+
+                // fill out response
+                json json_res_body = json{
+                    {"radish_num", game_data_.radish_num},
+                    {"session_id", game_data_.session_id},
+                    {"upgrades", game_data_.upgrades}
+                };
+
+                res_.set(http::field::content_type, "application/json");
+                res_.body() = json_res_body.dump();
+            }
+            else {
+                res_.body() = "Invalid Action\n";
                 log_request(request, res_, "Game request handled");
                 return res_;
             }
-
-            res_.body() = "User successfully added\n";
         }
         else {
             log_request(request, res_, "Game request handled");
@@ -118,9 +124,9 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
             return res_;
         }
     }
-    catch(...){
+    catch(const std::exception &e){
         res_.result(http::status::unprocessable_entity);
-        res_.body() = "Error with database\n";
+        res_.body() = e.what();
         log_request(request, res_, "Game request handled");
         return res_;
     }
@@ -150,26 +156,53 @@ Adds the username and password pair to the database.
 @param password provided password
 @return true if successfully added, false otherwise
 */
-
 bool GameRequestHandler::add_user(std::string username, std::string password) {
 
     if (user_exists(username)) {
         return false;
     }
 
-    // ** TODO hash the password, use binding to pass it along as unsigned char* **
-    // unsigned char salt[salt_num_bytes_];
-    // create_salt(salt);
-    // password.append((char*)salt, salt_num_bytes_); 
-    // unsigned char hashed_pass[hashed_pass_bytes_];
-    // hash_password(password, hashed_pass);
+    // create the salt, then salt and hash the password
+    unsigned char salt[salt_num_bytes_] = {0};
+    create_salt(salt);
+    BOOST_LOG_TRIVIAL(trace) << salt;
+    unsigned char salted_password[password.length()+salt_num_bytes_];
+    std::copy(password.cbegin(), password.cend(), salted_password);
+    memcpy(salted_password + password.length(), salt, salt_num_bytes_);
+    unsigned char hashed_pass[hashed_pass_bytes_] = {0};
+    hash_password(salted_password, hashed_pass, password.length()+salt_num_bytes_);
 
-    // temp - remember to also change password to hashed_pass
-    std::string salt = "temporary";
+    char const* const command = "INSERT OR IGNORE INTO users (user_id, username, hashed_pass, salt) VALUES (NULL, ?, ?, ?); ";
 
-    std::string sql_string = "INSERT OR IGNORE INTO users (user_id, username, hashed_pass, salt) VALUES (NULL, '" + username + "', '" + password + "', '" + salt + "'); ";
+    sqlite3* db;
 
-    return run_sql(sql_string);
+    int rc = sqlite3_open(data_path_.data(), &db);
+    if (rc) {
+        BOOST_LOG_TRIVIAL(trace) << "open database error";
+        throw std::runtime_error("Error while opening database");
+    }
+
+    sqlite3_stmt* stmt = NULL;
+    rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+    if (rc != SQLITE_OK ) {
+        throw std::runtime_error("Error while preparing statement");
+    }
+    rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+    check_rc(rc);
+    rc = sqlite3_bind_blob(stmt, 2, hashed_pass, hashed_pass_bytes_, SQLITE_STATIC);
+    check_rc(rc);
+    rc = sqlite3_bind_blob(stmt, 3, salt, salt_num_bytes_, SQLITE_STATIC);
+    check_rc(rc);
+    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    rc = sqlite3_step(stmt);
+    check_rc(rc);
+    rc = sqlite3_finalize(stmt);
+    check_rc(rc);
+
+    sqlite3_close(db);
+    check_rc(rc);
+
+    return true;
 }
 
 /**
@@ -187,22 +220,89 @@ bool GameRequestHandler::get_values(std::string username, std::string password) 
         return false;
     }
 
-    // ** TODO: hash the pass, will be bound to statement before execution **
-    // std::string sql_string = "SELECT salt FROM users WHERE username='" + username + "'; ";
-    // run_sql(sql_string);
-    // password.append((char *)salt_, salt_num_bytes_);
-    // unsigned char* hashed_pass = hash_password(password);
+    sqlite3* db;
 
-    // remember to change password to hashed_pass
-    std::string sql_string = 
-        "BEGIN EXCLUSIVE TRANSACTION; "
-        "SELECT radish_num FROM users WHERE username='" + username + "' AND hashed_pass='" + password + "'; " 
-        "SELECT upgrade_type, upgrade_num FROM upgrades JOIN users ON users.user_id=upgrades.user_id WHERE username='" + username + "' AND hashed_pass='" + password + "'; " 
-        "INSERT OR IGNORE INTO sessions (user_id) VALUES ((SELECT user_id FROM users WHERE username = '" + username + "' AND hashed_pass='" + password + "')); " 
-        "SELECT session_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username='" + username + "' AND hashed_pass='" + password + "'; "
-        "COMMIT;";
+    int rc = sqlite3_open(data_path_.data(), &db);
+    if (rc) {
+        BOOST_LOG_TRIVIAL(trace) << "open database error";
+        throw std::runtime_error("Error while opening database");
+    }
 
-    return run_sql(sql_string);
+    sqlite3_stmt* stmt = NULL;
+
+    unsigned char* salt;
+    int len;
+    char const* const new_command = "SELECT salt FROM users WHERE username=?; ";
+    rc = sqlite3_prepare_v2(db, new_command, -1, &stmt, NULL);
+    if (rc != SQLITE_OK ) {
+        throw std::runtime_error("Error while preparing statement");
+    }
+    rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+    check_rc(rc);
+    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    rc = sqlite3_step(stmt);
+    check_rc(rc);
+    if (rc == SQLITE_ROW) {
+        len = sqlite3_column_bytes(stmt, 0);
+        salt = (unsigned char *)malloc(len);
+        memcpy(salt, sqlite3_column_blob(stmt, 0), len);
+    }
+    rc = sqlite3_finalize(stmt);
+    check_rc(rc);
+
+    // salt then hash the password
+    unsigned char salted_password[password.length()+salt_num_bytes_];
+    std::copy(password.cbegin(), password.cend(), salted_password);
+    memcpy(salted_password + password.length(), salt, salt_num_bytes_);
+    unsigned char hashed_pass[hashed_pass_bytes_] = {0};
+    hash_password(salted_password, hashed_pass, password.length()+salt_num_bytes_);
+
+    char const* const commands[4] = {"SELECT radish_num FROM users WHERE username=? AND hashed_pass=?; ",
+        "SELECT upgrade_type, upgrade_num FROM upgrades JOIN users ON users.user_id=upgrades.user_id WHERE username=? AND hashed_pass=?; ", 
+        "INSERT OR IGNORE INTO sessions (user_id) VALUES ((SELECT user_id FROM users WHERE username =? AND hashed_pass=?)); ", 
+        "SELECT session_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username=? AND hashed_pass=?; "};
+
+    rc = sqlite3_exec(db, "BEGIN EXCLUSIVE TRANSACTION; ", NULL, NULL, NULL);
+    check_rc(rc);
+
+    for (int i = 0; i<4; i++) {
+        rc = sqlite3_prepare_v2(db, commands[i], -1, &stmt, NULL);
+        if (rc != SQLITE_OK ) {
+            throw std::runtime_error("Error while preparing statement");
+        }
+        rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+        check_rc(rc);
+        rc = sqlite3_bind_blob(stmt, 2, hashed_pass, hashed_pass_bytes_, SQLITE_STATIC);
+        check_rc(rc);
+        BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+        rc = sqlite3_step(stmt);
+        check_rc(rc);
+        while (rc == SQLITE_ROW) {
+            std::string col_name = sqlite3_column_name(stmt, 0);
+            if (col_name == "radish_num") {
+                game_data_.radish_num = sqlite3_column_int(stmt, 0);
+            }
+            else if (col_name == "session_id") {
+                game_data_.session_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+            }
+            else if (col_name == "upgrade_type") {
+                std::string type = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+                game_data_.upgrades[type] = sqlite3_column_int(stmt, 1);
+            }
+            rc = sqlite3_step(stmt);
+            check_rc(rc);
+        }
+        rc = sqlite3_finalize(stmt);
+        check_rc(rc);
+    }
+
+    rc = sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL);
+    check_rc(rc);
+
+    delete salt;
+    rc = sqlite3_close(db);
+    check_rc(rc);
+    return true;
 }
 
 /** 
@@ -212,13 +312,36 @@ Helper function to determine whether a user exists
 @return true if user exists, false otherwise
 */
 bool GameRequestHandler::user_exists(std::string username) {
-    std::string sql_string = "SELECT * FROM users WHERE username='" + username + "'; ";
+    char const* const command = "SELECT * FROM users WHERE username=?; ";
 
-    game_data_.radish_num = -1; // clear out just in case
+    sqlite3* db;
 
-    bool success = run_sql(sql_string);
+    int rc = sqlite3_open(data_path_.data(), &db);
+    if (rc) {
+        BOOST_LOG_TRIVIAL(trace) << "open database error";
+        throw std::runtime_error("Error while opening database");
+    }
+    bool has_user = false;
+    sqlite3_stmt* stmt = NULL;
+    rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+    if (rc != SQLITE_OK ) {
+        throw std::runtime_error("Error while preparing statement");
+    }
+    rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+    check_rc(rc);
+    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    rc = sqlite3_step(stmt);
+    check_rc(rc);
+    if (rc == SQLITE_ROW) {
+        has_user = true;
+    }
+    rc = sqlite3_finalize(stmt);
+    check_rc(rc);
 
-    return game_data_.radish_num != -1;
+    rc = sqlite3_close(db);
+    check_rc(rc);
+
+    return has_user;
 }
 
 /**
@@ -228,18 +351,36 @@ Helper function to determine whether a user is online before "logging in" or "lo
 @return true if user is online, false otherwise
 */
 bool GameRequestHandler::is_online(std::string username) {
+    char const* const command = "SELECT session_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username=?; ";
 
-    std::string sql_string = "SELECT session_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username='" + username + "'; ";
+    sqlite3* db;
 
-    game_data_.session_id = ""; // clear out just in case
-
-    bool success = run_sql(sql_string);
-
-    if (game_data_.session_id != "") {
-        return true;
+    int rc = sqlite3_open(data_path_.data(), &db);
+    if (rc) {
+        throw std::runtime_error("Error while opening database");
     }
 
-    return false;
+    sqlite3_stmt* stmt = NULL;
+    bool online = false;
+    rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+    if (rc != SQLITE_OK ) {
+        throw std::runtime_error("Error while preparing statement");
+    }
+    rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+    check_rc(rc);
+    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    rc = sqlite3_step(stmt);
+    check_rc(rc);
+    if (rc == SQLITE_ROW) {
+        online = true;
+    }
+    rc = sqlite3_finalize(stmt);
+    check_rc(rc);
+
+    rc = sqlite3_close(db);
+    check_rc(rc);
+
+    return online;
 }
 
 /**
@@ -260,101 +401,94 @@ bool GameRequestHandler::update_values(std::string username, std::string session
         return false;
     }
 
-    std::string sql_string = "BEGIN EXCLUSIVE TRANSACTION; ";
-    sql_string += "UPDATE users SET radish_num="+std::to_string(radish_num)+" WHERE username='"+username+"' AND EXISTS (SELECT 1 FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username='"+username+"' AND session_id='"+session_id+"'); ";
-    for (const auto& upgrade : upgrades) {
-        std::string upgrade_type = upgrade.first;
-        std::string upgrade_num = std::to_string(upgrade.second);
-        sql_string += "INSERT OR REPLACE INTO upgrades (user_id, upgrade_type, upgrade_num) VALUES ((SELECT users.user_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username='"+username+"' AND session_id='"+session_id+"'), '"+upgrade_type+"', "+upgrade_num+"); ";
-    }
-    sql_string += 
-        "DELETE FROM sessions WHERE session_id='"+session_id+"' AND user_id=(SELECT user_id FROM users WHERE username='"+username+"');"
-        "COMMIT;";
-
-    return run_sql(sql_string);
-}
-
-/**
-Runs input SQL 
-*/
-// example of binding: https://stackoverflow.com/questions/34179449/sqlite-inserting-blob-bind-or-column-index-out-of-range/34179660#34179660
-// param should be array of strings
-// add users - text, blob, blob 
-// get values - text, blob multiple times
-// is online - just text
-// update values - unique for each - gotta write them separately :(
-bool GameRequestHandler::run_sql(std::string sql_string){
     sqlite3* db;
-    char *zErrMsg = 0;
 
     int rc = sqlite3_open(data_path_.data(), &db);
     if (rc) {
-        BOOST_LOG_TRIVIAL(error) << "Can't open database: " << sqlite3_errmsg(db);
-        return false;
-    } 
-    else {
-        BOOST_LOG_TRIVIAL(info) << "Opened database successfully";
+        BOOST_LOG_TRIVIAL(trace) << "open database error";
+        throw std::runtime_error("Error while opening database");
     }
 
-    char *sql = sql_string.data();
-    rc = sqlite3_exec(db, sql, callback, (void*)&game_data_, &zErrMsg);
+    std::vector<std::string> commands;
+    std::vector<std::pair<std::string, int>> upgrades_list;
+    // radish num, username, username, session id
+    commands.push_back("UPDATE users SET radish_num=? WHERE username=? AND EXISTS (SELECT 1 FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username=? AND session_id=?); ");
+    for (const auto& upgrade : upgrades) {
+        std::string upgrade_type = upgrade.first;
+        int upgrade_num = upgrade.second;
+        // username, session_id, upgrade type, upgrade num
+        commands.push_back("INSERT OR REPLACE INTO upgrades (user_id, upgrade_type, upgrade_num) VALUES ((SELECT users.user_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username=? AND session_id=?), ?, ?); ");
+        upgrades_list.push_back(make_pair(upgrade_type, upgrade_num));
+    }
+    // session id, username
+    commands.push_back("DELETE FROM sessions WHERE session_id=? AND user_id=(SELECT user_id FROM users WHERE username=?);");
 
-    if (rc != SQLITE_OK) {
-        BOOST_LOG_TRIVIAL(error) << "SQL error: " << zErrMsg;
-        sqlite3_free(zErrMsg);
-        sqlite3_close(db);
-        return false;
-    } 
-    else {
-        BOOST_LOG_TRIVIAL(info) << "Operation done successfully";
+    sqlite3_stmt* stmt = NULL;
+
+    rc = sqlite3_exec(db, "BEGIN EXCLUSIVE TRANSACTION; ", NULL, NULL, NULL);
+    check_rc(rc);
+
+    for (int i = 0; i<commands.size(); i++) {
+        char const* const command = commands[i].c_str();
+        rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+        if (rc != SQLITE_OK ) {
+            throw std::runtime_error("Error while preparing statement");
+        }
+
+        if (i == 0) {
+            rc = sqlite3_bind_int(stmt, 1, radish_num);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 2, username.c_str(), username.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 3, username.c_str(), username.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 4, session_id.c_str(), session_id.length(), SQLITE_STATIC);
+            check_rc(rc);
+        }
+        else if (i == commands.size()-1) {
+            rc = sqlite3_bind_text(stmt, 1, session_id.c_str(), session_id.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 2, username.c_str(), username.length(), SQLITE_STATIC);
+            check_rc(rc);
+        }
+        else {
+            std::string upgrade_type = upgrades_list[i-1].first;
+            int upgrade_num = upgrades_list[i-1].second;
+            rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 2, session_id.c_str(), session_id.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_text(stmt, 3, upgrade_type.c_str(), upgrade_type.length(), SQLITE_STATIC);
+            check_rc(rc);
+            rc = sqlite3_bind_int(stmt, 4, upgrade_num);
+            check_rc(rc);
+        }
+
+        BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+        rc = sqlite3_step(stmt);
+        check_rc(rc);
+        rc = sqlite3_finalize(stmt);
+        check_rc(rc);
     }
 
-    sqlite3_close(db);
+    rc = sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL);
+    check_rc(rc);
+
+    rc = sqlite3_close(db);
+    check_rc(rc);
     return true;
 }
 
-
-/**
-callback function called for every row returned
-*/
-static int callback(void *data, int argc, char **argv, char **azColName){
-    int i;
-
-    GameData* game_data = (GameData*) data;
-
-    for(i = 0; i<argc; i++) {
-        BOOST_LOG_TRIVIAL(trace) << azColName[i] << " " << argv[i];
-        std::string col_name = azColName[i];
-        if (col_name == "radish_num") {
-            game_data->radish_num = atoi(argv[i]);
-        }
-        else if (col_name == "upgrade_type") {
-            game_data->upgrades[argv[i]] = atoi(argv[i+1]);
-            i++;
-        }
-        else if (col_name == "session_id") {
-            game_data->session_id = argv[i];
-        }
-    }
-    return 0;
-}
-
-// using this for the functions below: https://stackoverflow.com/questions/10273414/library-for-passwords-salt-hash-in-c
-
-// TODO: in progress 
 void GameRequestHandler::create_salt(unsigned char* salt) {
-
-    // from # include <openssl/rand.h>
-    // RAND_bytes(salt, salt_num_bytes_);
-
+    RAND_bytes(salt, salt_num_bytes_);
 }
 
-// TODO in progress
-//  # include <openssl/sha.h>
-void GameRequestHandler::hash_password(std::string salted_pass, unsigned char* hashed_pass) {
-    // SHA256_CTX context;
+void GameRequestHandler::hash_password(unsigned char* salted_pass, unsigned char* hashed_pass, int len) {
+    SHA256(salted_pass, len, hashed_pass);
+}
 
-    // SHA256_Init(&context);
-    // SHA256_Update(&context, (unsigned char*)salted_password, length);
-    // SHA256_Final(hashed_pass, &context);
+void GameRequestHandler::check_rc(int rc) {
+    if (rc != SQLITE_OK && rc != SQLITE_ROW && rc != SQLITE_DONE) {
+        throw std::runtime_error("SQLITE ERROR " + std::to_string(rc));
+    }
 }
