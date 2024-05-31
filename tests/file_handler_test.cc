@@ -83,6 +83,8 @@ TEST_F(FileRequestTest, Extensions) {
     EXPECT_EQ("image/png", handler->file_extension_to_content_type("png"));
     EXPECT_EQ("application/pdf", handler->file_extension_to_content_type("pdf"));
     EXPECT_EQ("application/zip", handler->file_extension_to_content_type("zip"));
+    EXPECT_EQ("text/css", handler->file_extension_to_content_type("css"));
+    EXPECT_EQ("text/javascript", handler->file_extension_to_content_type("js"));
     EXPECT_EQ("application/octet-stream", handler->file_extension_to_content_type("bin"));
 }
 
