@@ -35,8 +35,10 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
 
     auto optBody = validate_json(string_body);
 
+    // set as default status code
+    res_.result(http::status::bad_request);
+
     if (!optBody.has_value()) {
-        res_.result(http::status::bad_request);
         res_.body() = "Invalid JSON\n";
         log_request(request, res_, "Game request handled");
         return res_;
@@ -47,93 +49,78 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
     bool success = false;
 
     // TODO using binding to prevent injection!
-    if (request.method_string() == "GET") {
-        if (!(body.contains("username") && body.contains("password"))) {
-            res_.body() = "Must have username and password\n";
-            res_.result(http::status::bad_request);
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
-        auto name_ptr = body.find("username");
-        auto pass_ptr = body.find("password");
-        try {
+    try {
+        if (request.method_string() == "GET") {
+            if (!(body.contains("username") && body.contains("password"))) {
+                res_.body() = "Must have username and password\n";
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
+            auto name_ptr = body.find("username");
+            auto pass_ptr = body.find("password");
             success = get_values(*name_ptr, *pass_ptr);
-        }
-        catch(...){
-            res_.body() = "Error with database\n";
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
 
-        if (!success) {
-            res_.body() = "Unable to find offline user and/or username/password mismatch\n";
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
+            if (!success) {
+                res_.body() = "Unable to find offline user and/or username/password mismatch\n";
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
 
-        // fill out response
-        json json_res_body = json{
-            {"radish_num", game_data_.radish_num},
-            {"session_id", game_data_.session_id},
-            {"upgrades", game_data_.upgrades}
-        };
+            // fill out response
+            json json_res_body = json{
+                {"radish_num", game_data_.radish_num},
+                {"session_id", game_data_.session_id},
+                {"upgrades", game_data_.upgrades}
+            };
 
-        res_.set(http::field::content_type, "application/json");
-        res_.body() = json_res_body.dump();
-    }
-    else if (request.method_string() == "PUT"){ // update function
-        if (!(body.contains("username") && body.contains("session_id") && body.contains("radish_num") && body.contains("upgrades"))) {
-            res_.body() = "Must have username, session id, radish number, and upgrades\n";
-            res_.result(http::status::bad_request);
-            log_request(request, res_, "Game request handled");
-            return res_;
+            res_.set(http::field::content_type, "application/json");
+            res_.body() = json_res_body.dump();
         }
-        auto name_ptr = body.find("username");
-        auto sess_id_ptr = body.find("session_id");
-        auto rad_num_ptr = body.find("radish_num");
-        auto upgrade_ptr = body.find("upgrades");
-        try {
+        else if (request.method_string() == "PUT"){ // update function
+            if (!(body.contains("username") && body.contains("session_id") && body.contains("radish_num") && body.contains("upgrades"))) {
+                res_.body() = "Must have username, session id, radish number, and upgrades\n";
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
+            auto name_ptr = body.find("username");
+            auto sess_id_ptr = body.find("session_id");
+            auto rad_num_ptr = body.find("radish_num");
+            auto upgrade_ptr = body.find("upgrades");
             success = update_values(*name_ptr, *sess_id_ptr, *rad_num_ptr, *upgrade_ptr);
+            if (!success) {
+                res_.body() = "Update failed\n";  
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
+            res_.body() = "Changes successful!\n";
         }
-        catch (...) {
-            res_.body() = "Error with database\n";
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
-        if (!success) {
-            res_.body() = "Update failed\n";  
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
-        res_.body() = "Changes successful!\n";
-    }
-    else if (request.method_string() == "POST") {
-        if (!(body.contains("username") && body.contains("password"))) {
-            res_.body() = "Must have username and password\n";
-            res_.result(http::status::bad_request);
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
-        auto name_ptr = body.find("username");
-        auto pass_ptr = body.find("password");
-        try {
+        else if (request.method_string() == "POST") {
+            if (!(body.contains("username") && body.contains("password"))) {
+                res_.body() = "Must have username and password\n";
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
+            auto name_ptr = body.find("username");
+            auto pass_ptr = body.find("password");
             success = add_user(*name_ptr, *pass_ptr);
+
+            if (!success) {
+                res_.body() = "Unable to add user\n";  
+                log_request(request, res_, "Game request handled");
+                return res_;
+            }
+
+            res_.body() = "User successfully added\n";
         }
-        catch(...){
-            res_.body() = "Error with database\n";
+        else {
             log_request(request, res_, "Game request handled");
+            res_.body() = "Invalid Method\n";
             return res_;
         }
-
-        if (!success) {
-            res_.body() = "Unable to add user\n";  
-            log_request(request, res_, "Game request handled");
-            return res_;
-        }
-
-        res_.body() = "User successfully added\n";
     }
-    else {
+    catch(...){
+        res_.result(http::status::unprocessable_entity);
+        res_.body() = "Error with database\n";
         log_request(request, res_, "Game request handled");
         return res_;
     }
