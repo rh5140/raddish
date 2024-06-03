@@ -52,6 +52,7 @@ http::response<http::string_body> Session::create_response(){
 
     RequestDispatcher* dispatcher = new RequestDispatcher();
     http::response<http::string_body> res =  dispatcher->dispatch_request(req_, config_info_, client_addr, host_addr);
+    req_.body() = "";
     delete dispatcher;
     return res;
 }
