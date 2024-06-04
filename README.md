@@ -1,3 +1,34 @@
+# Clicker Game
+The site can be accessed at `[url]:[portnum]/clicker_game/index.html`, which will retrieve the html necessary for loading the other files (CSS and JS). If you're running it locally in the CS130 development environment, you may need to download the following libraries:
+```
+sudo apt-get install sqlite3
+sudo apt-get install libsqlite3-dev
+sudo apt-get install libssl-dev
+```
+
+## How to Play
+If you're playing for the first time, enter a new username and password to create an account. Enter a previous username and password to retrieve progress. Click the farm to earn radishes, and use it to buy upgrades to optimize your radish farming abilities.
+
+## Game Request Handler
+This handler is primarily used to store and retrieve user data - this includes username, password, and their associated radishes (currency) and upgrades. In the back, we've used SQLite3 as the database as well as salting and hashing the passwords for extra security. All sets of SQL queries are done in exclusive transactions to prevent multiple users from trying to modify data at the same time, and values are bound to statements to avoid SQL injection. See the following for a quick description of the API:
+
+### POST to make a new account
+This allows the user to create a new account with a specified username and password. The password is salted and hashed before storage. By default, the player has zero radishes. The request requires a JSON object in the body containing strings for username and password, as seen below, as well as "create" for the action.
+```
+curl -X POST -H "Content-Type: application/json" -d "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}" localhost:8080/clicker_game/data
+```
+### POST to retrieve user information (login)
+This allows the user to get information associated with a username, by providing a username and password. The password is salted and hashed before using it to match to the correct account. The response's body is JSON with the radish number, the upgrades (each type and its associated number), and a session ID. This session ID will be required to log out and store information later, preventing malicious actors from changing the user's data otherwise. The request requires a JSON object in the body containing strings for username and password, as seen below, as well as "login" for the action.
+```
+curl -X POST -H "Content-Type: application/json" -d "{ \"action\": \"login\", \"username\": \"testuser1\", \"password\": \"testpass1\" }" localhost:8080/clicker_game/data
+```
+
+### PUT to update user information (logout)
+This allows the user to update their information with new data. The request requires a JSON object in the body containing the username, a session ID, the radish number, and the upgrades. Note that session ID will be unique per login or session - any applications that utilize this API should store the session ID somewhere.
+```
+curl -X PUT -H "Content-Type: application/json" -d "{ \"username\": \"testuser1\",  \"session_id\": \"[SESSION_ID]\", \"radish_num\": 7, \"upgrades\": {\"upgrade1\": 2, \"upgrade2\": 15} }" localhost:8080/clicker_game/data
+```
+
 # Contributor Documentation
 
 ## How the source code is laid out

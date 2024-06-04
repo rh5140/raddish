@@ -30,6 +30,7 @@ class GameRequestHandler : public RequestHandler {
         bool update_values(std::string username, std::string session_id, int radish_num, std::map<std::string, int> upgrades);
         bool is_online(std::string username);
         bool user_exists(std::string username);
+        bool has_session_id(std::string username, std::string session_id);
         void create_salt(unsigned char* salt);
         void hash_password(unsigned char* salted_pass, unsigned char* hashed_pass, int len);
         void check_rc(int rc);

@@ -19,6 +19,7 @@ namespace http = beast::http;
 // can be used to set handler-specific variables - e.g. the root for file handler.
 // all data needed should be added to the RequestHandlerData struct contained in info.h.
 GameRequestHandler::GameRequestHandler(const RequestHandlerData& request_handler_data) : RequestHandler(request_handler_data), data_path_(request_handler_data.data_path) {
+    handler_name_ = "GameRequestHandler";
 }
 
 // factory function
@@ -44,7 +45,7 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
 
     if (!optBody.has_value()) {
         res_.body() = "Invalid JSON\n";
-        log_request(request, res_, "Game request handled");
+        log_request(request, res_, "JSON could not be validated in for the clicker game");
         return res_;
     }
 
@@ -56,7 +57,7 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
         if (request.method_string() == "PUT"){ // update function
             if (!(body.contains("username") && body.contains("session_id") && body.contains("radish_num") && body.contains("upgrades"))) {
                 res_.body() = "Must have username, session id, radish number, and upgrades\n";
-                log_request(request, res_, "Game request handled");
+                log_request(request, res_, "Missing one of the fields to update or logout");
                 return res_;
             }
             auto name_ptr = body.find("username");
@@ -66,15 +67,17 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
             success = update_values(*name_ptr, *sess_id_ptr, *rad_num_ptr, *upgrade_ptr);
             if (!success) {
                 res_.body() = "Update failed\n";  
-                log_request(request, res_, "Game request handled");
+                log_request(request, res_, "Unable to update database - user may be offline or nonexistent");
                 return res_;
             }
+            res_.result(http::status::ok);  
             res_.body() = "Changes successful!\n";
+            log_request(request, res_, "Logout successful - changes successfully made");
         }
         else if (request.method_string() == "POST") {
             if (!(body.contains("action") && body.contains("username") && body.contains("password"))) {
                 res_.body() = "Must have username and password\n";
-                log_request(request, res_, "Game request handled");
+                log_request(request, res_, "Missing one of the fields for creating user or logging in");
                 return res_;
             }
             auto action_ptr = body.find("action");
@@ -86,11 +89,13 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
 
                 if (!success) {
                     res_.body() = "Unable to add user\n";  
-                    log_request(request, res_, "Game request handled");
+                    log_request(request, res_, "User cannot be added - may already exist");
                     return res_;
                 }
 
+                res_.result(http::status::ok);  
                 res_.body() = "User successfully added\n";
+                log_request(request, res_, "User successfully added");
             }
             else if (*action_ptr=="login") {
 
@@ -98,7 +103,7 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
 
                 if (!success) {
                     res_.body() = "Unable to find offline user and/or username/password mismatch\n";
-                    log_request(request, res_, "Game request handled");
+                    log_request(request, res_, "Unable to log in - user may be online or not exist, or the password may be wrong");
                     return res_;
                 }
 
@@ -108,34 +113,37 @@ http::response<http::string_body> GameRequestHandler::handle_request(const http:
                     {"session_id", game_data_.session_id},
                     {"upgrades", game_data_.upgrades}
                 };
-
+                res_.result(http::status::ok);  
                 res_.set(http::field::content_type, "application/json");
                 res_.body() = json_res_body.dump();
+                log_request(request, res_, "Successfully logged in");
             }
             else {
                 res_.body() = "Invalid Action\n";
-                log_request(request, res_, "Game request handled");
+                log_request(request, res_, "Given action is not create or login - try again");
                 return res_;
             }
         }
         else {
-            log_request(request, res_, "Game request handled");
             res_.body() = "Invalid Method\n";
+            log_request(request, res_, "Method is not supported - only PUT and POST are supported");
             return res_;
         }
+    }
+    // thrown by database errors
+    catch(const std::runtime_error &e) {
+        res_.result(http::status::internal_server_error);
+        res_.body() = e.what();
+        log_request(request, res_, "Unrecoverable error happened - database issue");
+        return res_;
     }
     catch(const std::exception &e){
         res_.result(http::status::unprocessable_entity);
         res_.body() = e.what();
-        log_request(request, res_, "Game request handled");
+        log_request(request, res_, "Wrong types given");
         return res_;
-    }
+    } 
 
-    //set vars
-    res_.result(http::status::ok);  
-
-    //log
-    log_request(request, res_, "Game request handled");
     return res_;
 }
 
@@ -165,7 +173,6 @@ bool GameRequestHandler::add_user(std::string username, std::string password) {
     // create the salt, then salt and hash the password
     unsigned char salt[salt_num_bytes_] = {0};
     create_salt(salt);
-    BOOST_LOG_TRIVIAL(trace) << salt;
     unsigned char salted_password[password.length()+salt_num_bytes_];
     std::copy(password.cbegin(), password.cend(), salted_password);
     memcpy(salted_password + password.length(), salt, salt_num_bytes_);
@@ -178,7 +185,6 @@ bool GameRequestHandler::add_user(std::string username, std::string password) {
 
     int rc = sqlite3_open(data_path_.data(), &db);
     if (rc) {
-        BOOST_LOG_TRIVIAL(trace) << "open database error";
         throw std::runtime_error("Error while opening database");
     }
 
@@ -193,7 +199,8 @@ bool GameRequestHandler::add_user(std::string username, std::string password) {
     check_rc(rc);
     rc = sqlite3_bind_blob(stmt, 3, salt, salt_num_bytes_, SQLITE_STATIC);
     check_rc(rc);
-    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    severity_.set(sev_lvl::trace);
+    BOOST_LOG(lg_) << "SQLITE3 binded stmt: " <<sqlite3_expanded_sql(stmt);
     rc = sqlite3_step(stmt);
     check_rc(rc);
     rc = sqlite3_finalize(stmt);
@@ -224,7 +231,6 @@ bool GameRequestHandler::get_values(std::string username, std::string password) 
 
     int rc = sqlite3_open(data_path_.data(), &db);
     if (rc) {
-        BOOST_LOG_TRIVIAL(trace) << "open database error";
         throw std::runtime_error("Error while opening database");
     }
 
@@ -239,7 +245,8 @@ bool GameRequestHandler::get_values(std::string username, std::string password) 
     }
     rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
     check_rc(rc);
-    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    severity_.set(sev_lvl::trace);
+    BOOST_LOG(lg_) << "SQLITE3 binded stmt: " <<sqlite3_expanded_sql(stmt);
     rc = sqlite3_step(stmt);
     check_rc(rc);
     if (rc == SQLITE_ROW) {
@@ -274,7 +281,8 @@ bool GameRequestHandler::get_values(std::string username, std::string password) 
         check_rc(rc);
         rc = sqlite3_bind_blob(stmt, 2, hashed_pass, hashed_pass_bytes_, SQLITE_STATIC);
         check_rc(rc);
-        BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+        severity_.set(sev_lvl::trace);
+        BOOST_LOG(lg_) << "SQLITE3 binded stmt: " <<sqlite3_expanded_sql(stmt);
         rc = sqlite3_step(stmt);
         check_rc(rc);
         while (rc == SQLITE_ROW) {
@@ -318,7 +326,6 @@ bool GameRequestHandler::user_exists(std::string username) {
 
     int rc = sqlite3_open(data_path_.data(), &db);
     if (rc) {
-        BOOST_LOG_TRIVIAL(trace) << "open database error";
         throw std::runtime_error("Error while opening database");
     }
     bool has_user = false;
@@ -329,7 +336,8 @@ bool GameRequestHandler::user_exists(std::string username) {
     }
     rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
     check_rc(rc);
-    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    severity_.set(sev_lvl::trace);
+    BOOST_LOG(lg_) << "SQLITE3 binded stmt: " <<sqlite3_expanded_sql(stmt);
     rc = sqlite3_step(stmt);
     check_rc(rc);
     if (rc == SQLITE_ROW) {
@@ -368,7 +376,8 @@ bool GameRequestHandler::is_online(std::string username) {
     }
     rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
     check_rc(rc);
-    BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+    severity_.set(sev_lvl::trace);
+    BOOST_LOG(lg_) << "SQLITE3 binded stmt: " << sqlite3_expanded_sql(stmt);
     rc = sqlite3_step(stmt);
     check_rc(rc);
     if (rc == SQLITE_ROW) {
@@ -381,6 +390,49 @@ bool GameRequestHandler::is_online(std::string username) {
     check_rc(rc);
 
     return online;
+}
+
+/**
+Helper function to check whether session ID matches for given user
+
+@param username Inputted name
+@param session_id the id provided by the request
+@return whether session id associated with the user matches
+*/
+bool GameRequestHandler::has_session_id(std::string username, std::string session_id) {
+    char const* const command = "SELECT session_id FROM sessions JOIN users ON sessions.user_id=users.user_id WHERE username=? AND session_id=?; ";
+
+    sqlite3* db;
+
+    int rc = sqlite3_open(data_path_.data(), &db);
+    if (rc) {
+        throw std::runtime_error("Error while opening database");
+    }
+
+    sqlite3_stmt* stmt = NULL;
+    bool has_session_id = false;
+    rc = sqlite3_prepare_v2(db, command, -1, &stmt, NULL);
+    if (rc != SQLITE_OK ) {
+        throw std::runtime_error("Error while preparing statement");
+    }
+    rc = sqlite3_bind_text(stmt, 1, username.c_str(), username.length(), SQLITE_STATIC);
+    check_rc(rc);
+    rc = sqlite3_bind_text(stmt, 2, session_id.c_str(), 16, SQLITE_STATIC);
+    check_rc(rc);
+    severity_.set(sev_lvl::trace);
+    BOOST_LOG(lg_) << "SQLITE3 binded stmt: " << sqlite3_expanded_sql(stmt);
+    rc = sqlite3_step(stmt);
+    check_rc(rc);
+    if (rc == SQLITE_ROW) {
+        has_session_id = true;
+    }
+    rc = sqlite3_finalize(stmt);
+    check_rc(rc);
+
+    rc = sqlite3_close(db);
+    check_rc(rc);
+
+    return has_session_id;
 }
 
 /**
@@ -397,7 +449,7 @@ bool GameRequestHandler::update_values(std::string username, std::string session
     
     // check whether user is online first - the session_id is then stored
     // we can then use it to match against given session_id
-    if (!is_online(username) || game_data_.session_id != session_id) {
+    if (!is_online(username) || has_session_id(username, session_id)) {
         return false;
     }
 
@@ -405,7 +457,6 @@ bool GameRequestHandler::update_values(std::string username, std::string session
 
     int rc = sqlite3_open(data_path_.data(), &db);
     if (rc) {
-        BOOST_LOG_TRIVIAL(trace) << "open database error";
         throw std::runtime_error("Error while opening database");
     }
 
@@ -464,7 +515,8 @@ bool GameRequestHandler::update_values(std::string username, std::string session
             check_rc(rc);
         }
 
-        BOOST_LOG_TRIVIAL(trace) << sqlite3_expanded_sql(stmt);
+        severity_.set(sev_lvl::trace);
+        BOOST_LOG(lg_) << "SQLITE3 binded stmt: " << sqlite3_expanded_sql(stmt);
         rc = sqlite3_step(stmt);
         check_rc(rc);
         rc = sqlite3_finalize(stmt);

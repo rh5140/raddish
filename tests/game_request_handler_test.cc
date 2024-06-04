@@ -242,7 +242,7 @@ TEST_F(GameHandlerTest, NonexistentDB) {
     GameRequestHandler* new_handler = new GameRequestHandler(request_handler_data);
     auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\", \"password\": \"testpass1\"}");
     auto response = new_handler->handle_request(request);
-    EXPECT_EQ(response.result(), http::status::unprocessable_entity);
+    EXPECT_EQ(response.result(), http::status::internal_server_error);
     EXPECT_EQ(response.body(), "Error while preparing statement");
     delete new_handler;
 }
@@ -252,4 +252,28 @@ TEST_F(GameHandlerTest, InvalidAction) {
     auto response = handler->handle_request(request);
     EXPECT_EQ(response.result(), http::status::bad_request);
     EXPECT_EQ(response.body(), "Invalid Action\n");
+}
+
+TEST_F(GameHandlerTest, TwoHandlers) {
+    request_handler_data.data_path = "file::memory:?cache=shared"; // creating a new handler that uses the same shared memory
+    GameRequestHandler* new_handler = new GameRequestHandler(request_handler_data);
+
+    auto request = construct_request(http::verb::post, "{ \"action\": \"create\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    auto response = handler->handle_request(request);
+    EXPECT_EQ(response.result(), http::status::ok);
+    EXPECT_EQ(response.body(), "User successfully added\n");
+
+    request = construct_request(http::verb::post, "{ \"action\": \"login\", \"username\": \"testuser1\",  \"password\": \"testpass1\"}");
+    response = handler->handle_request(request);
+    EXPECT_EQ(response.result(), http::status::ok);
+    json json_body = json::parse(response.body());
+    EXPECT_EQ(json_body.at("radish_num"), 0);
+    EXPECT_EQ(json_body.at("upgrades").empty(), true);
+
+    request = construct_request(http::verb::put, "{ \"username\": \"testuser1\",  \"session_id\": \"" + (std::string)json_body.at("session_id") + "\", \"radish_num\": 7, \"upgrades\": {\"upgrade1\": 2, \"upgrade2\": 15} }");
+    response = new_handler->handle_request(request);
+    EXPECT_EQ(response.result(), http::status::ok);
+    EXPECT_EQ(response.body(), "Changes successful!\n");
+
+    delete new_handler;
 }
