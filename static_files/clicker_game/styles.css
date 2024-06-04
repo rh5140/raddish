@@ -22,7 +22,7 @@ header {
     display: flex;
     flex-direction: row;
     height: 15vh;
-    background-color:#cde0a4;
+    background-color:#cde0a4; /* Light green */
     justify-content: center;
     align-items: center;
     padding: 1%;
@@ -55,7 +55,7 @@ main {
     justify-content: center;
     width: 40%;
     max-height: 100%;
-    background-color: #e9c38f;
+    background-color: #e9c38f; /* Tan */
 }
 
 #clickBox {
@@ -93,7 +93,7 @@ main {
 }
 
 .sell_button {
-    background-color: #cde0a4;
+    background-color: #cde0a4; /* Light green */
     border: none;
     color: black;
     padding: 4px;
@@ -105,14 +105,14 @@ main {
 }
 
 .sell_button:hover {
-    background-color: darkseagreen; /* Green */
+    background-color: darkseagreen; 
     color: white;
     cursor: pointer;
 }
 
 #marketColumn {
     width: 40%;
-    background-color: #e9c38f;
+    background-color: #e9c38f; /* Tan */
 }
 
 #market {
@@ -153,7 +153,7 @@ main {
 }
 
 .buy_button {
-    background-color: #cde0a4;
+    background-color: #cde0a4; /* Light green */
     border: none;
     border-radius: 5px;
     color: black;
@@ -165,9 +165,21 @@ main {
 }
 
 .buy_button:hover {
-    background-color: darkseagreen; /* Green */
+    background-color: darkseagreen;
     color: white;
     cursor: pointer;
+}
+
+.bought_button {
+    background-color: darkseagreen;
+    color: black;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    font-family: cursive;
+    font-size: large;
+    height: 30%;
+    width: 70%;
 }
 
 .right_col {

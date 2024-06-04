@@ -3,33 +3,84 @@
   <head>
     <link rel="stylesheet" href="styles.css">
     <script type="module" src="index.js"></script>
+    <title>Radish clicker!</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
   </head>
       
-  <header>
-
-  </header>
-
   <body>
 
-    <h1 id="clickme"> click me! </h1>
-    <p> This is a paragraph </p>
+    <header>
+      <div id="pageTitle"> 
+        <h1>raddddddish</h1>
+      </div>
+      <div id="headerSpacer">
 
-    <h2> CS <s>118</s> 130 </h2>
-    <p> Web!!! Server!!!! </p>
+      </div>
+      <div id="login">
+        <form id="loginForm">
+          <input type="text" name="username" id="usernameField" class="login_field" placeholder="Username">
+          <input type="password" name="password" id="passwordField" class="login_field" placeholder="Password">
+          <input type="submit" value="Login" id="loginSubmit">
+          <input type="submit" value="Create account" id="createUserSubmit">
+        </form>
+      </div>
+    </header>
 
+    <main>
 
-    <h1 id="radishClick"> Pick Radish! </h1> 
-    <h1 id="buyFarmer"> Buy Farmer ($10) </h1> 
-    <h1 id="sellRadish"> Sell Radish (1) </h1> 
-    <h1 id="sellRadishTen"> Sell Radish (10) </h1>
-    <h1 id="sellRadishHundred"> Sell Radish (100) </h1> 
+      <div id="clickerColumn">
+        <div id="clickBox">
+          <img src="images/radish.png" alt="A drawing of a red radish with three green leaves." id="radishImg">
+        </div>
+      </div>
 
+      <div id="statsColumn">
+        <div id="statsTitle" class="column_title">
+          <h2>Stats</h2>
+        </div>
+        <div id="stats">
+          <p id="radishCount">Radishes: 0</p>
+          <p id="radishPerSecond">Radishes/Sec: 0</p>
+          <p id="moneyCount">Money: $0.00</p>
+          <p id="radishPrice">Price/Radish: $1</p>
+          <button type=""button" id="sellRadish" class="sell_button">Sell 1 radish</button>
+          <button type=""button" id="sellRadishTen" class="sell_button">Sell 10 radishes</button>
+          <button type=""button" id="sellRadishHundred" class="sell_button">Sell 100 radishes</button>
+        </div>
+      </div>
+  
+      <div id="marketColumn">
 
-    <p id="radishCount"> Radishes: 0 </p>
-    <p id="radishPerSecond"> Radishes/Sec: 0 </p>
-    <p id="radishPrice"> Price/Radish: 0 </p>
-    <p id="moneyCount"> Money: 0 </p>
-    <p id="farmerCount"> Farmers: 0 </p>
+        <div id="marketTitle" class="column_title">
+          <h2>Market</h2>
+        </div>
+        <div id="market">
+          <div id="Base" class="card">
+            <div class="left_col">
+                <img src="images/placeholder.png" alt="A black-and-white sketch of a wide-eyed black cat wearing a farmer hat and overalls." class="upgrade_img"> 
+                <button type="button" class="buy_button">Buy</button>
+            </div>
+            <div class="right_col">
+                <div class="upgrade_description">
+                  <h3 class="upgrade_name">Base</h3>
+                  <p class="upgrade_info">This is cloned.</p> 
+                </div>
+                <div class="price_count_info">
+                    <p class="upgrade_price">Money can't buy this!</p>
+                    <p class="upgrade_count">It's the one and only!</p>
+                </div>              
+            </div>
+          </div>
+        </div>
+      </div>
+      
+
+    </main>
+
+    <footer>
+      made with <3 by team raddish for cs130 spring 2024
+    </footer>
+
   </body>
 
 </html>
