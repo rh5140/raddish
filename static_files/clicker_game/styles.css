@@ -1,186 +1,66 @@
-html {
-    position:relative; 
-    min-height: 100%;
-}
-
-html, body {
-    margin:0;
-    padding:0;
-}
-
 h1 {
-    color: black;
-    font-family: cursive;
+    color: blue;
 }
 
 p {
-    color: black;
-    font-family: cursive;
-}
-
-header {
-    display: flex;
-    flex-direction: row;
-    height: 15vh;
-    background-color:#cde0a4;
-    justify-content: center;
-    align-items: center;
-    padding: 1%;
-}
-
-#pageTitle {
-    width: 40%;
-    display: flex;
-    justify-content: center;
-}
-
-#headerSpacer {
-    width: 20%;
-}
-
-#loginForm {
-    width: 40%;
-    padding: 20px;
-}
-
-main {
-    display: flex;
-    flex-direction: row;
-    flex: 1 1 auto;
-    height: 70vh;
-}
-
-#clickerColumn {
-    display: flex;
-    justify-content: center;
-    width: 40%;
-    max-height: 100%;
-    background-color: #e9c38f;
-}
-
-#clickBox {
-    display: flex;
-    justify-content: center;
-}
-
-#radishImg:hover {
-    cursor: pointer;
-}
-
-#radishImg:active {
-    height: 95%;
-}
-
-.column_title {
-    height: 10%;
-    font-family: cursive;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#statsColumn {
-    width: 20%;
-    background-color: bisque;
-}
-
-#stats {
-    display: flex;
-    flex-direction: column;
-    align-items: left;
-    padding-left: 10%;
-    width: 80%;
-}
-
-.sell_button {
-    background-color: #cde0a4;
-    border: none;
-    color: black;
-    padding: 4px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    font-family: cursive;
-}
-
-.sell_button:hover {
-    background-color: darkseagreen; /* Green */
-    color: white;
-    cursor: pointer;
-}
-
-#marketColumn {
-    width: 40%;
-    background-color: #e9c38f;
-}
-
-#market {
-    display: flex;
-    flex-direction: column;
-    overflow-y: scroll;
-    max-height: 90%;
-}
-
-#Base {
-    display: none;
-    visibility: hidden;
+    color: red;
 }
 
 .card {
     /* Hardcoded dimensions for now, should fill column width */
     display: flex;
     flex-direction: row;
-    width: 90%; 
-    height: 40vh; 
+    width: 500px; 
+    height: 200px; 
     padding: 10px;
     border: 1px solid black;
     border-radius: 10px;
     background-color: white;
-    margin: 2%;
 }
 
 .left_col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-items: center;
     width: 30%;
+    padding: 10px;
 }
 
 .upgrade_img {
-    height: 70%
+    width: 100%;
 }
 
 .buy_button {
-    background-color: #cde0a4;
+    background-color: darkseagreen;
     border: none;
-    border-radius: 5px;
-    color: black;
+    color: white;
+    padding: 4px;
     text-align: center;
-    font-family: cursive;
-    font-size: large;
-    height: 30%;
-    width: 70%;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
 }
 
 .buy_button:hover {
-    background-color: darkseagreen; /* Green */
+    background-color: #04AA6D; /* Green */
     color: white;
-    cursor: pointer;
-}
+  }
 
 .right_col {
     display: flex;
     flex-direction: column;
-    margin-left:
-    width: 65%;
+    width: 70%;
 }
 
-.upgrade_description {
+.upgrade_name {
+    color: black;
+    font-size: larger;
+    font-family: cursive;
+}
+
+.upgrade_info {
     color: black;
     font-family: cursive;
-    height: 70%;
 }
 
 .price_count_info {
@@ -197,10 +77,4 @@ main {
 .upgrade_count {
     color: black;
     width: 50%;
-}
-
-footer {
-    font-family: cursive;
-    padding: 1%;
-    text-align: center;
 }
