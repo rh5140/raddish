@@ -299,7 +299,6 @@ async function handleForm(event) {
       _session_username = userText;
       _session_id = data.session_id;
       //don't load radishes and other data since we JUST made the account
-      alert("Creation successful!");
       setErrorText("");
       //swap which button is displayed
       logoutButton.style.display = "inline-block";
@@ -307,6 +306,7 @@ async function handleForm(event) {
       //close and reset form
       closeForm();
       loginForm.reset();
+      alert("Creation successful!");
     }
     catch(err){ //promise reject
       setErrorText("Username already exists");
@@ -321,18 +321,46 @@ async function handleForm(event) {
       _session_username = userText;
       _session_id = data.session_id;
       //load data
-      console.log(data.radis)
       if(data.radish_num){
         radishCount = data.radish_num; //load radishes
       }
-      //TODO for ray - load upgrades here
-      alert("Login successful!");
+
+      if(data.upgrades.moneyCount){
+        moneyCount = data.upgrades.moneyCount;
+      }
+      if(data.upgrades.farmerCount){
+        farmerCount = data.upgrades.farmerCount;
+      }
+      if(data.upgrades.farmCount){
+        farmCount = data.upgrades.farmCount;
+      }
+      if(data.upgrades.taffyCount){
+        taffyCount = data.upgrades.taffyCount;
+      }
+      if(data.upgrades.lobsterCount){
+        lobsterCount = data.upgrades.lobsterCount;
+      }
+      if(data.upgrades.almondCount){
+        almondCount = data.upgrades.almondCount;
+      }
+      if(data.upgrades.hasCharlie){
+        hasCharlie = data.upgrades.hasCharlie;
+      }
+      if(data.upgrades.hasPowell){
+        hasPowell = data.upgrades.hasPowell;
+      }
+      //do upgrades as needed
+      //if we keep adding upgrades we maybe need to find a better method
+
+
+
       //swap which button is displayed
       logoutButton.style.display = "inline-block";
       loginButton.style.display = "none";
       setErrorText("");
       closeForm();
       loginForm.reset();
+      alert("Login successful!");
     }
     catch(err){ //promise reject
       setErrorText("Incorrect username/password");
@@ -352,8 +380,16 @@ function setErrorText(text){
 logoutButton.addEventListener('click', doLogout);
 async function doLogout(){
   try{
-    await logoutAccount(_session_username, _session_id, radishCount, {}) //TODO for ray: put the upgrades here
-    alert("Logout Successful!");
+    let upgrades_json = {}
+    upgrades_json["moneyCount"] = moneyCount;
+    upgrades_json["farmerCount"] = farmerCount;
+    upgrades_json["farmCount"] = farmCount;
+    upgrades_json["taffyCount"] = taffyCount;
+    upgrades_json["lobsterCount"] = lobsterCount;
+    upgrades_json["almondCount"] = almondCount;
+    upgrades_json["hasCharlie"] = hasCharlie;
+    upgrades_json["hasPowell"] = hasPowell;
+    await logoutAccount(_session_username, _session_id, radishCount, upgrades_json) 
     //swap which button is displayed
     logoutButton.style.display = "none";
     loginButton.style.display = "inline-block";
@@ -368,6 +404,8 @@ async function doLogout(){
     almondCount = 0;
     hasCharlie = false;
     hasPowell = false;
+    
+    alert("Logout Successful!");
   }
   catch{
 
@@ -375,8 +413,9 @@ async function doLogout(){
 }
 
 
-
-
+//force logout on window close
+window.addEventListener("beforeunload", doLogout);
+    
 
 
 
