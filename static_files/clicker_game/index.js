@@ -1,5 +1,7 @@
 import { createAccount, loginAccount, logoutAccount } from "./login.js";
 
+let cardMap = new Map();
+
 // vars 
 let radishCount = 0; //temp
 let moneyCount = 0;
@@ -15,19 +17,19 @@ let hasPowell = false;
 const INITIAL_COUNT_ZERO    =    0;
 const FARMER_GAIN           =    1;
 const FARM_GAIN             =   10;
-const INITIAL_FARMER_COST   =   10;
-const INITIAL_TAFFY_COST    =   20;
-const INITIAL_FARM_COST     =  100;
-const INITIAL_ALMOND_COST   =  200;
-const INITIAL_LOBSTER_COST  =  500;
-const CHARLIE_COST          =  200;
-const POWELL_COST           = 1000;
+const INITIAL_FARMER_COST   =    100;
+const INITIAL_FARM_COST     =   1000;
+const INITIAL_TAFFY_COST    =   2000;
+const CHARLIE_COST          =   4000;
+const INITIAL_ALMOND_COST   =  20000;
+const INITIAL_LOBSTER_COST  =  50000;
+const POWELL_COST           = 100000;
 const FARMER_THRESHOLD      =  100;
 const EXPONENT_BASE = 1.15;
 
 //price fluctuation
 let priceFluctuationTimer = 0;
-let currentRadishPrice = 1;
+let currentRadishPrice = 1.00.toFixed(2);
 let baseRadishPrice = 1;
 
 // Actual max/min multiplied by 100 to make calculation easier
@@ -40,30 +42,62 @@ const moneyCountNode = document.getElementById("moneyCount");
 const radishCountNode = document.getElementById("radishCount");
 const radishPriceNode = document.getElementById("radishPrice");
 const radishPerSecondNode = document.getElementById("radishPerSecond");
+const priceRangeNode = document.getElementById("priceRange");
 
+// list of radish img sources for animation (currently 11 upgrades from the base radish)
+const radishes = ["images/radish.png", 
+                  "images/radishes/daikon.png", 
+                  "images/radishes/longscarlet.png", 
+                  "images/radishes/summersicle.png", 
+                  "images/radishes/redking.png", 
+                  "images/radishes/sparkler.png", 
+                  "images/radishes/misatorose.png", 
+                  "images/radishes/malaga.png", 
+                  "images/radishes/luobo.png", 
+                  "images/radishes/ladyslipper.png", 
+                  "images/radishes/helios.png", 
+                  "images/radishes/rattail.png"];
 
 const main = () => {
     console.log("index loaded!");
     setInterval(updateLoop, 1000); //1 second "tick" for now
 
-    // document.querySelector("#radishClick").addEventListener("click", onRadishClick);
     document.querySelector("#radishImg").addEventListener("click", onRadishClick);
 
     document.querySelector("#sellRadish").addEventListener("click", sellRadish.bind(null, 1));
     document.querySelector("#sellRadishTen").addEventListener("click", sellRadish.bind(null, 10));
     document.querySelector("#sellRadishHundred").addEventListener("click", sellRadish.bind(null, 100));
-    
-    const cardMap = generateMarket();
+    generateMarket();
     // TODO: Update values in cardMap (id -> struct) based on information stored about a user
-    // Only need to store number of upgrades since cost can be calculated from number
+    updateAllUI();
 };
 
 
 const onRadishClick = (event) => {
+    // powellModifier = 1 if no Powell, so just the same as a click
     let powellModifier = 1 + (hasPowell * Math.floor(farmerCount / FARMER_THRESHOLD));
-    radishCount += (1 + powellModifier); // If Powell is bought, click adds 1 more radish for every 100 farmers bought
-    radishCountNode.innerText = "Radishes: " + radishCount.toString();
-    // TODO: Animations?
+    radishCount += (powellModifier); // If Powell is bought, click adds 1 more radish for every 100 farmers bought
+    updateRadishCountUI(); 
+    radishAnimation();
+}
+
+function radishAnimation() {
+    // Animations referenced from https://stackoverflow.com/questions/69970533/create-a-1-animation-when-button-is-clicked
+    let clickAnimation = document.createElement("img");
+    let radishIdx;
+    if (farmCount + 1 > radishes.length) {
+        radishIdx = Math.floor(Math.random() * (radishes.length));
+    }
+    else {
+        radishIdx = Math.floor(Math.random() * (farmCount + 1));
+    }
+    clickAnimation.src = radishes[radishIdx];
+
+    clickAnimation.width = 50;
+    clickAnimation.height = 50;
+    document.getElementById("clickBox").appendChild(clickAnimation);
+    clickAnimation.classList.add("clickAnimation"); // Add the class that animates
+
 }
 
 //main event loop
@@ -75,10 +109,35 @@ const updateLoop = () => {
         priceFluctuationTimer = 0;
         changeRadishPrice();
     }
-    radishPerSecondNode.innerText = "Radishes/Sec: " + calcRadishPerSecond().toString();
-    radishPriceNode.innerText = "Price/Radish: $" + currentRadishPrice.toString();
-    radishCountNode.innerText = "Radishes: " + radishCount.toString();
+    updateRadishPerSecondUI();
+    updateRadishPriceUI();
+    updateRadishCountUI();
 };
+
+function updateAllUI() {
+    updateMoneyCountUI();
+    updateRadishPerSecondUI();
+    updateRadishPriceUI();
+    updateRadishCountUI();
+    updateMarketUI();
+    updatePriceRangeUI();
+}
+
+function updateMoneyCountUI() {
+    moneyCountNode.innerText = "$" + moneyCount.toFixed(2);
+}
+function updateRadishCountUI() {
+    radishCountNode.innerText = radishCount;
+}
+function updateRadishPerSecondUI() {
+    radishPerSecondNode.innerText = calcRadishPerSecond();
+}
+function updateRadishPriceUI() {
+    radishPriceNode.innerText = "$" + currentRadishPrice;
+}
+function updatePriceRangeUI() {
+    priceRangeNode.innerText = "$" + (priceMin / 100).toFixed(2) + "-$" + ((priceMax + lobsterCount * LOBSTER_GAIN) / 100).toFixed(2);
+}
 
 const calcRadishPerSecond = () =>{
     // Each taffy increases each individual farmer's RPS by 1
@@ -97,7 +156,7 @@ const calcRadishPerSecond = () =>{
 const changeRadishPrice = () => {
     let priceVariance = Math.floor(Math.random() * (priceMax - priceMin + 1)) + priceMin;
     priceVariance = priceVariance / 100;
-    currentRadishPrice = baseRadishPrice * priceVariance;
+    currentRadishPrice = (baseRadishPrice * priceVariance).toFixed(2);
 }
 
 const sellRadish = (amount) =>{
@@ -109,7 +168,8 @@ const sellRadish = (amount) =>{
     else {
         // TODO: Visual indicator for not being able to sell
     }
-    moneyCountNode.innerText = "Money: $" + moneyCount.toFixed(2);
+    updateRadishCountUI();
+    updateMoneyCountUI();
 }
 
 function marketCard(name, image, alt, description, initialCost, cost, count) {
@@ -122,36 +182,34 @@ function marketCard(name, image, alt, description, initialCost, cost, count) {
     this.count = count;
 }
 
-// TODO: Update values based on login info rather than hardcoding everything
 function generateCardArray() {
     let cardArray = [];
     cardArray.push(new marketCard("Farmer", "images/cat_farmer.png", "A drawing of a wide-eyed black cat wearing a tan farmer hat and overalls", 
-                                  "This cat works hard to help you farm MEOWntains of radishes.", 
+                                  "Works hard to help you farm MEOWntains of radishes. Each farmer contributes a base 1 RPS.", 
                                   INITIAL_FARMER_COST, INITIAL_FARMER_COST, INITIAL_COUNT_ZERO));
     cardArray.push(new marketCard("Farm", "images/farm.png", "A drawing of a three-row radish plot", 
-                                  "More fields of radishes! Along with increasing radish production, you also gain different radish varieties.", 
+                                  "More farms means more radishes. Each farm contributes a base 100 RPS.", 
                                   INITIAL_FARM_COST, INITIAL_FARM_COST, INITIAL_COUNT_ZERO));
-    cardArray.push(new marketCard("Charlie", "images/charlie.png", "A drawing of a gold-capped conure, a parkeet with a red head, black beak, and green body.", 
-                                  "(UNIQUE) Charlie's poop makes for great fertilizer! Your radishes can grow faster now if you feed Charlie almonds.", 
-                                  CHARLIE_COST, CHARLIE_COST, INITIAL_COUNT_ZERO));
     cardArray.push(new marketCard("Taffy", "images/taffy.png", "A drawing of an open candy wrapper with the text \'CAT-SAFE TAFFY\'. There is a tan piece of taffy sticking out.", 
-                                  "Taffy for cats! Your farmers are motivated to work harder now. Speeds up farmer's radishes/second.", 
-                                  INITIAL_TAFFY_COST, INITIAL_TAFFY_COST, INITIAL_COUNT_ZERO));
-    cardArray.push(new marketCard("Lobster", "images/lobster.png", "A drawing of a muted red lobster.", 
-                                  "Mysteriously, having more lobsters in the water you use increases radish quality. Raise the price maximum by $0.20 for each lobster you have.", 
-                                  INITIAL_LOBSTER_COST, INITIAL_LOBSTER_COST, INITIAL_COUNT_ZERO));
+                                "Motivates your farmers to work harder. Each taffy fed increases the farmer RPS multiplier by 1.", 
+                                INITIAL_TAFFY_COST, INITIAL_TAFFY_COST, INITIAL_COUNT_ZERO));
+    cardArray.push(new marketCard("Charlie", "images/charlie.png", "A drawing of a gold-capped conure, a parakeet with a red head, black beak, and green body.", 
+                                  "Charlie's poop makes for great fertilizer.", 
+                                  CHARLIE_COST, CHARLIE_COST, INITIAL_COUNT_ZERO));
     cardArray.push(new marketCard("Almond", "images/almond.png", "A drawing of an almond in its shell.", 
-                                  "Charlie loves cracking open almonds! Eating an almond will make Charlie's poop even better.", 
+                                  "Charlie loves cracking open almonds! Each almond Charlie eats increments the farm RPS multiplier by 1.", 
                                   INITIAL_ALMOND_COST, INITIAL_ALMOND_COST, INITIAL_COUNT_ZERO));
-    cardArray.push(new marketCard("Powell", "images/placeholder.png", "A black-and-white sketch of a wide-eyed black cat wearing a farmer hat and overalls.", 
-                                  "(UNIQUE) Grants a boon based on how many farmers you have.", 
+    cardArray.push(new marketCard("Lobster", "images/lobster.png", "A drawing of a muted red lobster.", 
+                                  "Mysteriously improves your radish quality. Each lobster increases the price maximum by $0.20.", 
+                                  INITIAL_LOBSTER_COST, INITIAL_LOBSTER_COST, INITIAL_COUNT_ZERO));
+    cardArray.push(new marketCard("Powell", "images/powell.png", "A drawing of the head of a black and white tuxedo cat, surrounded by blue flowers.", 
+                                  "Grows more powerful with more cats. Every 100 farmer increases both the total RPS and click multipliers by 1.", 
                                   POWELL_COST, POWELL_COST, INITIAL_COUNT_ZERO));
 
     return cardArray;
 }
 
-// TODO: update the descriptions to include the contribution to RPS (radishes/second)
-function buyUpgrade(cardId, cardMap) {
+function buyUpgrade(cardId) {
 
     // Updating variables using struct
     const cardStruct = cardMap.get(cardId);
@@ -161,31 +219,24 @@ function buyUpgrade(cardId, cardMap) {
         return;
     }
     moneyCount -= cost;
-    moneyCountNode.innerText = "Money: $" + moneyCount.toFixed(2);
+    updateMoneyCountUI();
 
     cardStruct.count += 1;
     // Check if unique
     switch (cardId) {
         case "Charlie":
             hasCharlie = true;
-            buyUniqueUpgrade("Charlie");
+            buyUniqueUpgrade("Charlie", hasCharlie);
             return;
         case "Powell":
             hasPowell = true;
-            buyUniqueUpgrade("Powell");
+            buyUniqueUpgrade("Powell", hasPowell);
             return;
         default:
             break;
     }
 
-    let newCost = calculateUpgradeCost(cardStruct.initialCost, cardStruct.count);
-    cardStruct.cost = newCost;
-
-    // Updating HTML using node
-    const cardNode = document.getElementById(cardId);
-    cardNode.querySelector(".upgrade_price").innerText = "Cost: $" + cardStruct.cost;
-    cardNode.querySelector(".upgrade_count").innerText = "Number: " + cardStruct.count;
-
+    updateUpgradeUI(cardId);
 
     switch(cardId) {
         case "Farmer":
@@ -200,6 +251,7 @@ function buyUpgrade(cardId, cardMap) {
         case "Lobster":
             lobsterCount += 1;
             priceMax += LOBSTER_GAIN;
+            updatePriceRangeUI();
             break;
         case "Almond":
             almondCount += 1;
@@ -207,20 +259,100 @@ function buyUpgrade(cardId, cardMap) {
         default:
             break;
     }
-    radishPerSecondNode.innerText = "Radishes/Sec: " + calcRadishPerSecond().toString();
+    updateRadishPerSecondUI();
 }
 
 function calculateUpgradeCost(initialCost, count) {
-    return Math.floor(initialCost * EXPONENT_BASE ** count);
+    return Math.floor(initialCost * EXPONENT_BASE ** (count));
 }
 
-function buyUniqueUpgrade(name) {
+function updateUpgradeUI(name) {
+    const cardStruct = cardMap.get(name);
+    const initialCost = cardStruct.initialCost;
+    const count = cardStruct.count;
+    const cardNode = document.getElementById(name);
+    let updatedCost = calculateUpgradeCost(initialCost, count);
+    cardNode.querySelector(".upgrade_price").innerText = "Cost: $" + updatedCost;
+    cardNode.querySelector(".upgrade_count").innerText = "Number: " + count;
+    cardStruct.cost = updatedCost;
+}
+
+// Could probably be one function w/ updateUpgradeUI if I implemented better
+// The one difference is that I need to get the global count variable here since that's what the db interacts with
+function resetUpgradeUI(name, count) {
+    const cardStruct = cardMap.get(name);
+    const initialCost = cardStruct.initialCost;
+    const cardNode = document.getElementById(name);
+    let updatedCost = calculateUpgradeCost(initialCost, count);
+    cardNode.querySelector(".upgrade_price").innerText = "Cost: $" + updatedCost;
+    cardNode.querySelector(".upgrade_count").innerText = "Number: " + count;
+    cardStruct.count = count;
+    cardStruct.cost = updatedCost;
+
+}
+
+function buyUniqueUpgrade(name, bought) {
+    updateUniqueUpgradeUI(name, bought);
+    updateRadishPerSecondUI();
+}
+
+function updateUniqueUpgradeUI(name, bought) {
     let upgrade = document.getElementById(name);
-    upgrade.querySelector(".buy_button").className = "bought_button";
-    upgrade.querySelector(".bought_button").innerText = "Bought";
-    upgrade.querySelector(".upgrade_price").innerText = "";
-    upgrade.querySelector(".upgrade_count").innerText = "";
-    radishPerSecondNode.innerText = "Radishes/Sec: " + calcRadishPerSecond().toString();
+    if (bought) {
+        upgrade.querySelector(".buy_button").className = "bought_button";
+        upgrade.querySelector(".bought_button").innerText = "Bought";
+        upgrade.querySelector(".upgrade_price").innerText = "";
+        upgrade.querySelector(".upgrade_count").innerText = "";
+    }
+    else {
+        upgrade.querySelector(".bought_button").className = "buy_button";
+        upgrade.querySelector(".buy_button").innerText = "Buy";
+        let cost;
+        switch(name) {
+            case "Charlie":
+                cost = CHARLIE_COST;
+                break;
+            case "Powell":
+                cost = POWELL_COST;
+                break;
+            default:
+                break;
+        }
+        upgrade.querySelector(".upgrade_price").innerText = "Cost: $" + cost;
+        upgrade.querySelector(".upgrade_count").innerText = "Number: 0";
+    }
+}
+
+// Very scuffed because of my having both the global variables and cardMap
+function updateMarketUI() {
+    for (const [name, struct] of cardMap) {
+        switch(name) {
+            case "Charlie":
+                updateUniqueUpgradeUI("Charlie", hasCharlie);
+                break;
+            case "Powell":
+                updateUniqueUpgradeUI("Powell", hasPowell);
+                break;
+            case "Farmer":
+                resetUpgradeUI("Farmer", farmerCount);
+                break;
+            case "Farm":
+                resetUpgradeUI("Farm", farmCount);
+                break;
+            case "Taffy":
+                resetUpgradeUI("Taffy", taffyCount);
+                break;
+            case "Lobster":
+                resetUpgradeUI("Lobster", lobsterCount);
+                break;
+            case "Almond":
+                resetUpgradeUI("Almond", almondCount);
+                break
+            default:
+                // Would love to make a default case that covers all of the other upgrades, but because of my bad implementation we can't
+                break;
+        }
+    }
 }
 
 function generateMarket() {
@@ -228,7 +360,6 @@ function generateMarket() {
     const marketNode = document.getElementById("market");
 
     let cardArray = generateCardArray();
-    let cardMap = new Map();
     for (let i = 0; i < cardArray.length; i++) {
         let clone = base.cloneNode(true);
         let card = cardArray[i];
@@ -249,10 +380,8 @@ function generateMarket() {
 
     let cards = document.getElementsByClassName("card");
     for (let card of cards) {
-        card.querySelector(".buy_button").addEventListener("click", function() {buyUpgrade(card.id, cardMap)});
+        card.querySelector(".buy_button").addEventListener("click", function() {buyUpgrade(card.id)});
     }
-
-    return cardMap;
 }
 
 //login/logout/etc stuff (done here because we set globals here)
@@ -351,15 +480,13 @@ async function handleForm(event) {
       }
       //do upgrades as needed
       //if we keep adding upgrades we maybe need to find a better method
-
-
-
       //swap which button is displayed
       logoutButton.style.display = "inline-block";
       loginButton.style.display = "none";
       setErrorText("");
       closeForm();
       loginForm.reset();
+      updateAllUI();
       alert("Login successful!");
     }
     catch(err){ //promise reject
@@ -380,6 +507,21 @@ function setErrorText(text){
 logoutButton.addEventListener('click', doLogout);
 async function doLogout(){
   try{
+    let upgrades_json = updateUpgradesJson();
+    await logoutAccount(_session_username, _session_id, radishCount, upgrades_json) 
+    //swap which button is displayed
+    logoutButton.style.display = "none";
+    loginButton.style.display = "inline-block";
+    resetVars();
+    updateAllUI();
+    alert("Logout Successful!");
+  }
+  catch{
+
+  }
+}
+
+function updateUpgradesJson() {
     let upgrades_json = {}
     upgrades_json["moneyCount"] = moneyCount;
     upgrades_json["farmerCount"] = farmerCount;
@@ -389,12 +531,11 @@ async function doLogout(){
     upgrades_json["almondCount"] = almondCount;
     upgrades_json["hasCharlie"] = hasCharlie;
     upgrades_json["hasPowell"] = hasPowell;
-    await logoutAccount(_session_username, _session_id, radishCount, upgrades_json) 
-    //swap which button is displayed
-    logoutButton.style.display = "none";
-    loginButton.style.display = "inline-block";
+    return upgrades_json;
+}
 
-    //reset ALL vars
+function resetVars() {
+    console.log("reset vars");
     radishCount = 0;
     moneyCount = 0;
     farmerCount = 0;
@@ -404,27 +545,10 @@ async function doLogout(){
     almondCount = 0;
     hasCharlie = false;
     hasPowell = false;
-    
-    alert("Logout Successful!");
-  }
-  catch{
-
-  }
+    priceMax = 1.25 * 100;
 }
-
 
 //force logout on window close
 window.addEventListener("beforeunload", doLogout);
-    
-
-
-
-
-
-
-
-
-
-
 
 main();

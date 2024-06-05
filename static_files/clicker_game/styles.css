@@ -11,21 +11,35 @@ html, body {
 h1 {
     color: black;
     font-family: cursive;
+    font-size: 10vh;
+}
+
+h2 {
+    font-family: cursive;
+    font-size: 4vh;
+}
+
+h3 {
+    font-size: 3vh;
 }
 
 p {
     color: black;
     font-family: cursive;
+    font-size: 2.5vh;
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain;
 }
 
 header {
     display: flex;
     flex-direction: row;
-    height: 15vh;
+    height: 20vh;
+    width: 100vw;
     background-color:#cde0a4; /* Light green */
-    justify-content: center;
+    justify-items: center;
     align-items: center;
-    padding: 1%;
 }
 
 #pageTitle {
@@ -38,11 +52,17 @@ header {
     width: 20%;
 }
 
+#loginHeaderArea {
+    width: 40%;
+    display: flex;
+    justify-content: center;
+}
+
 main {
     display: flex;
     flex-direction: row;
     flex: 1 1 auto;
-    height: 70vh;
+    height: 75vh;
 }
 
 #clickerColumn {
@@ -58,12 +78,22 @@ main {
     justify-content: center;
 }
 
+#radishImg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 #radishImg:hover {
     cursor: pointer;
 }
 
 #radishImg:active {
-    height: 95%;
+    scale: 0.95;
+}
+
+img:active {
+    scale: 1.1;
 }
 
 .column_title {
@@ -77,14 +107,37 @@ main {
 #statsColumn {
     width: 20%;
     background-color: bisque;
+    text-align: center;
 }
 
 #stats {
     display: flex;
     flex-direction: column;
-    align-items: left;
-    padding-left: 10%;
-    width: 80%;
+    align-items: center;
+    margin: 3.5%;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: white;
+}
+
+table {
+    text-align: center;
+    font-family: cursive;
+}
+
+th {
+    font-size: 2.75vh;
+}
+
+td {
+    font-size: 2.5vh;
+}
+
+#sellSection {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10%;
 }
 
 .sell_button {
@@ -97,6 +150,8 @@ main {
     display: inline-block;
     font-size: 16px;
     font-family: cursive;
+    width: 20%;
+    border-radius: 10px;
 }
 
 .sell_button:hover {
@@ -104,6 +159,7 @@ main {
     color: white;
     cursor: pointer;
 }
+
 
 #marketColumn {
     width: 40%;
@@ -123,12 +179,11 @@ main {
 }
 
 .card {
-    /* Hardcoded dimensions for now, should fill column width */
     display: flex;
     flex-direction: row;
-    width: 90%; 
-    height: 40vh; 
-    padding: 10px;
+    width: 95%; 
+    height: 30vh; 
+    padding-bottom: 10px;
     border: 1px solid black;
     border-radius: 10px;
     background-color: white;
@@ -144,7 +199,9 @@ main {
 }
 
 .upgrade_img {
-    height: 70%
+    height: 70%;
+    width: 70%;
+    object-fit: contain;
 }
 
 .buy_button {
@@ -157,6 +214,38 @@ main {
     font-size: large;
     height: 30%;
     width: 70%;
+}
+
+#loginButton {
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    color: black;
+    text-align: center;
+    font-family: cursive;
+    font-size: large;
+    padding: 10px;
+}
+
+#loginButton:hover {
+    background-color: bisque;
+    cursor: pointer;
+}
+
+.loginButton {
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    color: black;
+    text-align: center;
+    font-family: cursive;
+    font-size: large;
+    padding: 10px;
+}
+
+.loginButton:hover {
+    background-color: bisque;
+    cursor: pointer;
 }
 
 .buy_button:hover {
@@ -180,7 +269,8 @@ main {
 .right_col {
     display: flex;
     flex-direction: column;
-    margin-left:
+    margin-left: 5%;
+    margin-right: 5%;
     width: 65%;
 }
 
@@ -208,10 +298,16 @@ main {
 
 footer {
     font-family: cursive;
-    padding: 1%;
     text-align: center;
+    background-color: darkseagreen;
+    position: fixed;
+    height: 5vh;
+    width: 100vw;
 }
 
+#footerText {
+    font-size: 1.5vh;
+}
 
 /* hide logout button by default */
 #logoutButton{
@@ -289,14 +385,14 @@ footer {
 } 
 
 .btn-cancel:hover{
-  background-color: darkred;
+  background-color: #e96c6c; /* Radish red */
   color: white;
   cursor: pointer;  
 }
 
 /* for login fails and such */
 .error-messages{
-  color: red;
+  color:  #e96c6c; /* Radish red */
   margin-bottom:10px;
 }
 
@@ -309,3 +405,26 @@ footer {
   'GRAD' 0,
   'opsz' 24
 }
+
+#clickAnimation {
+    border: 1px solid;
+    width: 200px;
+    float: right;
+    position: relative; /* Added */
+  }
+  
+  @keyframes clickAnimation {
+    0% {
+      opacity: 1;
+      top: 50%;
+    }
+    100% {
+      opacity: 0;
+      top: 0%;
+    }
+  }
+  
+  .clickAnimation {
+    animation: clickAnimation 1s forwards;
+    position: absolute;
+  }
