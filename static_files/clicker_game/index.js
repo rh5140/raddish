@@ -1,3 +1,5 @@
+import { createAccount, loginAccount, logoutAccount } from "./login.js";
+
 // vars 
 let radishCount = 0; //temp
 let moneyCount = 0;
@@ -252,6 +254,138 @@ function generateMarket() {
 
     return cardMap;
 }
+
+//login/logout/etc stuff (done here because we set globals here)
+//Login/Register form code
+//form open/close
+const closeButton = document.getElementById('closeButton')
+const loginButton = document.getElementById('loginButton')
+const logoutButton = document.getElementById('logoutButton');
+
+loginButton.addEventListener('click', openForm);
+closeButton.addEventListener('click', closeForm);
+
+
+
+function openForm() {
+  document.getElementById("loginFormBox").style.display = "block";
+}
+
+function closeForm() {
+  document.getElementById("loginFormBox").style.display = "none";
+} 
+
+
+//form
+
+const loginForm = document.getElementById("loginForm");
+loginForm.addEventListener("submit", handleForm);
+
+let _session_id; //need to store this to log out
+let _session_username;
+
+async function handleForm(event) {
+  console.log(event.submitter.value);
+  event.preventDefault();
+  console.log(loginForm);
+  const { username, password } = loginForm.elements;
+  const userText = username.value.trim(); //removes whitespace at end
+  const userPass = password.value.trim();
+  if(event.submitter.value == "create"){
+    try{
+      await createAccount(userText, userPass);
+      let data = await loginAccount(userText, userPass);
+      console.log(data);
+      _session_username = userText;
+      _session_id = data.session_id;
+      //don't load radishes and other data since we JUST made the account
+      alert("Creation successful!");
+      setErrorText("");
+      //swap which button is displayed
+      logoutButton.style.display = "inline-block";
+      loginButton.style.display = "none";
+      //close and reset form
+      closeForm();
+      loginForm.reset();
+    }
+    catch(err){ //promise reject
+      setErrorText("Username already exists");
+      console.log(err);
+    }
+
+  }
+  else{
+    try{
+      let data = await loginAccount(userText, userPass);
+      console.log(data);
+      _session_username = userText;
+      _session_id = data.session_id;
+      //load data
+      console.log(data.radis)
+      if(data.radish_num){
+        radishCount = data.radish_num; //load radishes
+      }
+      //TODO for ray - load upgrades here
+      alert("Login successful!");
+      //swap which button is displayed
+      logoutButton.style.display = "inline-block";
+      loginButton.style.display = "none";
+      setErrorText("");
+      closeForm();
+      loginForm.reset();
+    }
+    catch(err){ //promise reject
+      setErrorText("Incorrect username/password");
+      console.log(err);
+    }
+
+  }
+}
+
+//login/create error
+const errorMessages = document.getElementById("loginFormError");
+function setErrorText(text){
+  errorMessages.innerHTML = text;
+}
+
+//logout button
+logoutButton.addEventListener('click', doLogout);
+async function doLogout(){
+  try{
+    await logoutAccount(_session_username, _session_id, radishCount, {}) //TODO for ray: put the upgrades here
+    alert("Logout Successful!");
+    //swap which button is displayed
+    logoutButton.style.display = "none";
+    loginButton.style.display = "inline-block";
+
+    //reset ALL vars
+    radishCount = 0;
+    moneyCount = 0;
+    farmerCount = 0;
+    farmCount = 0;
+    taffyCount = 0;
+    lobsterCount = 0;
+    almondCount = 0;
+    hasCharlie = false;
+    hasPowell = false;
+  }
+  catch{
+
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 main();

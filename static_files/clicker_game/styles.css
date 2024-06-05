@@ -38,11 +38,6 @@ header {
     width: 20%;
 }
 
-#loginForm {
-    width: 40%;
-    padding: 20px;
-}
-
 main {
     display: flex;
     flex-direction: row;
@@ -217,18 +212,10 @@ footer {
     text-align: center;
 }
 
-/* Button used to open the contact form - fixed at the bottom of the page */
-.open-button {
-  background-color: #555;
-  color: white;
-  padding: 16px 20px;
-  border: none;
-  cursor: pointer;
-  opacity: 0.8;
-  position: fixed;
-  bottom: 23px;
-  right: 28px;
-  width: 280px;
+
+/* hide logout button by default */
+#logoutButton{
+    display: none;
 }
 
 /* The popup form - hidden by default */
@@ -238,7 +225,7 @@ footer {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  border: 3px solid #f1f1f1;
+  border: 3px solid darkseagreen;
   z-index: 9;
 }
 
@@ -285,10 +272,12 @@ footer {
 .btn-cancel {
     font-family: cursive;
     position: absolute;
-    background: rgb(214, 31, 31);
+    background: white;
     color: black;
-    top: -10px;
-    right: -10px;
+    padding: 3px;
+    top: 10px;
+    right: 10px;
+    border: 0px;
 }
 
 
@@ -312,3 +301,11 @@ footer {
 }
 
 
+
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 0,
+  'wght' 400,
+  'GRAD' 0,
+  'opsz' 24
+}

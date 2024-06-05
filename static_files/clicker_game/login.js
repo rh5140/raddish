@@ -14,7 +14,7 @@ function json(response) {
   return response.json()
 }
 
-const createAccount = async (_username, _password) => {
+export const createAccount = async (_username, _password) => {
   return new Promise(function (fulfill, reject){
     let bodyString =  JSON.stringify({
       username : _username,
@@ -42,7 +42,7 @@ const createAccount = async (_username, _password) => {
 }
 
 
-const loginAccount = async (_username, _password) => {
+export const loginAccount = async (_username, _password) => {
   let bodyString =  JSON.stringify({
     username : _username,
     password : _password,
@@ -71,7 +71,7 @@ const loginAccount = async (_username, _password) => {
 }
 
 
-const logoutAccount = async (_username, _session_id, _radish_num, _upgrades) => {
+export const logoutAccount = async (_username, _session_id, _radish_num, _upgrades) => {
   console.log(_username);
   let bodyStr = JSON.stringify({
     username: _username,
@@ -103,89 +103,3 @@ const logoutAccount = async (_username, _session_id, _radish_num, _upgrades) => 
 
 
 
-//Login/Register form code
-//form open/close
-document.getElementById('loginButton').addEventListener('click', openForm);
-document.getElementById('closeButton').addEventListener('click', closeForm);
-
-function openForm() {
-  document.getElementById("loginFormBox").style.display = "block";
-}
-
-function closeForm() {
-  document.getElementById("loginFormBox").style.display = "none";
-} 
-
-
-//form
-
-const loginForm = document.getElementById("loginForm");
-loginForm.addEventListener("submit", handleForm);
-
-let _session_id; //need to store this to log out
-let _session_username;
-
-async function handleForm(event) {
-  console.log(event.submitter.value);
-  event.preventDefault();
-  console.log(loginForm);
-  const { username, password } = loginForm.elements;
-  const userText = username.value.trim(); //removes whitespace at end
-  const userPass = password.value.trim();
-  if(event.submitter.value == "create"){
-    try{
-      await createAccount(userText, userPass);
-      let data = await loginAccount(userText, userPass);
-      console.log(data);
-      _session_username = userText;
-      _session_id = data.session_id;
-      alert("Creation successful!");
-      setErrorText("");
-      closeForm();
-      loginForm.reset();
-    }
-    catch(err){ //promise reject
-      setErrorText("Username already exists");
-      console.log(err);
-    }
-
-  }
-  else{
-    try{
-      let data = await loginAccount(userText, userPass);
-      console.log(data);
-      _session_username = userText;
-      _session_id = data.session_id;
-      alert("Login successful!");
-      setErrorText("");
-      closeForm();
-      loginForm.reset();
-    }
-    catch(err){ //promise reject
-      setErrorText("Incorrect username/password");
-      console.log(err);
-    }
-
-  }
-}
-
-
-const errorMessages = document.getElementById("loginFormError");
-function setErrorText(text){
-  errorMessages.innerHTML = text;
-}
-
-
-
-//logout button
-document.getElementById('logoutButton').addEventListener('click', doLogout);
-
-async function doLogout(){
-  try{
-    await logoutAccount(_session_username, _session_id, 0, {}) //todo: get the other numbers]
-    alert("Logout Successful!");
-  }
-  catch{
-
-  }
-}
