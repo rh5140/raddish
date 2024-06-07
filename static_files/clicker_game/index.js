@@ -504,7 +504,19 @@ function setErrorText(text){
 }
 
 //logout button
-logoutButton.addEventListener('click', doLogout);
+logoutButton.addEventListener('click', doLogoutAlert);
+
+async function doLogoutAlert(){
+  try{
+    if(await doLogout()){
+      alert("Logout Successful!");
+    }
+  }
+  catch(err){
+
+  }
+}
+
 async function doLogout(){
   try{
     let upgrades_json = updateUpgradesJson();
@@ -546,7 +558,15 @@ function resetVars() {
     hasCharlie = false;
     hasPowell = false;
     priceMax = 1.25 * 100;
+    return true;
+  }
+  catch{
+    return false;
+  }
 }
+
+
+
 
 //force logout on window close
 window.addEventListener("beforeunload", doLogout);
