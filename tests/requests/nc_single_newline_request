@@ -1,1 +1,0 @@
-cat strings/nc_single_newline_string | nc -q 0 

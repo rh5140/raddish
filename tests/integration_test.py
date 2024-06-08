@@ -65,6 +65,58 @@ class local_tests(webserver_fixture):
         assert list_response.text == f'[{json_response["id"]}]'
         delete_response = requests.request('DELETE', f'{self.url}/api/Test/{json_response["id"]}')
         assert delete_response.status_code == 200
+    
+    def test_echo(self):
+        echo_response = requests.request('GET', f'{self.url}/echo', data="")
+        assert echo_response.status_code == 200
+        assert echo_response.headers['content-type'] == 'text/plain'
+        echo_path_response = requests.request('GET', f'{self.url}/echo/dot', data="")
+        assert echo_path_response.status_code == 200
+        assert echo_path_response.headers['content-type'] == 'text/plain'
+        echo_dummy_data_response = requests.request('GET', f'{self.url}/echo', data="dummy data")
+        assert echo_dummy_data_response.status_code == 200
+        assert echo_dummy_data_response.headers['content-type'] == 'text/plain'
+
+    def test_health(self):
+        echo_response = requests.request('GET', f'{self.url}/health', data="")
+        assert echo_response.status_code == 200
+
+    def test_file(self):
+        plaintext_response = requests.request('GET', f'{self.url}/text/lobster.txt', data="")
+        assert plaintext_response.status_code == 200
+        assert plaintext_response.text == "lobster"
+        assert plaintext_response.headers['content-type'] == 'text/plain'
+        plaintext_dummy_data_response = requests.request('GET', f'{self.url}/text/lobster.txt', data="dummy data")
+        assert plaintext_dummy_data_response.status_code == 200
+        assert plaintext_dummy_data_response.text == "lobster"
+        assert plaintext_dummy_data_response.headers['content-type'] == 'text/plain'
+        html_response = requests.request('GET', f'{self.url}/clicker_game/index.html', data="")
+        assert html_response.status_code == 200
+        assert html_response.headers['content-type'] == 'text/html'
+        jpeg_response = requests.request('GET', f'{self.url}/images/charlie.jpg', data="")
+        assert jpeg_response.status_code == 200
+        assert jpeg_response.headers['content-type'] == 'image/jpeg'
+        png_response = requests.request('GET', f'{self.url}/clicker_game/images/radish.png', data="")
+        assert png_response.status_code == 200
+        assert png_response.headers['content-type'] == 'image/png'
+        pdf_response = requests.request('GET', f'{self.url}/applications/Cards_v1.pdf', data="")
+        assert pdf_response.status_code == 200
+        assert pdf_response.headers['content-type'] == 'application/pdf'
+        zip_response = requests.request('GET', f'{self.url}/applications/FizzBuzz_Final.zip', data="")
+        assert zip_response.status_code == 200
+        assert zip_response.headers['content-type'] == 'application/zip'
+        css_response = requests.request('GET', f'{self.url}/clicker_game/styles.css', data="")
+        assert css_response.status_code == 200
+        assert css_response.headers['content-type'] == 'text/css'
+        js_response = requests.request('GET', f'{self.url}/clicker_game/index.js', data="")
+        assert js_response.status_code == 200
+        assert js_response.headers['content-type'] == 'text/javascript'
+        dne_response = requests.request('GET', f'{self.url}/text/DNE', data="")
+        assert dne_response.status_code == 404
+
+    def test_not_found(self):
+        not_found_response = requests.request('GET', f'{self.url}/', data="")
+        assert not_found_response.status_code == 404
 
     def test_multithreaded(self):
         block_time = []

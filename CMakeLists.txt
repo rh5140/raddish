@@ -130,12 +130,7 @@ add_executable(blocking_handler_test tests/blocking_handler_test.cc)
 target_link_libraries(blocking_handler_test handler_factory_lib $<TARGET_OBJECTS:echo_handler_lib> $<TARGET_OBJECTS:blocking_handler_lib> handler_lib gtest_main Boost::log)
 
 
-# add and link integration test executable
 string(TOLOWER "${CMAKE_BUILD_TYPE}" LOWER_CMAKE_BUILD_TYPE)
-if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
-    add_executable(integration_test tests/integration_test.cc)
-    target_link_libraries(integration_test gtest_main)
-endif()
 
 # Python integration test stuff
 # Essentially this is automating the collection of tests. Any function (method or not)
@@ -181,11 +176,6 @@ gtest_discover_tests(crud_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_
 gtest_discover_tests(health_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(blocking_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 gtest_discover_tests(game_handler_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-
-# ignore integration tests if running for coverage
-if(NOT "${LOWER_CMAKE_BUILD_TYPE}" STREQUAL "coverage")
-    gtest_discover_tests(integration_test WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-endif()
 
 include(cmake/CodeCoverageReportConfig.cmake)
 

@@ -1,1 +1,0 @@
-curl -s -H Host: -H "Connection: close" -X GET 

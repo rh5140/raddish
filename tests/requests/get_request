@@ -1,1 +1,0 @@
-curl -s -d "Hello World" -X GET 
