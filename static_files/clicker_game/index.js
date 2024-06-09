@@ -66,7 +66,7 @@ const main = () => {
 
     document.querySelector("#sellRadish").addEventListener("click", sellRadish.bind(null, 1));
     document.querySelector("#sellRadishTen").addEventListener("click", sellRadish.bind(null, 10));
-    document.querySelector("#sellRadishHundred").addEventListener("click", sellRadish.bind(null, 100));
+    document.querySelector("#sellRadishMax").addEventListener("click", sellRadish.bind(null, -1));
     generateMarket();
     // TODO: Update values in cardMap (id -> struct) based on information stored about a user
     updateAllUI();
@@ -160,7 +160,9 @@ const changeRadishPrice = () => {
 }
 
 const sellRadish = (amount) =>{
-    console.log(amount);
+    if(amount == -1){
+        amount = radishCount;
+    }
     if(radishCount >= amount){
         radishCount -= amount;
         moneyCount += amount * currentRadishPrice;
@@ -305,21 +307,24 @@ function updateUniqueUpgradeUI(name, bought) {
         upgrade.querySelector(".upgrade_count").innerText = "";
     }
     else {
-        upgrade.querySelector(".bought_button").className = "buy_button";
-        upgrade.querySelector(".buy_button").innerText = "Buy";
-        let cost;
-        switch(name) {
-            case "Charlie":
-                cost = CHARLIE_COST;
-                break;
-            case "Powell":
-                cost = POWELL_COST;
-                break;
-            default:
-                break;
+        let bbutton = upgrade.querySelector(".bought_button");
+        if(bbutton){
+            bbutton.className = "buy_button";
+            upgrade.querySelector(".buy_button").innerText = "Buy";
+            let cost;
+            switch(name) {
+                case "Charlie":
+                    cost = CHARLIE_COST;
+                    break;
+                case "Powell":
+                    cost = POWELL_COST;
+                    break;
+                default:
+                    break;
+            }
+            upgrade.querySelector(".upgrade_price").innerText = "Cost: $" + cost;
+            upgrade.querySelector(".upgrade_count").innerText = "Number: 0";
         }
-        upgrade.querySelector(".upgrade_price").innerText = "Cost: $" + cost;
-        upgrade.querySelector(".upgrade_count").innerText = "Number: 0";
     }
 }
 
@@ -414,9 +419,9 @@ let _session_id; //need to store this to log out
 let _session_username;
 
 async function handleForm(event) {
-  console.log(event.submitter.value);
+  //console.log(event.submitter.value);
   event.preventDefault();
-  console.log(loginForm);
+  //console.log(loginForm);
   const { username, password } = loginForm.elements;
   const userText = username.value.trim(); //removes whitespace at end
   const userPass = password.value.trim();
@@ -424,7 +429,7 @@ async function handleForm(event) {
     try{
       await createAccount(userText, userPass);
       let data = await loginAccount(userText, userPass);
-      console.log(data);
+      //console.log(data);
       _session_username = userText;
       _session_id = data.session_id;
       //don't load radishes and other data since we JUST made the account
@@ -441,19 +446,17 @@ async function handleForm(event) {
       setErrorText("Username already exists");
       console.log(err);
     }
-
   }
   else{
     try{
       let data = await loginAccount(userText, userPass);
-      console.log(data);
+      //console.log(data);
       _session_username = userText;
       _session_id = data.session_id;
       //load data
       if(data.radish_num){
         radishCount = data.radish_num; //load radishes
       }
-
       if(data.upgrades.moneyCount){
         moneyCount = data.upgrades.moneyCount;
       }
@@ -526,10 +529,10 @@ async function doLogout(){
     loginButton.style.display = "inline-block";
     resetVars();
     updateAllUI();
-    alert("Logout Successful!");
+    return true;
   }
   catch{
-
+    return false;
   }
 }
 
@@ -559,10 +562,6 @@ function resetVars() {
     hasPowell = false;
     priceMax = 1.25 * 100;
     return true;
-  }
-  catch{
-    return false;
-  }
 }
 
 
