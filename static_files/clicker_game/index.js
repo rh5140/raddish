@@ -190,7 +190,7 @@ function generateCardArray() {
                                   "Works hard to help you farm MEOWntains of radishes. Each farmer contributes a base 1 RPS.", 
                                   INITIAL_FARMER_COST, INITIAL_FARMER_COST, INITIAL_COUNT_ZERO));
     cardArray.push(new marketCard("Farm", "images/farm.png", "A drawing of a three-row radish plot", 
-                                  "More farms means more radishes. Each farm contributes a base 100 RPS.", 
+                                  "More farms means more radishes. Each farm contributes a base 10 RPS.", 
                                   INITIAL_FARM_COST, INITIAL_FARM_COST, INITIAL_COUNT_ZERO));
     cardArray.push(new marketCard("Taffy", "images/taffy.png", "A drawing of an open candy wrapper with the text \'CAT-SAFE TAFFY\'. There is a tan piece of taffy sticking out.", 
                                 "Motivates your farmers to work harder. Each taffy fed increases the farmer RPS multiplier by 1.", 
