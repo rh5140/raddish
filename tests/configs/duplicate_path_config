@@ -1,8 +1,0 @@
-  port   8080;
-
-  location / FileRequestHandler {
-  }
-
-  location / EchoRequestHandler {
-    root /forimages/blah;
-  }

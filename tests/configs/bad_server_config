@@ -1,3 +1,0 @@
-server {
-  donotlisten   8080;
-}
